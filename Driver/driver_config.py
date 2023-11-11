@@ -17,9 +17,17 @@ def driver_setup():
     options.add_argument("--log-level=3")
     # Set a random user agent
     options.add_argument(f"user-agent={random.choice(Config.USER_AGENTS)}")
+    # Adding argument to disable the AutomationControlled flag 
+    options.add_argument("--disable-blink-features=AutomationControlled")
+    # Exclude the collection of enable-automation switches 
+    options.add_experimental_option("excludeSwitches", ["enable-automation"]) 
+    # Turn-off userAutomationExtension 
+    options.add_experimental_option("useAutomationExtension", False) 
     # ChromeDriverManager will install the latest version of ChromeDriver
     driver = webdriver.Chrome(service=Service(
         ChromeDriverManager().install()), options=options)
+    # Changing the property of the navigator value for webdriver to undefined 
+    driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
     # put the browser in focus
     driver.switch_to.window(driver.current_window_handle)
     return driver

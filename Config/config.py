@@ -10,7 +10,7 @@ class Config:
     DATABASE_LOG_PATH = "./Logs/Database.log" # Path to the log file
 
     ##############################
-    #        mangadownload.py    #
+    #        animewatch.py    #
     #        constants           #
     ##############################
     UK_FLAG = 'https://mangadex.org/img/flags/gb.svg' # UK flag URL (used to check if the manga is available in English)
@@ -34,6 +34,7 @@ class Config:
     MANGA_DOWNLOAD_LOG_PATH = "./Logs/MangaDownload.log" # Path to the log file
     UNLOADED_SUB_DIV = ".unloaded.mx-auto" # Class name of the unloaded sub div
     
+    ANIME_WATCH_LOG_PATH = "./Logs/AnimeWatch.log" # Path to the log file
 
     ##############################
     #        mangafetch.py       #

@@ -183,7 +183,7 @@ def create_regex_pattern(input):
     """
     return re.compile(f".*{re.escape(input)}.*", re.IGNORECASE)
 
-def find_mangas(input):
+def find_anime(input):
     """
     Finds mangas in the "Manga" database that match the given input.
 
@@ -202,46 +202,17 @@ def find_mangas(input):
         collection = connect_collection_db()
 
         # Use the regex pattern in the query to find matching documents and return only the title, link, status and desc fields
-        mangas_cursor = collection.find(
+        anime_cursor = collection.find(
             {'title': {'$regex': pattern}},
-            {'_id': 0, 'title': 1, 'link': 1, 'status': 1, 'desc': 1}
+            {'_id': 0, 'title': 1, 'url': 1, 'image_url': 1, 'episodes': 1}
         )
 
         # Convert the cursor to a list
-        mangas = list(mangas_cursor)
+        animes = list(anime_cursor)
 
-        return mangas  # Return the list of matching documents
+        return animes  # Return the list of matching documents
     except Exception as e:
         logger.error(f"Error in find_mangas: {e}")
         return None
 
 
-def remove_doujinshi():
-    """
-    Removes all entries from the "Manga" database's "Collection" collection that have a title
-    including the word "doujinshi". Doujinshi is a genre of manga that is fan-made and not officially
-    published, and will not be downloaded by this program.
-
-    Returns:
-        None
-    """
-    try:
-        # Connect to the "Manga" database and "Collection" collection
-        collection = connect_collection_db()
-
-        # Find all titles including "doujinshi"
-        doujinshi_entries = collection.find(
-            {'title': re.compile(r'doujinshi', re.IGNORECASE)},
-            {'_id': 0, 'title': 1}
-        )
-
-        # Extract titles from the result
-        titles_to_remove = [entry['title'] for entry in doujinshi_entries]
-
-        # Delete all entries with titles including "doujinshi"
-        collection.delete_many({'title': {'$in': titles_to_remove}})
-
-        logger.info(
-            f"Deleted {len(titles_to_remove)} entries with 'doujinshi' genre.")
-    except Exception as e:
-        logger.error(f"Error in remove_doujinshi: {e}")

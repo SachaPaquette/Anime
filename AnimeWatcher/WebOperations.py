@@ -9,7 +9,7 @@ from selenium.common.exceptions import ElementClickInterceptedException, NoSuchE
 from dotenv import load_dotenv
 import time
 import requests
-from database import find_mangas
+
 from Config.config import Config
 import re
 import json
@@ -117,4 +117,13 @@ class AnimeInteractions:
             return anime_data_array
         except Exception as e:
             logger.error(f"Error while getting anime data: {e}")
+            raise
+        
+    def get_anime_video_player(self, anime_url):
+        try:
+            self.web_interactions.naviguate(anime_url)
+            video_player = self.web_interactions.find_single_element(By.ID, 'iframe_ext82377')
+            return video_player.get_attribute('src')
+        except Exception as e:
+            logger.error(f"Error while getting anime video player: {e}")
             raise
