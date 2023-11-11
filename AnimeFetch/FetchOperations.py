@@ -9,6 +9,7 @@ from Config.config import Config
 from Config.logs_config import setup_logging
 from Driver.driver_config import driver_setup
 from AnimeWatcher.WebOperations import WebInteractions, AnimeInteractions
+from database import connect_collection_db, insert_anime_to_db, create_index
 
 logger = setup_logging('anime_fetch', Config.MANGA_FETCH_LOG_PATH)
 
@@ -17,16 +18,7 @@ class AnimeFetch:
         self.web_interactions = web_interactions if web_interactions else WebInteractions()
         self.anime_interactions = anime_interactions if anime_interactions else AnimeInteractions()
         
-    def format_anime_url(self, page_number):
-        """Function to format the anime URL with the page number
 
-        Args:
-            page_number (int): The page number
-
-        Returns:
-            string: The formatted anime URL
-        """
-        return Config.ANIME_SITE_BASE_URL.format(page_number)
     
     
     
@@ -73,16 +65,27 @@ class AnimeFetch:
         """
         return self.get_user_confirmation(
         "Do you want to add anime names to the database? (Y/n): ", default="y")
+        
+    def fetch_all_anime_data(self):
+        try:
+            for page_number in range(1, Config.TOTAL_PAGES + 1):
+
+                manga = self.anime_interactions.find_anime_cards(page_number)
+                anime_data = self.anime_interactions.get_anime_page_data(manga)
+                insert_anime_to_db(anime_data)
+        except Exception as e:
+            self.handle_unexpected_exception(logger, e)  # Handle unexpected exceptions
+            
     
     def main(self):
-        driver = None  # Initialize the driver variable
+        
         try:
-            self.handle_user_confirmation()  # Get user confirmation
-            # Set up the driver if needed
+            user_input = self.handle_user_confirmation()  # Get user confirmation
+            if user_input == "n":  # If the user enters 'n', exit the program
+                print("Exiting...")
+                return
             
-            # Perform the main workflow (fetching and inserting mangas)
-            
-
+            self.fetch_all_anime_data()
         except Exception as e:
             self.handle_unexpected_exception(logger, e)  # Handle unexpected exceptions
         except KeyboardInterrupt:

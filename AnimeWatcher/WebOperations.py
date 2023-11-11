@@ -63,8 +63,22 @@ class WebInteractions:
                 return element.find_elements(by=by_type, value=value)
             else:
                 return self.driver.find_elements(by=by_type, value=value)
-            
-class AnimeInteractions:           
+    
+    def format_anime_url(self, page_number):
+        """Function to format the anime URL with the page number
+
+        Args:
+            page_number (int): The page number
+
+        Returns:
+            string: The formatted anime URL
+        """
+        return Config.ANIME_SITE_BASE_URL.format(page_number)     
+       
+class AnimeInteractions:
+    def __init__(self, web_interactions):
+        self.web_interactions = web_interactions
+                  
     def find_anime_cards(self, page_number):
             """Function to find the anime cards on the page
 
@@ -74,11 +88,33 @@ class AnimeInteractions:
             Returns:
                 list: A list of anime cards
             """
-            # Navigate to the anime page
-            self.web_interactions.naviguate(self.format_anime_url(page_number))
-            # Find the anime cards
-            anime_list = self.web_interactions.find_single_element(
-                By.CLASS_NAME, Config.ANIME_CARDS)
-            anime_cards = self.web_interactions.find_multiple_elements(
-                By.CLASS_NAME, Config.ANIME_CARDS, anime_list)
-            return anime_cards
+            try:
+                # Navigate to the anime page
+                self.web_interactions.naviguate(self.web_interactions.format_anime_url(page_number))
+                # Find the anime cards
+                anime_list = self.web_interactions.find_single_element(
+                    By.CLASS_NAME, Config.ANIME_LIST)
+                anime_cards = self.web_interactions.find_multiple_elements(
+                    By.CLASS_NAME, Config.ANIME_CARDS, anime_list)
+                return anime_cards
+            except Exception as e:
+                logger.error(f"Error while finding anime cards: {e}")
+                raise  # Re-raise the exception to stop further execution
+            
+        
+    def get_anime_page_data(self, anime_cards):
+        try:
+            
+            anime_data_array = []
+            
+            for anime_card in anime_cards:
+                anime_data = {}
+                anime_data['title'] = anime_card.find_element(By.CLASS_NAME, 'name').text
+                anime_data['url'] = anime_card.find_element(By.CLASS_NAME, 'name').get_attribute('href')
+                anime_data['image_url'] = anime_card.find_element(By.CLASS_NAME, 'poster').find_element(By.TAG_NAME, 'img').get_attribute('src')
+                anime_data['episodes'] = anime_card.find_element(By.CLASS_NAME, 'ep').text.strip().replace('Ep ', '')
+                anime_data_array.append(anime_data)
+            return anime_data_array
+        except Exception as e:
+            logger.error(f"Error while getting anime data: {e}")
+            raise
