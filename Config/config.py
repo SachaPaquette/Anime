@@ -54,3 +54,12 @@ class Config:
     MANGA_FETCH_LOG_PATH = "./Logs/MangaFetch.log" # Path to the log file
     ANIME_LIST = "film-list" # Class name of the anime list
     ANIME_CARDS = "item" # Class name of the anime cards
+
+    ##############################
+    #        driver_config.py       #
+    
+    
+    CRX_PATH = "./Extensions/uBlock-origin.crx" # Path to the AdBlock extension
+    EXTENSION_PATH = r"D:\school\ECOLE\PERSONAL\Anime\Extensions\uBlock"
+    # proxy list
+    PROXY_LIST = []

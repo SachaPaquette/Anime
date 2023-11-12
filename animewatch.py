@@ -16,4 +16,5 @@ if __name__ == "__main__":
         anime_watch.main()
     except Exception as e:
         logger.error(f"Unexpected exception: {e}")
+        web_interactions.cleanup()
         raise  # Re-raise the exception to stop further execution

@@ -64,6 +64,26 @@ class WebInteractions:
             else:
                 return self.driver.find_elements(by=by_type, value=value)
     
+    def click_on_element(self, element):
+        """Function to click on an element
+
+        Args:
+            element (WebElement): The element to click on
+        """
+        try:
+            element.click()
+        except ElementClickInterceptedException:
+            # Scroll to the element
+            self.driver.execute_script("arguments[0].scrollIntoView();", element)
+            # Click on the element again
+            element.click()
+        except Exception as e:
+            logger.error(f"Error while clicking on element: {e}")
+            raise  # Re-raise the exception to stop further execution
+        
+    
+    
+    
     def format_anime_url(self, page_number):
         """Function to format the anime URL with the page number
 

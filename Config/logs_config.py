@@ -1,5 +1,5 @@
 import logging
-
+import json
 def setup_logging(logger_name, log_file):
     logger = logging.getLogger(logger_name) # Create a logger
     logger.setLevel(logging.INFO) # Set the log level to INFO of the logger
@@ -13,3 +13,7 @@ def setup_logging(logger_name, log_file):
     logger.addHandler(file_handler) # Add the file handler to the logger
 
     return logger
+
+def process_browser_log_entry(entry):
+    response = json.loads(entry['message'])['message']
+    return response

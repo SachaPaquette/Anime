@@ -2,7 +2,10 @@
 __pycache__/
 *.py[cod]
 *$py.class
-
+!Logs/.gitkeep
+!Extensions/.gitkeep
+Logs/*
+Extensions/*
 # C extensions
 *.so
 
