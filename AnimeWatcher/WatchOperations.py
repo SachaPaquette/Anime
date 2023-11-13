@@ -15,6 +15,8 @@ from AnimeWatcher.FileOperations import FileOperations
 import json
 from bs4 import BeautifulSoup
 import requests
+from requests.adapters import HTTPAdapter, Retry
+from Cryptodome.Cipher import AES
 
 logger = setup_logging('anime_watch', Config.ANIME_WATCH_LOG_PATH)
 class Colors:
@@ -26,14 +28,33 @@ class AnimeWatch:
         self.anime_interactions = anime_interactions if anime_interactions else AnimeInteractions()
         self.file_operations = FileOperations()
         
-      
+        self.session = requests.Session()
+        retry = Retry(connect=3, backoff_factor=0.5)
+        adapter = HTTPAdapter(max_retries=retry)
+        self.session.mount("http://", adapter)
+        self.session.mount("https://", adapter)
+        self.ajax_url = "/encrypt-ajax.php?"
+        self.enc_key_api = "https://raw.githubusercontent.com/justfoolingaround/animdl-provider-benchmarks/master/api/gogoanime.json"
+        self.mode = AES.MODE_CBC
+        self.size = AES.block_size
+        self.padder = "\x08\x0e\x03\x08\t\x03\x04\t"
+        self.pad = lambda s: s + chr(len(s) % 16) * (16 - len(s) % 16)
     def naviguate_fetch_episodes(self, url):
         try:
             self.web_interactions.naviguate(url)
             # find the episode list
-            prompt = self.anime_interactions.get_number_episodes()
-            
-            return prompt 
+            start_episode, max_episode = self.anime_interactions.get_number_episodes()
+            prompt = input(f"Enter the episode you want to start watching between {start_episode}-{max_episode} (or 0 to exit): ")
+            if prompt == '0':
+                print("Exiting...")
+                return
+            if prompt.isdigit() and start_episode <= int(prompt) <= max_episode:
+                anime_name = self.anime_interactions.format_anime_name_url(url)
+                self.web_interactions.naviguate(self.anime_interactions.format_episode_link(prompt, anime_name))
+                self.embed_url(self.anime_interactions.format_episode_link(prompt, anime_name))
+            else:
+                print("Invalid input. Please enter a valid episode.")
+                self.naviguate_fetch_episodes(url)
             #self.logs_of_webdriver(self.web_interactions.driver)
         except Exception as e:
             logger.error(f"Error while navigating to {url}: {e}")
@@ -50,14 +71,14 @@ class AnimeWatch:
             print(f"Error while locating {element} in {link}")
             raise Exception(f"Error while locating {element} in {link}")
         
-    def embed_url(self):
-        r = self.session.get(self.entry.ep_url)
-        self.response_err(r, self.entry.ep_url)
+    def embed_url(self, ep_url):
+        r = self.session.get(ep_url)
+        self.response_err(r, ep_url)
         soup = BeautifulSoup(r.content, "html.parser")
         link = soup.find("a", {"class": "active", "rel": "1"})
-        self.loc_err(link, self.entry.ep_url, "embed-url")
-        self.entry.embed_url = f'https:{link["data-video"]}' if not link["data-video"].startswith("https:") else link["data-video"]
-        print("entry", self.entry.embed_url)
+        self.loc_err(link, ep_url, "embed-url")
+        ep_url = f'https:{link["data-video"]}' if not link["data-video"].startswith("https:") else link["data-video"]
+        print("entry", ep_url)
 
         
     def logs_of_webdriver(self, driver):

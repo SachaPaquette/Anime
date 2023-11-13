@@ -161,11 +161,18 @@ class AnimeInteractions:
     def get_number_episodes(self):
         try:
             episodes_body = self.web_interactions.find_single_element(By.CLASS_NAME, 'anime_video_body')
+            if episodes_body is None:
+                raise Exception("Episodes list not found")
+            
             episodes = self.web_interactions.find_single_element(By.ID, 'episode_page', element=episodes_body)
-
+            if episodes is None:
+                raise Exception("Episodes not found")
+            
             # Find all <li> elements
             li_elements = episodes.find_elements(By.CSS_SELECTOR, 'li')
-
+            if li_elements is None:
+                raise Exception("Episodes list not found")
+            
             # Initialize variables to track min and max values
             min_start = float('inf')  # set to positive infinity
             max_end = float('-inf')  # set to negative infinity
@@ -179,19 +186,36 @@ class AnimeInteractions:
                 min_start = min(min_start, ep_start)
                 max_end = max(max_end, ep_end)
 
-            print(f"Total Episode Range: {min_start}-{max_end}")
-            return f"Select an episode between {min_start + 1} and {max_end}: \n"
+            
+            return min_start + 1, max_end
 
         except Exception as e:
             logger.error(f"Error while getting number of episodes: {e}")
             raise
 
+    def format_anime_name_url(self, url):
+        try:
+            url = url.split('/')
+            # example of url -> https://gogoanime3.net/category/hackgu-returner
+            # url[4] = hackgu-returner
+            return url[4]
+        except Exception as e:
+            logger.error(f"Error while formatting anime name url: {e}")
+            raise
 
+    def format_episode_link(self, episode_number, anime_name):
+        try:
+            
+            url = f"https://gogoanime3.net/{anime_name}-episode-{episode_number}"
+            return url
+        except Exception as e:
+            logger.error(f"Error while formatting episode link: {e}")
+            raise
+        
         
     def format_number_episodes(self, episodes):
         try:
             episodes = episodes.get_attribute('innerHTML')
-            print(episodes)
             episodes = episodes.split(' ')
             return int(episodes[2])
         except Exception as e:
