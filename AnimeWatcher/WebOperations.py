@@ -60,6 +60,7 @@ class WebInteractions:
             by_type = getattr(By, type_name.replace(' ', '_').upper())
 
             if element:
+                print("Element found")
                 return element.find_elements(by=by_type, value=value)
             else:
                 return self.driver.find_elements(by=by_type, value=value)
@@ -93,47 +94,65 @@ class WebInteractions:
         Returns:
             string: The formatted anime URL
         """
-        return Config.ANIME_SITE_BASE_URL.format(page_number)     
+        return Config.GOGO_ANIME_SITE_BASE_URL.format(page_number)     
        
 class AnimeInteractions:
     def __init__(self, web_interactions):
         self.web_interactions = web_interactions
                   
     def find_anime_cards(self, page_number):
-            """Function to find the anime cards on the page
+        """Function to find the anime cards on the page
 
-            Args:
-                page_number (int): The page number
+        Args:
+            page_number (int): The page number
 
-            Returns:
-                list: A list of anime cards
-            """
-            try:
-                # Navigate to the anime page
-                self.web_interactions.naviguate(self.web_interactions.format_anime_url(page_number))
-                # Find the anime cards
-                anime_list = self.web_interactions.find_single_element(
-                    By.CLASS_NAME, Config.ANIME_LIST)
-                anime_cards = self.web_interactions.find_multiple_elements(
-                    By.CLASS_NAME, Config.ANIME_CARDS, anime_list)
-                return anime_cards
-            except Exception as e:
-                logger.error(f"Error while finding anime cards: {e}")
-                raise  # Re-raise the exception to stop further execution
+        Returns:
+            list: A list of anime cards
+        """
+        try:
+            # Navigate to the anime page
+            self.web_interactions.naviguate(self.web_interactions.format_anime_url(page_number))
+
+            # Find the anime list body
+            anime_list = self.web_interactions.find_single_element(
+                By.CLASS_NAME, "anime_list_body")
+
+            if anime_list is None:
+                raise Exception("Anime list not found")
+
+            # Find the anime listing
+            anime_listing = self.web_interactions.find_single_element(
+                By.CSS_SELECTOR, ".anime_list_body > .listing", element=anime_list)
+            if anime_listing is None:
+                raise Exception("Anime listing not found")
+
+            # Find the anime cards
+            anime_cards = self.web_interactions.find_multiple_elements(
+                By.CSS_SELECTOR, ".listing > li", element=anime_listing)
+            if anime_cards is None:
+                raise Exception("Anime cards not found")
+
+            return anime_cards
+        except Exception as e:
+            logger.error(f"Error while finding anime cards: {e}")
+            raise  # Re-raise the exception to stop further execution
+
             
         
     def get_anime_page_data(self, anime_cards):
         try:
-            
             anime_data_array = []
-            
             for anime_card in anime_cards:
-                anime_data = {}
-                anime_data['title'] = anime_card.find_element(By.CLASS_NAME, 'name').text
-                anime_data['url'] = anime_card.find_element(By.CLASS_NAME, 'name').get_attribute('href')
-                anime_data['image_url'] = anime_card.find_element(By.CLASS_NAME, 'poster').find_element(By.TAG_NAME, 'img').get_attribute('src')
-                anime_data['episodes'] = anime_card.find_element(By.CLASS_NAME, 'ep').text.strip().replace('Ep ', '')
+                anime_title = anime_card.find_element(By.XPATH, './/a').text
+                print(anime_title)
+                anime_link = anime_card.find_element(By.XPATH, './/a').get_attribute('href')
+                anime_data = {
+                    'title': anime_title,
+                    'link': anime_link
+                }
+
                 anime_data_array.append(anime_data)
+                print(anime_data)
             return anime_data_array
         except Exception as e:
             logger.error(f"Error while getting anime data: {e}")

@@ -2,7 +2,7 @@ import re
 import time
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException
-from database import  detect_duplicates
+from database import  detect_duplicates, remove_doujinshi
 from tqdm import tqdm  # Import tqdm for the progress bar
 import random
 from Config.config import Config
@@ -71,7 +71,6 @@ class AnimeFetch:
             for page_number in range(1, Config.TOTAL_PAGES + 1):
 
                 manga = self.anime_interactions.find_anime_cards(page_number)
-                
                 anime_data = self.anime_interactions.get_anime_page_data(manga)
                 insert_anime_to_db(anime_data)
         except Exception as e:

@@ -41,7 +41,8 @@ class Config:
     #        constants           #
     ##############################
     ANIME_SITE_BASE_URL = "https://123anime.info/az-all-anime/all/?page={}" # URL to the MangaDex titles page
-    TOTAL_PAGES = 437  # Total number of pages to fetch
+    GOGO_ANIME_SITE_BASE_URL = "https://gogoanime3.net/anime-list.html?page={}"
+    TOTAL_PAGES = 95  # Total number of pages to fetch
     MIN_SLEEP_THRESHOLD = 30 # Sleep after every x pages (to avoid getting blocked by MangaDex)
     MAX_SLEEP_THRESHOLD = 40 # Sleep after every x pages (to avoid getting blocked by MangaDex)
     MIN_SLEEP_DURATION = 60  # Minimum sleep duration in seconds
