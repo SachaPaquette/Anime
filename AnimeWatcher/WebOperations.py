@@ -157,6 +157,48 @@ class AnimeInteractions:
         except Exception as e:
             logger.error(f"Error while getting anime data: {e}")
             raise
+            
+    def get_number_episodes(self):
+        try:
+            episodes_body = self.web_interactions.find_single_element(By.CLASS_NAME, 'anime_video_body')
+            episodes = self.web_interactions.find_single_element(By.ID, 'episode_page', element=episodes_body)
+
+            # Find all <li> elements
+            li_elements = episodes.find_elements(By.CSS_SELECTOR, 'li')
+
+            # Initialize variables to track min and max values
+            min_start = float('inf')  # set to positive infinity
+            max_end = float('-inf')  # set to negative infinity
+
+            for li_element in li_elements:
+                episode_link = li_element.find_element(By.CSS_SELECTOR, 'a')
+                ep_start = int(episode_link.get_attribute('ep_start'))
+                ep_end = int(episode_link.get_attribute('ep_end'))
+
+                # Update min and max values
+                min_start = min(min_start, ep_start)
+                max_end = max(max_end, ep_end)
+
+            print(f"Total Episode Range: {min_start}-{max_end}")
+            return f"Select an episode between {min_start + 1} and {max_end}: \n"
+
+        except Exception as e:
+            logger.error(f"Error while getting number of episodes: {e}")
+            raise
+
+
+        
+    def format_number_episodes(self, episodes):
+        try:
+            episodes = episodes.get_attribute('innerHTML')
+            print(episodes)
+            episodes = episodes.split(' ')
+            return int(episodes[2])
+        except Exception as e:
+            logger.error(f"Error while formatting number of episodes: {e}")
+            raise
+        
+        
         
     def get_anime_video_player(self, anime_url):
         try:

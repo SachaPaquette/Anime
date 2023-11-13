@@ -26,23 +26,14 @@ class AnimeWatch:
         self.anime_interactions = anime_interactions if anime_interactions else AnimeInteractions()
         self.file_operations = FileOperations()
         
-        self.entry = entry
-        self.qual = quality.lower().strip("p")
-        self.session = requests.Session()
-        retry = Retry(connect=3, backoff_factor=0.5)
-        adapter = HTTPAdapter(max_retries=retry)
-        self.session.mount("http://", adapter)
-        self.session.mount("https://", adapter)
-        self.ajax_url = "/encrypt-ajax.php?"
-        self.enc_key_api = "https://raw.githubusercontent.com/justfoolingaround/animdl-provider-benchmarks/master/api/gogoanime.json"
-        self.mode = AES.MODE_CBC
-        self.size = AES.block_size
-        self.padder = "\x08\x0e\x03\x08\t\x03\x04\t"
-        self.pad = lambda s: s + chr(len(s) % 16) * (16 - len(s) % 16)
-    def naviguate_to_anime(self, url):
+      
+    def naviguate_fetch_episodes(self, url):
         try:
-            self.embed_url('https://gogoanime.gg//legendz-episode-1')
+            self.web_interactions.naviguate(url)
+            # find the episode list
+            prompt = self.anime_interactions.get_number_episodes()
             
+            return prompt 
             #self.logs_of_webdriver(self.web_interactions.driver)
         except Exception as e:
             logger.error(f"Error while navigating to {url}: {e}")
@@ -95,7 +86,8 @@ class AnimeWatch:
                 if selected_index.isdigit() and 0 <= int(selected_index) <= len(animes):
                     selected_anime = animes[int(selected_index)-1]
                     print(f"Selected anime: {selected_anime['title']}")
-                    self.naviguate_to_anime(selected_anime['url'])
+                    prompt = input(self.naviguate_fetch_episodes(selected_anime['link']))
+                    prompt = int(prompt)
                     
                 else:
                     print("Invalid input. Please enter a valid index.")

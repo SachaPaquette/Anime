@@ -204,7 +204,7 @@ def find_anime(input):
         # Use the regex pattern in the query to find matching documents and return only the title, link, status and desc fields
         anime_cursor = collection.find(
             {'title': {'$regex': pattern}},
-            {'_id': 0, 'title': 1, 'url': 1, 'image_url': 1, 'episodes': 1}
+            {'_id': 0, 'title': 1, 'link': 1}
         )
 
         # Convert the cursor to a list
