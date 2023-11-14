@@ -17,6 +17,12 @@ from bs4 import BeautifulSoup
 import requests
 from requests.adapters import HTTPAdapter, Retry
 from Cryptodome.Cipher import AES
+from urllib.parse import urlparse, parse_qsl, urlencode, urljoin
+import base64
+from pathlib import Path
+import m3u8
+
+
 
 logger = setup_logging('anime_watch', Config.ANIME_WATCH_LOG_PATH)
 class Colors:
@@ -39,6 +45,7 @@ class AnimeWatch:
         self.size = AES.block_size
         self.padder = "\x08\x0e\x03\x08\t\x03\x04\t"
         self.pad = lambda s: s + chr(len(s) % 16) * (16 - len(s) % 16)
+        
     def naviguate_fetch_episodes(self, url):
         try:
             self.web_interactions.naviguate(url)
@@ -51,7 +58,11 @@ class AnimeWatch:
             if prompt.isdigit() and start_episode <= int(prompt) <= max_episode:
                 anime_name = self.anime_interactions.format_anime_name_url(url)
                 self.web_interactions.naviguate(self.anime_interactions.format_episode_link(prompt, anime_name))
-                self.embed_url(self.anime_interactions.format_episode_link(prompt, anime_name))
+                
+                ep_url = self.embed_url(self.anime_interactions.format_episode_link(prompt, anime_name))
+                print("ep_url", ep_url)
+                self.stream_url(ep_url)
+                #self.embed_url(self.anime_interactions.format_episode_link(prompt, anime_name))
             else:
                 print("Invalid input. Please enter a valid episode.")
                 self.naviguate_fetch_episodes(url)
@@ -72,15 +83,164 @@ class AnimeWatch:
             raise Exception(f"Error while locating {element} in {link}")
         
     def embed_url(self, ep_url):
-        r = self.session.get(ep_url)
-        self.response_err(r, ep_url)
-        soup = BeautifulSoup(r.content, "html.parser")
-        link = soup.find("a", {"class": "active", "rel": "1"})
-        self.loc_err(link, ep_url, "embed-url")
-        ep_url = f'https:{link["data-video"]}' if not link["data-video"].startswith("https:") else link["data-video"]
-        print("entry", ep_url)
+        try:
+            
+            r = self.session.get(ep_url)
+            print("r", r)
+            self.response_err(r, ep_url)
+            
+            soup = BeautifulSoup(r.content, "html.parser")
+            print("soup", soup)
+            link = soup.find("a", {"class": "active", "rel": "1"})
+            print("link", link)
+            self.loc_err(link, ep_url, "embed-url")
+            ep_url = f'https:{link["data-video"]}' if not link["data-video"].startswith("https:") else link["data-video"]
+            return ep_url
+            
+        except Exception as e:
+            logger.error(f"Error while getting embed url: {e}")
+            
+    def get_data(self, ep_url):
+        request = self.session.get(ep_url)
+        print("request", request)
+        soup = BeautifulSoup(request.content, "html.parser")
+        print("soup", soup)
+        crypto = soup.find("script", {"data-name": "episode"})
+
+        self.loc_err(crypto, ep_url, "token")
+        print("crypto", crypto["data-value"])
+        return crypto["data-value"]
+    
+    def get_enc_key(self, ep_url):
+        page = self.session.get(ep_url).text
+        
+        keys = re.findall(r"(?:container|videocontent)-(\d+)", page)
+        
+        if not keys:
+            return {}
+        
+        key,iv,second_key = keys
+        return {
+            "key": key.encode(),
+            "iv": iv.encode(),
+            "second_key": second_key.encode()
+        }
+        
+    def aes_encrypt(self, data, key, iv):
+        return base64.b64encode(
+            AES.new(key, self.mode, iv=iv).encrypt(self.pad(data).encode())
+        )
+
+    def aes_decrypt(self, data, key, iv):
 
         
+        return (
+            AES.new(key, self.mode, iv=iv)
+            .decrypt(base64.b64decode(data))
+            .strip(b"\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\x0c\r\x0e\x0f\x10")
+        )
+
+    def stream_url(self, ep_url):
+        encryption_keys = self.get_enc_key(ep_url)
+        print("encryption_key", encryption_keys)
+        
+        parsed_url = urlparse(ep_url)
+        print("parsed_url", parsed_url)
+        
+        ajax_url = parsed_url.scheme + "://" + parsed_url.netloc, self.ajax_url
+        print("ajax_url", ajax_url)
+        
+        data = self.aes_decrypt(
+            self.get_data(ep_url), encryption_keys["key"], encryption_keys["iv"]
+        ).decode()
+        print("data", data)
+        data = dict(parse_qsl(data))
+        print("data2", data)
+        id = urlparse(ep_url).query
+        id = dict(parse_qsl(id))["id"]
+        print("id", id)
+  
+        encrypted_id = self.aes_encrypt(id, encryption_keys["key"], encryption_keys["iv"]).decode()
+        print("encrypted_id", encrypted_id)
+        data.update(id=encrypted_id)
+        headers = {
+            "x-requested-with": "XMLHttpRequest",
+            "referer": ep_url,
+        }
+        
+        request = self.session.post(
+            ajax_url +  urlencode(data) + f"&alias={id}", headers=headers
+            )
+        print("request", request)
+        self.response_err(request, request.url)
+        json_response = json.loads(
+            self.aes_decrypt(request.json().get("data"), encryption_keys["second_key"], encryption_keys["iv"]))
+        print("json_response", json_response)
+        source_data = [x for x in json_response["source"]]
+        self.quality(source_data)
+    
+    def quality(self, json_data):
+        """
+        Get quality options from
+        JSON repons and change
+        stream url to the either
+        the quality option that was picked,
+        or the best one avalible.
+        """
+        #self.entry.quality = ""
+
+        streams = []
+        for i in json_data:
+            if "m3u8" in i["file"] or i["type"] == "hls":
+                type = "hls"
+            else:
+                type = "mp4"
+
+            quality = i["label"].replace(" P", "").lower()
+
+            streams.append({"file": i["file"], "type": type, "quality": quality})
+
+        filtered_q_user = list(filter(lambda x: x["quality"] == self.qual, streams))
+
+        if filtered_q_user:
+            stream = list(filtered_q_user)[0]
+        elif self.qual == "best" or self.qual == None:
+            stream = streams[-1]
+        elif self.qual == "worst":
+            stream = streams[0]
+        else:
+            stream = streams[-1]
+
+        self.entry.quality = stream["quality"]
+        self.entry.stream_url = stream["file"]
+
+        
+    def extract_m3u8_streams(uri):
+        if re.match(r"https?://", uri):
+            resp = requests.get(uri)
+            resp.raise_for_status()
+            raw_content = resp.content.decode(resp.encoding or "utf-8")
+            base_uri = urljoin(uri, ".")
+        else:
+            with open(uri) as fin:
+                raw_content = fin.read()
+                base_uri = Path(uri)
+
+        content = m3u8.M3U8(raw_content, base_uri=base_uri)
+        content.playlists.sort(key=lambda x: x.stream_info.bandwidth)
+        streams = []
+        for playlist in content.playlists:
+            streams.append(
+                {
+                    "file": urljoin(content.base_uri, playlist.uri),
+                    "type": "hls",
+                    "quality": str(playlist.stream_info.resolution[1]),
+                }
+            )
+
+        return streams
+    
+    
     def logs_of_webdriver(self, driver):
         browser_log = driver.get_log('performance') 
         events = [process_browser_log_entry(entry) for entry in browser_log]
@@ -109,6 +269,7 @@ class AnimeWatch:
                     print(f"Selected anime: {selected_anime['title']}")
                     prompt = input(self.naviguate_fetch_episodes(selected_anime['link']))
                     prompt = int(prompt)
+                    
                     
                 else:
                     print("Invalid input. Please enter a valid index.")
