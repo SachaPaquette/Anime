@@ -238,27 +238,88 @@ class AnimeWatch:
             ).decode()
             
     def encrypt_id(self, id, encryption_keys):
-        return self.aes_encrypt(id, encryption_keys["key"], encryption_keys["iv"]).decode()
+            """
+            Encrypts the given ID using AES encryption.
+
+            Args:
+                id (str): The ID to encrypt.
+                encryption_keys (dict): A dictionary containing the encryption key and initialization vector.
+
+            Returns:
+                str: The encrypted ID.
+            """
+            return self.aes_encrypt(id, encryption_keys["key"], encryption_keys["iv"]).decode()
     
     def create_id(self, ep_url):
-        id = urlparse(ep_url).query
-        return dict(parse_qsl(id))["id"]
+            """
+            Extracts the 'id' parameter from the query string of the given episode URL.
+
+            Args:
+                ep_url (str): The URL of the episode.
+
+            Returns:
+                str: The value of the 'id' parameter in the query string.
+            """
+            id = urlparse(ep_url).query
+            return dict(parse_qsl(id))["id"]
     def create_headers(self, ep_url):
-        
-        return {
-            "x-requested-with": "XMLHttpRequest",
-            "referer": ep_url,
-           }
+            """
+            Creates headers for HTTP requests.
+
+            Args:
+                ep_url (str): The URL of the episode.
+
+            Returns:
+                dict: A dictionary containing the headers.
+            """
+            return {
+                "x-requested-with": "XMLHttpRequest",
+                "referer": ep_url,
+               }
+    def send_post_request(self, url, data, id, header):
+            """
+            Sends a POST request to the specified URL with the given data and headers.
+
+            Args:
+                url (str): The URL to send the request to.
+                data (dict): The data to include in the request.
+                id (str): The alias to include in the request.
+                header (dict): The headers to include in the request.
+
+            Returns:
+                The response from the server.
+            """
+            return self.session.post(
+                url +  urlencode(data) + f"&alias={id}", headers=header)
     def send_post_request(self, url, data, id,  header):
         return self.session.post(
             url +  urlencode(data) + f"&alias={id}", headers=header)
         
     def create_json_response(self, request, encryption_keys):
-        return json.loads(
-            self.aes_decrypt(request.json().get("data"), encryption_keys["second_key"], encryption_keys["iv"]))
+            """
+            Decrypts the data in the request using the provided encryption keys and returns the resulting JSON object.
+
+            Args:
+                request (Request): The request object containing the encrypted data.
+                encryption_keys (dict): A dictionary containing the encryption keys and initialization vector.
+
+            Returns:
+                dict: The decrypted JSON object.
+            """
+            return json.loads(
+                self.aes_decrypt(request.json().get("data"), encryption_keys["second_key"], encryption_keys["iv"]))
         
     def get_source_data(self, json_response):
-        return [x for x in json_response["source"]]
+            """
+            Extracts the source data from the given JSON response.
+
+            Args:
+                json_response (dict): The JSON response to extract the source data from.
+
+            Returns:
+                list: A list of source data extracted from the JSON response.
+            """
+            return [x for x in json_response["source"]]
     def stream_url(self, ep_url):
         encryption_keys = self.get_enc_key(ep_url)
 
