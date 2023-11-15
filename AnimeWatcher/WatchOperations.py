@@ -30,38 +30,26 @@ logger = setup_logging('anime_watch', Config.ANIME_WATCH_LOG_PATH)
 class VideoPlayer:
     def __init__(self):
         self.mpv = MPV()
+        self.observer_id = None
 
     def play_video(self, url):
-        self.mpv.command("loadfile", url)
+        self.mpv.play(url)
         time.sleep(5)  # Wait for the player to initialize
 
-        # Wait for the player to finish 
-        while True:
-            if self.should_skip_video():
-                self.mpv.command("stop")  # Use stop command to stop playback
-                break
-            time.sleep(1)
+        # Bind a property observer for the idle-active property
+        self.observer_id = self.mpv.bind_property_observer("idle-active", self.should_skip_video)
 
-        self.mpv.terminate()
+    def should_skip_video(self, name, value):
+        # Add your logic to determine if the video should be skipped
+        # For example, you can use a flag or some other condition
+        if not value:
+            return
+        print("Video ended or skipped")
+        
+        self.mpv.unbind_property_observer(self.observer_id)
+        self.observer_id = None
+        self.mpv.command("quit")
 
-    def should_skip_video(self):
-        # Get the current playback position and duration
-        position = self.mpv.get_property("time-pos")
-        duration = self.mpv.get_property("duration")
-
-        # If the duration is not available, assume the video should not be skipped
-        if duration is None:
-            return False
-
-        # Calculate the percentage of the video that has been played
-        percent_played = float(position) / float(duration)
-
-        # If the video has been playing for less than 10 seconds or is more than 90% complete, skip it
-        if position < 10 or percent_played > 0.9:
-            return True
-
-        # Otherwise, do not skip the video
-        return False
 
 
     
