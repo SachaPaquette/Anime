@@ -24,31 +24,9 @@ from pathlib import Path
 import m3u8
 import os
 from python_mpv_jsonipc import MPV
-
+from AnimeWatcher.VideoPlayer import VideoPlayer
 logger = setup_logging('anime_watch', Config.ANIME_WATCH_LOG_PATH)
     
-class VideoPlayer:
-    def __init__(self):
-        self.mpv = MPV()
-        self.observer_id = None
-
-    def play_video(self, url):
-        self.mpv.play(url)
-        time.sleep(5)  # Wait for the player to initialize
-
-        # Bind a property observer for the idle-active property
-        self.observer_id = self.mpv.bind_property_observer("idle-active", self.should_skip_video)
-
-    def should_skip_video(self, name, value):
-        # Add your logic to determine if the video should be skipped
-        # For example, you can use a flag or some other condition
-        if not value:
-            return
-        print("Video ended or skipped")
-        
-        self.mpv.unbind_property_observer(self.observer_id)
-        self.observer_id = None
-        self.mpv.command("quit")
 
 
 
@@ -59,7 +37,7 @@ class VideoPlayer:
 class AnimeWatch:
     def __init__(self, web_interactions=None, anime_interactions=None, quality=None):
         self.web_interactions = web_interactions if web_interactions else WebInteractions()
-        self.anime_interactions = anime_interactions if anime_interactions else AnimeInteractions()
+        self.anime_interactions = anime_interactions if anime_interactions else AnimeInteractions(self.web_interactions)
         self.file_operations = FileOperations()
         
         self.session = requests.Session()
@@ -90,15 +68,14 @@ class AnimeWatch:
                 self.web_interactions.naviguate(self.anime_interactions.format_episode_link(prompt, anime_name))
                 
                 ep_url = self.embed_url(self.anime_interactions.format_episode_link(prompt, anime_name))
-                print("ep_url", ep_url)
+
                 source_data = self.stream_url(ep_url)
                 video_player = VideoPlayer()
                 video_player.play_video(source_data)
-                #self.embed_url(self.anime_interactions.format_episode_link(prompt, anime_name))
+                self.web_interactions.cleanup()
             else:
                 print("Invalid input. Please enter a valid episode.")
                 self.naviguate_fetch_episodes(url)
-            #self.logs_of_webdriver(self.web_interactions.driver)
         except Exception as e:
             logger.error(f"Error while navigating to {url}: {e}")
             raise  # Re-raise the exception to stop further execution
@@ -130,13 +107,13 @@ class AnimeWatch:
             try:
                 
                 r = self.session.get(ep_url)
-                print("r", r)
+
                 self.response_err(r, ep_url)
                 
                 soup = BeautifulSoup(r.content, "html.parser")
-                print("soup", soup)
+
                 link = soup.find("a", {"class": "active", "rel": "1"})
-                print("link", link)
+
                 self.loc_err(link, ep_url, "embed-url")
                 ep_url = f'https:{link["data-video"]}' if not link["data-video"].startswith("https:") else link["data-video"]
                 return ep_url
@@ -301,34 +278,9 @@ class AnimeWatch:
             self.quality = stream["quality"]
             stream_url = stream["file"]
 
-
-        
-    def extract_m3u8_streams(uri):
-        if re.match(r"https?://", uri):
-            resp = requests.get(uri)
-            resp.raise_for_status()
-            raw_content = resp.content.decode(resp.encoding or "utf-8")
-            base_uri = urljoin(uri, ".")
-        else:
-            with open(uri) as fin:
-                raw_content = fin.read()
-                base_uri = Path(uri)
-
-        content = m3u8.M3U8(raw_content, base_uri=base_uri)
-        content.playlists.sort(key=lambda x: x.stream_info.bandwidth)
-        streams = []
-        for playlist in content.playlists:
-            streams.append(
-                {
-                    "file": urljoin(content.base_uri, playlist.uri),
-                    "type": "hls",
-                    "quality": str(playlist.stream_info.resolution[1]),
-                }
-            )
-
-        return streams
-
+class Main:
     def main(self):
+        anime_watch = AnimeWatch(None, None, "best")
         try:
             user_input = input("Enter the anime you want to watch: ")
             animes = find_anime(user_input)
@@ -344,18 +296,25 @@ class AnimeWatch:
                     return
                     
                 if selected_index.isdigit() and 0 <= int(selected_index) <= len(animes):
-                    selected_anime = animes[int(selected_index)-1]
+                    selected_anime = animes[int(selected_index) - 1]
                     print(f"Selected anime: {selected_anime['title']}")
-                    prompt = input(self.naviguate_fetch_episodes(selected_anime['link']))
-                    prompt = int(prompt)
+                    prompt = input(anime_watch.naviguate_fetch_episodes(selected_anime['link']))
                     
-                    
+                    if prompt.isdigit():
+                        prompt = int(prompt)
+                        # close the browser
+                        
+                    else:
+                        print("Invalid input for episode. Please enter a valid number.")
+                        # recall the main function
+                        self.main()
                 else:
                     print("Invalid input. Please enter a valid index.")
+
             else:
                 print("Anime not found")
         except Exception as e:
-            self.web_interactions.cleanup()
+            anime_watch.web_interactions.cleanup()
             logger.error(f"Error while watching anime: {e}")
             
             print("Exiting...")
