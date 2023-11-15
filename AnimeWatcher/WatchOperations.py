@@ -57,28 +57,39 @@ class AnimeWatch:
     def naviguate_fetch_episodes(self, url):
         try:
             self.web_interactions.naviguate(url)
-            # find the episode list
             start_episode, max_episode = self.anime_interactions.get_number_episodes()
-            prompt = input(f"Enter the episode you want to start watching between {start_episode}-{max_episode} (or 0 to exit): ")
+            prompt = self.get_user_input(start_episode, max_episode)
+            
             if prompt == '0':
                 print("Exiting...")
                 return
+            
             if prompt.isdigit() and start_episode <= int(prompt) <= max_episode:
                 anime_name = self.anime_interactions.format_anime_name_url(url)
-                self.web_interactions.naviguate(self.anime_interactions.format_episode_link(prompt, anime_name))
-                
-                ep_url = self.embed_url(self.anime_interactions.format_episode_link(prompt, anime_name))
-
-                source_data = self.stream_url(ep_url)
-                video_player = VideoPlayer()
-                video_player.play_video(source_data)
-                self.web_interactions.cleanup()
+                episode_url = self.anime_interactions.format_episode_link(prompt, anime_name)
+                self.play_episode(episode_url)
             else:
                 print("Invalid input. Please enter a valid episode.")
                 self.naviguate_fetch_episodes(url)
         except Exception as e:
             logger.error(f"Error while navigating to {url}: {e}")
-            raise  # Re-raise the exception to stop further execution
+            raise
+
+    def get_user_input(self, start_episode, max_episode):
+        return input(f"Enter the episode you want to start watching between {start_episode}-{max_episode} (or 0 to exit): ")
+
+    def play_episode(self, episode_url):
+        try:
+            episode_url = self.embed_url(episode_url)
+            source_data = self.stream_url(episode_url)
+            video_player = VideoPlayer()
+            video_player.play_video(source_data)
+            self.web_interactions.cleanup()
+            
+        except Exception as e:
+            logger.error(f"Error while playing episode: {e}")
+            raise
+
 
     def response_err(self, request, url):
         if request.ok:
@@ -199,47 +210,87 @@ class AnimeWatch:
 
 
 
-             
+    def create_ajax_url(self, parsed_url):
+            """
+            Creates an AJAX URL using the parsed URL and the AJAX URL path.
+
+            Args:
+                parsed_url (ParseResult): The parsed URL.
+
+            Returns:
+                str: The AJAX URL.
+            """
+            return parsed_url.scheme + "://" + parsed_url.netloc + self.ajax_url
+    
+    def decrypt_url(self, ep_url, encryption_keys):
+            """
+            Decrypts the given episode URL using the provided encryption keys.
+
+            Args:
+                ep_url (str): The URL of the episode to decrypt.
+                encryption_keys (dict): A dictionary containing the encryption key and initialization vector.
+
+            Returns:
+                str: The decrypted episode URL.
+            """
+            return self.aes_decrypt(
+                self.get_data(ep_url), encryption_keys["key"], encryption_keys["iv"]
+            ).decode()
+            
+    def encrypt_id(self, id, encryption_keys):
+        return self.aes_encrypt(id, encryption_keys["key"], encryption_keys["iv"]).decode()
+    
+    def create_id(self, ep_url):
+        id = urlparse(ep_url).query
+        return dict(parse_qsl(id))["id"]
+    def create_headers(self, ep_url):
+        
+        return {
+            "x-requested-with": "XMLHttpRequest",
+            "referer": ep_url,
+           }
+    def send_post_request(self, url, data, id,  header):
+        return self.session.post(
+            url +  urlencode(data) + f"&alias={id}", headers=header)
+        
+    def create_json_response(self, request, encryption_keys):
+        return json.loads(
+            self.aes_decrypt(request.json().get("data"), encryption_keys["second_key"], encryption_keys["iv"]))
+        
+    def get_source_data(self, json_response):
+        return [x for x in json_response["source"]]
     def stream_url(self, ep_url):
         encryption_keys = self.get_enc_key(ep_url)
 
         parsed_url = urlparse(ep_url)
 
         
-        self.ajax_url = parsed_url.scheme + "://" + parsed_url.netloc + self.ajax_url
+        self.ajax_url = self.create_ajax_url(parsed_url)
 
         
-        data = self.aes_decrypt(
-            self.get_data(ep_url), encryption_keys["key"], encryption_keys["iv"]
-        ).decode()
+        data = self.decrypt_url(ep_url, encryption_keys)
         
         data = dict(parse_qsl(data))
         
-        id = urlparse(ep_url).query
-        id = dict(parse_qsl(id))["id"]
+        id = self.create_id(ep_url)
 
   
-        encrypted_id = self.aes_encrypt(id, encryption_keys["key"], encryption_keys["iv"]).decode()
+        encrypted_id = self.encrypt_id(id, encryption_keys)
 
         data.update(id=encrypted_id)
-        headers = {
-            "x-requested-with": "XMLHttpRequest",
-            "referer": ep_url,
-        }
+        
+        headers = self.create_headers(ep_url)
 
-        request = self.session.post(
-            self.ajax_url +  urlencode(data) + f"&alias={id}", headers=headers)
+        request = self.send_post_request(self.ajax_url, data, id, headers)
 
         self.response_err(request, request.url)
 
-        json_response = json.loads(
-            self.aes_decrypt(request.json().get("data"), encryption_keys["second_key"], encryption_keys["iv"]))
+        json_response = self.create_json_response(request, encryption_keys)
 
-        source_data = [x for x in json_response["source"]]
+        source_data = self.get_source_data(json_response)
         self.quality(source_data)
         return source_data[0]["file"]
-        # play the video
-        self.play_video(source_data[0]["file"])
+
 
     
     def quality(self, json_data):
