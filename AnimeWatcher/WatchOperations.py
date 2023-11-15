@@ -21,15 +21,14 @@ from urllib.parse import urlparse, parse_qsl, urlencode, urljoin
 import base64
 from pathlib import Path
 import m3u8
+import os
 
-
+from python_mpv_jsonipc import MPV
 
 logger = setup_logging('anime_watch', Config.ANIME_WATCH_LOG_PATH)
-class Colors:
-    GREEN = "\033[92m"
-    END = "\x1b[0m"
+    
 class AnimeWatch:
-    def __init__(self, web_interactions=None, anime_interactions=None):
+    def __init__(self, web_interactions=None, anime_interactions=None, quality=None):
         self.web_interactions = web_interactions if web_interactions else WebInteractions()
         self.anime_interactions = anime_interactions if anime_interactions else AnimeInteractions()
         self.file_operations = FileOperations()
@@ -45,6 +44,8 @@ class AnimeWatch:
         self.size = AES.block_size
         self.padder = "\x08\x0e\x03\x08\t\x03\x04\t"
         self.pad = lambda s: s + chr(len(s) % 16) * (16 - len(s) % 16)
+        
+        self.qual = quality.lower().strip("p") # quality of the video
         
     def naviguate_fetch_episodes(self, url):
         try:
@@ -140,6 +141,19 @@ class AnimeWatch:
             .strip(b"\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\x0c\r\x0e\x0f\x10")
         )
 
+    def play_video(self, url):
+        # play the video with mpv
+        print(f"Playing {url}")
+        mpv = MPV()
+        #mpv = MPV(start_mpv=False, ipc_socket="/tmp/mpv-socket")
+        mpv.command("loadfile", url)
+        time.sleep(5)
+        duration = mpv.get_property("duration")
+        print(f"Duration: {duration} seconds")
+        time.sleep(duration)
+        mpv.command("stop")
+        self.web_interactions.cleanup()
+        
     def stream_url(self, ep_url):
         encryption_keys = self.get_enc_key(ep_url)
         print("encryption_key", encryption_keys)
@@ -147,15 +161,15 @@ class AnimeWatch:
         parsed_url = urlparse(ep_url)
         print("parsed_url", parsed_url)
         
-        ajax_url = parsed_url.scheme + "://" + parsed_url.netloc, self.ajax_url
-        print("ajax_url", ajax_url)
+        self.ajax_url = parsed_url.scheme + "://" + parsed_url.netloc + self.ajax_url
+        print("ajax_url", self.ajax_url)
         
         data = self.aes_decrypt(
             self.get_data(ep_url), encryption_keys["key"], encryption_keys["iv"]
         ).decode()
-        print("data", data)
+        
         data = dict(parse_qsl(data))
-        print("data2", data)
+        
         id = urlparse(ep_url).query
         id = dict(parse_qsl(id))["id"]
         print("id", id)
@@ -167,17 +181,22 @@ class AnimeWatch:
             "x-requested-with": "XMLHttpRequest",
             "referer": ep_url,
         }
-        
+        print(f"types: {type(data)} {type(self.ajax_url)} {type(headers)}")
         request = self.session.post(
-            ajax_url +  urlencode(data) + f"&alias={id}", headers=headers
-            )
+            self.ajax_url +  urlencode(data) + f"&alias={id}", headers=headers)
         print("request", request)
         self.response_err(request, request.url)
+        print("response")
         json_response = json.loads(
             self.aes_decrypt(request.json().get("data"), encryption_keys["second_key"], encryption_keys["iv"]))
         print("json_response", json_response)
         source_data = [x for x in json_response["source"]]
         self.quality(source_data)
+        print("source_data", source_data)
+        # source_data [{'file': 'https://www008.vipanicdn.net/streamhls/5488f3268d41f9148a85959cc1c1fb32/ep.2.1677599793.m3u8', 'label': 'hls P', 'type': 'hls'}]
+        # play the video
+        self.play_video(source_data[0]["file"])
+
     
     def quality(self, json_data):
         """
@@ -201,7 +220,7 @@ class AnimeWatch:
             streams.append({"file": i["file"], "type": type, "quality": quality})
 
         filtered_q_user = list(filter(lambda x: x["quality"] == self.qual, streams))
-
+        print("filtered_q_user", filtered_q_user)
         if filtered_q_user:
             stream = list(filtered_q_user)[0]
         elif self.qual == "best" or self.qual == None:
@@ -211,8 +230,9 @@ class AnimeWatch:
         else:
             stream = streams[-1]
 
-        self.entry.quality = stream["quality"]
-        self.entry.stream_url = stream["file"]
+        self.quality = stream["quality"]
+        stream_url = stream["file"]
+        print("stream_url", stream_url)
 
         
     def extract_m3u8_streams(uri):

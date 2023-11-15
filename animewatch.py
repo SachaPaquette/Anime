@@ -7,7 +7,7 @@ logger = setup_logging('anime_fetch', Config.MANGA_FETCH_LOG_PATH)
 def instantiate_classes():
     web_interactions = WebInteractions()
     anime_interactions = AnimeInteractions(web_interactions)
-    anime_watch = AnimeWatch(web_interactions, anime_interactions)
+    anime_watch = AnimeWatch(web_interactions, anime_interactions, "best")
     return web_interactions, anime_interactions, anime_watch
 if __name__ == "__main__":
     try:
