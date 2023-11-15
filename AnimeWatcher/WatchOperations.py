@@ -210,16 +210,17 @@ class AnimeWatch:
 
 
 
-    def create_ajax_url(self, parsed_url):
+    def create_ajax_url(self, ep_url):
             """
-            Creates an AJAX URL using the parsed URL and the AJAX URL path.
+            Creates an AJAX URL for the given episode URL.
 
             Args:
-                parsed_url (ParseResult): The parsed URL.
+                ep_url (str): The URL of the episode.
 
             Returns:
-                str: The AJAX URL.
+                str: The AJAX URL for the given episode URL.
             """
+            parsed_url = urlparse(ep_url) # parse the url
             return parsed_url.scheme + "://" + parsed_url.netloc + self.ajax_url
     
     def decrypt_url(self, ep_url, encryption_keys):
@@ -237,6 +238,27 @@ class AnimeWatch:
                 self.get_data(ep_url), encryption_keys["key"], encryption_keys["iv"]
             ).decode()
             
+    def create_dict_data(self, ep_url, encryption_keys, encrypted_id):
+            """
+            Creates a dictionary of data for a given episode URL, encryption keys, and encrypted ID.
+
+            Args:
+                ep_url (str): The URL of the episode.
+                encryption_keys (list): A list of encryption keys.
+                encrypted_id (str): The encrypted ID of the episode.
+
+            Returns:
+                dict: A dictionary of data for the given episode.
+            """
+            # decrypt the url
+            data = self.decrypt_url(ep_url, encryption_keys)
+            # parse the data    
+            data = dict(parse_qsl(data))
+            # update the id
+            data.update(id=encrypted_id)
+            # return the data
+            return data
+        
     def encrypt_id(self, id, encryption_keys):
             """
             Encrypts the given ID using AES encryption.
@@ -321,36 +343,39 @@ class AnimeWatch:
             """
             return [x for x in json_response["source"]]
     def stream_url(self, ep_url):
-        encryption_keys = self.get_enc_key(ep_url)
+            """
+            Given an episode URL, returns the URL of the video stream.
 
-        parsed_url = urlparse(ep_url)
+            Args:
+                ep_url (str): The URL of the episode to stream.
 
-        
-        self.ajax_url = self.create_ajax_url(parsed_url)
-
-        
-        data = self.decrypt_url(ep_url, encryption_keys)
-        
-        data = dict(parse_qsl(data))
-        
-        id = self.create_id(ep_url)
-
-  
-        encrypted_id = self.encrypt_id(id, encryption_keys)
-
-        data.update(id=encrypted_id)
-        
-        headers = self.create_headers(ep_url)
-
-        request = self.send_post_request(self.ajax_url, data, id, headers)
-
-        self.response_err(request, request.url)
-
-        json_response = self.create_json_response(request, encryption_keys)
-
-        source_data = self.get_source_data(json_response)
-        self.quality(source_data)
-        return source_data[0]["file"]
+            Returns:
+                str: The URL of the video stream.
+            """
+            # Get the encryption keys
+            encryption_keys = self.get_enc_key(ep_url)
+            # Get the AJAX URL
+            self.ajax_url = self.create_ajax_url(ep_url)
+            # Get the ID
+            id = self.create_id(ep_url)
+            # Encrypt the ID
+            encrypted_id = self.encrypt_id(id, encryption_keys)
+            # Create the data dictionary
+            data = self.create_dict_data(ep_url, encryption_keys, encrypted_id)
+            # Create the headers
+            headers = self.create_headers(ep_url)
+            # Send the POST request
+            request = self.send_post_request(self.ajax_url, data, id, headers)
+            # Check if the request was successful
+            self.response_err(request, request.url)
+            # Create the JSON response
+            json_response = self.create_json_response(request, encryption_keys)
+            # Get the source data
+            source_data = self.get_source_data(json_response)
+            # Check if the source data is empty
+            self.quality(source_data)
+            # Return the stream URL
+            return source_data[0]["file"]
 
 
     
@@ -388,7 +413,7 @@ class AnimeWatch:
                 stream = streams[-1]
 
             self.quality = stream["quality"]
-            stream_url = stream["file"]
+            
 
 class Main:
     def main(self):
