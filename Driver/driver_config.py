@@ -7,15 +7,10 @@ import random
 from Config.config import Config
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
-"""def driver_setup():
-    caps = DesiredCapabilities.CHROME
-    caps['goog:loggingPrefs'] = {'performance': 'ALL'}
+def driver_setup():
+
    # Set up the driver options
     options = Options()
-    # desired_capabilities = caps in the options
-    options.add_argument(f'desired_capabilities={caps}')
-    
-    
     # Keep the browser open after the script finishes executing (for debugging)
     options.add_experimental_option('detach', True)
     # Run in headless mode (without opening a browser window)
@@ -41,9 +36,9 @@ from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
     driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
     # put the browser in focus
     driver.switch_to.window(driver.current_window_handle)
-    return driver"""
+    return driver
     
-def driver_setup():
+"""def driver_setup():
     #options = Options()
     options = uc.ChromeOptions()
     options.add_argument("--log-level=3")
@@ -54,12 +49,13 @@ def driver_setup():
     options.add_argument(f'--load-extension={Config.EXTENSION_PATH}')
     options.add_argument("--disable-blink-features=AutomationControlled")
     options.add_argument('--no-sandbox=False')
+    options.set_capability("detach", True) # Keep the browser open after the script finishes executing (for debugging)
     # add proxy to the driver
     #options.add_argument(f"--proxy-server={Config.PROXY_LIST}")
     
     driver = uc.Chrome(options=options)
     
-    return driver
+    return driver"""
 
     
 

@@ -1,5 +1,6 @@
 import re
 import time
+from typing import Self
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException
 from database import  detect_duplicates
@@ -22,10 +23,50 @@ import base64
 from pathlib import Path
 import m3u8
 import os
-
 from python_mpv_jsonipc import MPV
 
 logger = setup_logging('anime_watch', Config.ANIME_WATCH_LOG_PATH)
+    
+class VideoPlayer:
+    def __init__(self):
+        self.mpv = MPV()
+
+    def play_video(self, url):
+        self.mpv.command("loadfile", url)
+        time.sleep(5)  # Wait for the player to initialize
+
+        # Wait for the player to finish 
+        while True:
+            if self.should_skip_video():
+                self.mpv.command("stop")  # Use stop command to stop playback
+                break
+            time.sleep(1)
+
+        self.mpv.terminate()
+
+    def should_skip_video(self):
+        # Get the current playback position and duration
+        position = self.mpv.get_property("time-pos")
+        duration = self.mpv.get_property("duration")
+
+        # If the duration is not available, assume the video should not be skipped
+        if duration is None:
+            return False
+
+        # Calculate the percentage of the video that has been played
+        percent_played = float(position) / float(duration)
+
+        # If the video has been playing for less than 10 seconds or is more than 90% complete, skip it
+        if position < 10 or percent_played > 0.9:
+            return True
+
+        # Otherwise, do not skip the video
+        return False
+
+
+    
+    
+    
     
 class AnimeWatch:
     def __init__(self, web_interactions=None, anime_interactions=None, quality=None):
@@ -62,7 +103,9 @@ class AnimeWatch:
                 
                 ep_url = self.embed_url(self.anime_interactions.format_episode_link(prompt, anime_name))
                 print("ep_url", ep_url)
-                self.stream_url(ep_url)
+                source_data = self.stream_url(ep_url)
+                video_player = VideoPlayer()
+                video_player.play_video(source_data)
                 #self.embed_url(self.anime_interactions.format_episode_link(prompt, anime_name))
             else:
                 print("Invalid input. Please enter a valid episode.")
@@ -84,85 +127,122 @@ class AnimeWatch:
             raise Exception(f"Error while locating {element} in {link}")
         
     def embed_url(self, ep_url):
-        try:
+            """
+            Given an episode URL, returns the URL of the embedded video player for that episode.
             
-            r = self.session.get(ep_url)
-            print("r", r)
-            self.response_err(r, ep_url)
+            Args:
+            - ep_url (str): The URL of the episode to get the embedded video player URL for.
             
-            soup = BeautifulSoup(r.content, "html.parser")
-            print("soup", soup)
-            link = soup.find("a", {"class": "active", "rel": "1"})
-            print("link", link)
-            self.loc_err(link, ep_url, "embed-url")
-            ep_url = f'https:{link["data-video"]}' if not link["data-video"].startswith("https:") else link["data-video"]
-            return ep_url
+            Returns:
+            - str: The URL of the embedded video player for the given episode.
             
-        except Exception as e:
-            logger.error(f"Error while getting embed url: {e}")
+            Raises:
+            - Exception: If there is an error while getting the embedded video player URL.
+            """
+            try:
+                
+                r = self.session.get(ep_url)
+                print("r", r)
+                self.response_err(r, ep_url)
+                
+                soup = BeautifulSoup(r.content, "html.parser")
+                print("soup", soup)
+                link = soup.find("a", {"class": "active", "rel": "1"})
+                print("link", link)
+                self.loc_err(link, ep_url, "embed-url")
+                ep_url = f'https:{link["data-video"]}' if not link["data-video"].startswith("https:") else link["data-video"]
+                return ep_url
+                
+            except Exception as e:
+                logger.error(f"Error while getting embed url: {e}")
             
     def get_data(self, ep_url):
-        request = self.session.get(ep_url)
-        print("request", request)
-        soup = BeautifulSoup(request.content, "html.parser")
-        print("soup", soup)
-        crypto = soup.find("script", {"data-name": "episode"})
+            """
+            Retrieves the data for a given episode URL.
 
-        self.loc_err(crypto, ep_url, "token")
-        print("crypto", crypto["data-value"])
-        return crypto["data-value"]
+            Args:
+                ep_url (str): The URL of the episode to retrieve data for.
+
+            Returns:
+                str: The data for the given episode URL.
+            """
+            request = self.session.get(ep_url)
+            soup = BeautifulSoup(request.content, "html.parser")
+            crypto = soup.find("script", {"data-name": "episode"})
+            self.loc_err(crypto, ep_url, "token")
+            return crypto["data-value"]
     
     def get_enc_key(self, ep_url):
-        page = self.session.get(ep_url).text
-        
-        keys = re.findall(r"(?:container|videocontent)-(\d+)", page)
-        
-        if not keys:
-            return {}
-        
-        key,iv,second_key = keys
-        return {
-            "key": key.encode(),
-            "iv": iv.encode(),
-            "second_key": second_key.encode()
-        }
+            """
+            Retrieves the encryption key for the given episode URL.
+
+            Args:
+                ep_url (str): The URL of the episode to retrieve the encryption key for.
+
+            Returns:
+                dict: A dictionary containing the encryption key, initialization vector, and second key.
+            """
+            page = self.session.get(ep_url).text
+            
+            keys = re.findall(r"(?:container|videocontent)-(\d+)", page)
+            
+            if not keys:
+                return {}
+            
+            key,iv,second_key = keys
+            return {
+                "key": key.encode(),
+                "iv": iv.encode(),
+                "second_key": second_key.encode()
+            }
         
     def aes_encrypt(self, data, key, iv):
+        """
+        Encrypts the given data using AES encryption with the specified key and initialization vector (IV).
+
+        Args:
+            data (str): The data to be encrypted.
+            key (bytes): The encryption key.
+            iv (bytes): The initialization vector.
+
+        Returns:
+            bytes: The encrypted data in base64-encoded format.
+        """
         return base64.b64encode(
             AES.new(key, self.mode, iv=iv).encrypt(self.pad(data).encode())
         )
 
     def aes_decrypt(self, data, key, iv):
+        """
+        Decrypts the given data using AES encryption with the specified key and initialization vector (IV).
 
-        
+        Args:
+            data (bytes): The encrypted data to decrypt.
+            key (bytes): The key to use for decryption.
+            iv (bytes): The initialization vector to use for decryption.
+
+        Returns:
+            bytes: The decrypted data.
+        """
         return (
             AES.new(key, self.mode, iv=iv)
             .decrypt(base64.b64decode(data))
             .strip(b"\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\x0c\r\x0e\x0f\x10")
         )
 
-    def play_video(self, url):
-        # play the video with mpv
-        print(f"Playing {url}")
-        mpv = MPV()
-        #mpv = MPV(start_mpv=False, ipc_socket="/tmp/mpv-socket")
-        mpv.command("loadfile", url)
-        time.sleep(5)
-        duration = mpv.get_property("duration")
-        print(f"Duration: {duration} seconds")
-        time.sleep(duration)
-        mpv.command("stop")
-        self.web_interactions.cleanup()
-        
+
+
+
+
+             
     def stream_url(self, ep_url):
         encryption_keys = self.get_enc_key(ep_url)
-        print("encryption_key", encryption_keys)
-        
+
         parsed_url = urlparse(ep_url)
-        print("parsed_url", parsed_url)
+
         
         self.ajax_url = parsed_url.scheme + "://" + parsed_url.netloc + self.ajax_url
-        print("ajax_url", self.ajax_url)
+
         
         data = self.aes_decrypt(
             self.get_data(ep_url), encryption_keys["key"], encryption_keys["iv"]
@@ -172,67 +252,67 @@ class AnimeWatch:
         
         id = urlparse(ep_url).query
         id = dict(parse_qsl(id))["id"]
-        print("id", id)
+
   
         encrypted_id = self.aes_encrypt(id, encryption_keys["key"], encryption_keys["iv"]).decode()
-        print("encrypted_id", encrypted_id)
+
         data.update(id=encrypted_id)
         headers = {
             "x-requested-with": "XMLHttpRequest",
             "referer": ep_url,
         }
-        print(f"types: {type(data)} {type(self.ajax_url)} {type(headers)}")
+
         request = self.session.post(
             self.ajax_url +  urlencode(data) + f"&alias={id}", headers=headers)
-        print("request", request)
+
         self.response_err(request, request.url)
-        print("response")
+
         json_response = json.loads(
             self.aes_decrypt(request.json().get("data"), encryption_keys["second_key"], encryption_keys["iv"]))
-        print("json_response", json_response)
+
         source_data = [x for x in json_response["source"]]
         self.quality(source_data)
-        print("source_data", source_data)
-        # source_data [{'file': 'https://www008.vipanicdn.net/streamhls/5488f3268d41f9148a85959cc1c1fb32/ep.2.1677599793.m3u8', 'label': 'hls P', 'type': 'hls'}]
+        return source_data[0]["file"]
         # play the video
         self.play_video(source_data[0]["file"])
 
     
     def quality(self, json_data):
-        """
-        Get quality options from
-        JSON repons and change
-        stream url to the either
-        the quality option that was picked,
-        or the best one avalible.
-        """
-        #self.entry.quality = ""
+            """
+            Determines the quality of the video stream based on the user's preference and the available streams.
 
-        streams = []
-        for i in json_data:
-            if "m3u8" in i["file"] or i["type"] == "hls":
-                type = "hls"
+            Args:
+                json_data (list): A list of dictionaries containing information about the available video streams.
+
+            Returns:
+                None
+            """
+            #self.entry.quality = ""
+
+            streams = []
+            for i in json_data:
+                if "m3u8" in i["file"] or i["type"] == "hls":
+                    type = "hls"
+                else:
+                    type = "mp4"
+
+                quality = i["label"].replace(" P", "").lower()
+
+                streams.append({"file": i["file"], "type": type, "quality": quality})
+
+            filtered_q_user = list(filter(lambda x: x["quality"] == self.qual, streams))
+            if filtered_q_user:
+                stream = list(filtered_q_user)[0]
+            elif self.qual == "best" or self.qual == None:
+                stream = streams[-1]
+            elif self.qual == "worst":
+                stream = streams[0]
             else:
-                type = "mp4"
+                stream = streams[-1]
 
-            quality = i["label"].replace(" P", "").lower()
+            self.quality = stream["quality"]
+            stream_url = stream["file"]
 
-            streams.append({"file": i["file"], "type": type, "quality": quality})
-
-        filtered_q_user = list(filter(lambda x: x["quality"] == self.qual, streams))
-        print("filtered_q_user", filtered_q_user)
-        if filtered_q_user:
-            stream = list(filtered_q_user)[0]
-        elif self.qual == "best" or self.qual == None:
-            stream = streams[-1]
-        elif self.qual == "worst":
-            stream = streams[0]
-        else:
-            stream = streams[-1]
-
-        self.quality = stream["quality"]
-        stream_url = stream["file"]
-        print("stream_url", stream_url)
 
         
     def extract_m3u8_streams(uri):
@@ -259,15 +339,6 @@ class AnimeWatch:
             )
 
         return streams
-    
-    
-    def logs_of_webdriver(self, driver):
-        browser_log = driver.get_log('performance') 
-        events = [process_browser_log_entry(entry) for entry in browser_log]
-        events = [event for event in events if 'Network.response' in event['method']]
-        events_str = json.dumps(events)
-        self.file_operations.write_to_file('Logs/logs.txt', events_str)
-
 
     def main(self):
         try:
