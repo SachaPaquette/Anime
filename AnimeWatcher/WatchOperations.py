@@ -17,7 +17,7 @@ class AnimeWatch:
             self.web_interactions)
         self.file_operations = FileOperations()
         self.url_interactions = UrlInteractions("best")
-        self.video_player = VideoPlayer()
+        self.video_player = None
 
     def naviguate_fetch_episodes(self, url, anime_name):
         try:
@@ -27,10 +27,10 @@ class AnimeWatch:
 
             if prompt is None:
                 print("Exiting...")
-                return
+                return True  # Signal to restart the application
 
             episode_menu = EpisodeMenu(start_episode, max_episode)
-            
+
             while True:
                 anime_name = self.anime_interactions.format_anime_name(anime_name)
                 episode_url = self.anime_interactions.format_episode_link(prompt, anime_name)
@@ -39,23 +39,25 @@ class AnimeWatch:
                 episode_menu.display_menu()
                 user_choice = input("Enter your choice: ").lower()
                 self.url_interactions = UrlInteractions("best")
-                
-                
+
                 prompt = episode_menu.handle_choice(user_choice, int(prompt))
-                
+
+                # if the user wants to change anime
+                if prompt is False:
+                    print("Exiting...")
+                    self.video_player.terminate_player()  # terminate the video player
+                    self.web_interactions.cleanup()  # cleanup the web instance
+                    return True  # Signal to restart the application
+
                 if prompt is None:
                     print("Exiting...")
-                    self.video_player.terminate_player() # terminate the video player
-                    self.web_interactions.cleanup() # cleanup the web instance
-                    exit() # exit the program
-                
-                    
+                    self.video_player.terminate_player()  # terminate the video player
+                    self.web_interactions.cleanup()  # cleanup the web instance
+                    return False  # Signal to exit the program
+
         except Exception as e:
             logger.error(f"Error while navigating to {url}: {e}")
-        except KeyboardInterrupt:
-            print("Exiting...")
-            self.web_interactions.cleanup()
-            return
+            return False  # Signal to exit the program
 
 
 
@@ -101,13 +103,19 @@ class AnimeWatch:
                 # Get the source data
                 source_data = self.url_interactions.stream_url(episode_url)
                 # Create the video player
+                if self.video_player is None:
+                    
+                    self.video_player = VideoPlayer()
+                try:
+                    # Play the video
+                    self.video_player.play_video(source_data)
+                    # Cleanup the web instance
+                    #self.web_interactions.cleanup()
+                    return False
                 
-                
-                # Play the video
-                self.video_player.play_video(source_data)
-                # Cleanup the web instance
-                #self.web_interactions.cleanup()
-                return False
+                except Exception as e:
+                    logger.error(f"Error while playing episode: {e}")
+                    raise
 
             except Exception as e:
                 logger.error(f"Error while playing episode: {e}")
@@ -117,39 +125,53 @@ class AnimeWatch:
 
 
 class Main:
-    def main(self):
-        anime_watch = AnimeWatch(None, None)
-
-        try:
-            user_input = input("Enter the anime you want to watch: ")
-            animes = find_anime(user_input)
-            if animes:
-                print("Search results: ")
-                for i, anime in enumerate(animes):
-                    print(f"{i+1}. {anime['title']}")
-
-                selected_index = input(
-                    "Enter the index of the anime you want to watch (or 0 to exit): ")
-                if selected_index == '0':
-                    print("Exiting...")
-                    return
-
-                if selected_index.isdigit() and 0 <= int(selected_index) <= len(animes):
-                    selected_anime = animes[int(selected_index) - 1]
-                    print(f"Selected anime: {selected_anime['title']}")
-                    input(anime_watch.naviguate_fetch_episodes(
-                        selected_anime['link'], selected_anime['title']))
-                    
-                    
-                        
+    def get_valid_index(self, prompt, max_index):
+        while True:
+            try:
+                selected_index = int(input(prompt))
+                if selected_index == 0 or 0 <= selected_index <= max_index:
+                    return selected_index
                 else:
-                    print("Invalid input. Please enter a valid index.")
+                    print("Invalid index. Please enter a valid index.")
+            except ValueError:
+                print("Invalid input. Please enter a valid number.")
+    def main(self):
+        restart = True
 
-            else:
-                print("Anime not found")
-        except Exception as e:
-            anime_watch.web_interactions.cleanup()
-            logger.error(f"Error while watching anime: {e}")
+        while restart:
+            anime_watch = AnimeWatch(None, None)
 
-            print("Exiting...")
+            try:
+                user_input = input("Enter the anime you want to watch: ")
+                animes = find_anime(user_input)
+
+                if animes:
+                    print("Search results: ")
+                    for i, anime in enumerate(animes):
+                        print(f"{i + 1}. {anime['title']}")
+
+                    selected_index = self.get_valid_index(
+                        "Enter the index of the anime you want to watch (or 0 to exit): ",
+                        len(animes)
+                    )
+
+                    if selected_index == 0:
+                        print("Exiting...")
+                        return
+
+                    selected_anime = animes[selected_index - 1]
+                    print(f"Selected anime: {selected_anime['title']}")
+                    restart = anime_watch.naviguate_fetch_episodes(
+                        selected_anime['link'], selected_anime['title']
+                    )
+
+                else:
+                    print("Anime not found")
+                    restart = False
+
+            except Exception as e:
+                anime_watch.web_interactions.cleanup()
+                logger.error(f"Error while watching anime: {e}")
+                print("Exiting...")
+                restart = False
 

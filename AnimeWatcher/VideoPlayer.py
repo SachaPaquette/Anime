@@ -2,14 +2,16 @@ from python_mpv_jsonipc import MPV
 import time
 
 class VideoPlayer:
-    def __init__(self):
-        self.observer_id = None
-        self.mpv = MPV() 
-        
+    _instance = None
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(VideoPlayer, cls).__new__(cls)
+            cls._instance.observer_id = None
+            cls._instance.mpv = MPV() 
+        return cls._instance
 
     def play_video(self, url):
-        
-        
         self.mpv.play(url)
         time.sleep(5)  # Wait for the player to initialize
 
@@ -17,8 +19,6 @@ class VideoPlayer:
         self.observer_id = self.mpv.bind_property_observer("idle-active", self.should_skip_video)
 
     def should_skip_video(self, name, value):
-        # Add your logic to determine if the video should be skipped
-        # For example, you can use a flag or some other condition
         if not value:
             return
         print("Video ended or skipped")

@@ -2,6 +2,7 @@ class Colors:
     red = '\033[91m'
     green = '\033[92m'
     yellow = '\033[93m'
+    orange = '\033[33m'
     endc = '\033[0m'
 
 class EpisodeMenu:
@@ -21,6 +22,7 @@ class EpisodeMenu:
         print("\n===== Menu =====\n") 
         print(f"{self.color.green}[N] Next Episode{self.color.endc}\n")
         print(f"{self.color.yellow}[P] Previous Episode{self.color.endc}\n")  
+        print(f"{self.color.orange}[C] Change Anime{self.color.endc}\n")
         print(f"{self.color.red}[Q] Quit{self.color.endc}\n")
 
     def handle_choice(self, user_choice, current_episode):
@@ -30,8 +32,10 @@ class EpisodeMenu:
             return self.previous_episode(current_episode)
         elif user_choice == 'q':
             return None
+        elif user_choice == 'c':
+            return False
         else:
-            print("Invalid choice. Please enter 'n', 'p', or 'q'.")
+            print("Invalid choice. Please enter 'n', 'p', 'c' or 'q'.")
             return current_episode
 
     def next_episode(self, current_episode):
@@ -47,3 +51,5 @@ class EpisodeMenu:
         else:
             print("Already at the first episode.")
             return current_episode
+    def change_anime(self):
+        return False
