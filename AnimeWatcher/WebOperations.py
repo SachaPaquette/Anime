@@ -193,12 +193,13 @@ class AnimeInteractions:
             logger.error(f"Error while getting number of episodes: {e}")
             raise
 
-    def format_anime_name_url(self, url):
+    def format_anime_name(self, anime_name):
         try:
-            url = url.split('/')
-            # example of url -> https://gogoanime3.net/category/hackgu-returner
-            # url[4] = hackgu-returner
-            return url[4]
+            
+            # take the anime name and add - in between words and remove spaces
+            anime_name = anime_name.replace(' ', '-')
+            
+            return anime_name
         except Exception as e:
             logger.error(f"Error while formatting anime name url: {e}")
             raise

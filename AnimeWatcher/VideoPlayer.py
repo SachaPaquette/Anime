@@ -3,10 +3,13 @@ import time
 
 class VideoPlayer:
     def __init__(self):
-        self.mpv = MPV()
         self.observer_id = None
+        self.mpv = MPV() 
+        
 
     def play_video(self, url):
+        
+        
         self.mpv.play(url)
         time.sleep(5)  # Wait for the player to initialize
 
@@ -23,3 +26,11 @@ class VideoPlayer:
         self.mpv.unbind_property_observer(self.observer_id)
         self.observer_id = None
         self.mpv.command("quit")
+        
+    def terminate_player(self):
+        if self.observer_id:
+            self.mpv.unbind_property_observer(self.observer_id)
+            self.observer_id = None
+        self.mpv.command("quit")
+    def reset_observer_id(self):
+        self.observer_id = None

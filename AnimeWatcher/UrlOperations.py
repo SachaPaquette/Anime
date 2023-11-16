@@ -13,9 +13,17 @@ import json
 logger = setup_logging('anime_watch', Config.ANIME_WATCH_LOG_PATH)
 
 class UrlInteractions:
-    def __init__(self, quality=None):
-    
 
+    def __init__(self, quality=None):
+        """
+        Initializes a new instance of the UrlOperations class.
+
+        Args:
+            quality (str): The quality of the video.
+
+        Returns:
+            None
+        """
         self.session = requests.Session()
         retry = Retry(connect=3, backoff_factor=0.5)
         adapter = HTTPAdapter(max_retries=retry)
@@ -26,18 +34,40 @@ class UrlInteractions:
         self.mode = AES.MODE_CBC
         self.pad = lambda s: s + chr(len(s) % 16) * (16 - len(s) % 16)
         self.qual = quality.lower().strip("p")  # quality of the video
+        
     def response_err(self, request, url):
-        if request.ok:
-            pass
-        else:
-            print(f"Error while requesting {url}: {request.status_code}")
-            raise Exception(
-                f"Error while requesting {url}: {request.status_code}")
+            """
+            Raises an exception if the request to the given URL is not successful.
 
-    def loc_err(self, soup, link, element):
-        if soup == None:
-            print(f"Error while locating {element} in {link}")
-            raise Exception(f"Error while locating {element} in {link}")
+            Args:
+                request (requests.Response): The response object returned by the request.
+                url (str): The URL that was requested.
+
+            Raises:
+                Exception: If the request was not successful, an exception is raised with an error message.
+            """
+            if request.ok:
+                pass
+            else:
+                print(f"Error while requesting {url}: {request.status_code}")
+                raise Exception(
+                    f"Error while requesting {url}: {request.status_code}")
+
+    def locate_error(self, soup, link, element):
+            """
+            Raises an exception if the specified element cannot be located in the given link's HTML soup.
+
+            Args:
+                soup: The HTML soup of the link.
+                link: The URL of the link.
+                element: The element to locate in the HTML soup.
+
+            Raises:
+                Exception: If the specified element cannot be located in the HTML soup.
+            """
+            if soup == None:
+                print(f"Error while locating {element} in {link}")
+                raise Exception(f"Error while locating {element} in {link}")
 
     def embed_url(self, ep_url):
         """
@@ -62,7 +92,7 @@ class UrlInteractions:
 
             link = soup.find("a", {"class": "active", "rel": "1"})
 
-            self.loc_err(link, ep_url, "embed-url")
+            self.locate_error(link, ep_url, "embed-url")
             ep_url = f'https:{link["data-video"]}' if not link["data-video"].startswith(
                 "https:") else link["data-video"]
             return ep_url
@@ -83,7 +113,7 @@ class UrlInteractions:
         request = self.session.get(ep_url)
         soup = BeautifulSoup(request.content, "html.parser")
         crypto = soup.find("script", {"data-name": "episode"})
-        self.loc_err(crypto, ep_url, "token")
+        self.locate_error(crypto, ep_url, "token")
         return crypto["data-value"]
 
     def get_enc_key(self, ep_url):
@@ -291,18 +321,20 @@ class UrlInteractions:
         Returns:
             str: The URL of the video stream.
         """
+        # Get the embedded episode URL
+        embded_episode_url = self.embed_url(ep_url)
         # Get the encryption keys
-        encryption_keys = self.get_enc_key(ep_url)
+        encryption_keys = self.get_enc_key(embded_episode_url)
         # Get the AJAX URL
-        self.ajax_url = self.create_ajax_url(ep_url)
+        self.ajax_url = self.create_ajax_url(embded_episode_url)
         # Get the ID
-        id = self.create_id(ep_url)
+        id = self.create_id(embded_episode_url)
         # Encrypt the ID
         encrypted_id = self.encrypt_id(id, encryption_keys)
         # Create the data dictionary
-        data = self.create_dict_data(ep_url, encryption_keys, encrypted_id)
+        data = self.create_dict_data(embded_episode_url, encryption_keys, encrypted_id)
         # Create the headers
-        headers = self.create_headers(ep_url)
+        headers = self.create_headers(embded_episode_url)
         # Send the POST request
         request = self.send_post_request(self.ajax_url, data, id, headers)
         # Check if the request was successful
