@@ -45,10 +45,9 @@ class AnimeWatch:
                 
                 if prompt is None:
                     print("Exiting...")
-                    self.video_player.terminate_player()
-                    self.web_interactions.cleanup()
-                    # close the program
-                    return
+                    self.video_player.terminate_player() # terminate the video player
+                    self.web_interactions.cleanup() # cleanup the web instance
+                    exit() # exit the program
                 
                     
         except Exception as e:
