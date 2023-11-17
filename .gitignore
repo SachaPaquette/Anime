@@ -5,7 +5,7 @@ __pycache__/
 !Logs/.gitkeep
 !Extensions/.gitkeep
 Logs/*
-Extensions/*
+Extensions/uBlock/*
 # C extensions
 *.so
 
