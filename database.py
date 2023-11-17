@@ -165,11 +165,13 @@ def fetch_animes():
     """
     # Connect to the "Manga" database and "Collection" collection
     collection = connect_collection_db()
+    # Create an index on the 'title' field for better performance
+    create_index(collection)
     # Find all the documents in the collection
     mangas = collection.find(
-        {}, {'_id': 0, 'title': 1, 'link': 1, 'status': 1, 'desc': 1})
+        {}, {'_id': 0})
     return mangas
-import re
+
 
 def create_regex_pattern(input):
     """

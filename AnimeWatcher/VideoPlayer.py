@@ -21,11 +21,17 @@ class VideoPlayer:
     def should_skip_video(self, name, value):
         if not value:
             return
-        print("Video ended or skipped")
         
+        
+        
+        keep_player_open = True  # Keep the player open by default 
+
+        if not keep_player_open:
+            self.mpv.command("quit")
+
+        # Unbind the property observer
         self.mpv.unbind_property_observer(self.observer_id)
         self.observer_id = None
-        self.mpv.command("quit")
         
     def terminate_player(self):
         if self.observer_id:
