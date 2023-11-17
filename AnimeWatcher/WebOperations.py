@@ -132,7 +132,6 @@ class AnimeInteractions:
             anime_data_array = []
             for anime_card in anime_cards:
                 anime_title = anime_card.find_element(By.XPATH, './/a').text
-                print(anime_title)
                 anime_link = anime_card.find_element(By.XPATH, './/a').get_attribute('href')
                 anime_data = {
                     'title': anime_title,
@@ -140,12 +139,12 @@ class AnimeInteractions:
                 }
 
                 anime_data_array.append(anime_data)
-                print(anime_data)
             return anime_data_array
         except Exception as e:
             logger.error(f"Error while getting anime data: {e}")
             raise
-            
+    
+    #TODO: Format this function to be cleaner, create more functions to make it more readable        
     def get_number_episodes(self):
         try:
             episodes_body = self.web_interactions.find_single_element(By.CLASS_NAME, 'anime_video_body')
@@ -182,42 +181,43 @@ class AnimeInteractions:
             raise
 
     def format_anime_name(self, anime_name):
+        """
+        Formats the given anime name by replacing spaces with hyphens and converting it to lowercase.
+
+        Args:
+            anime_name (str): The name of the anime to be formatted.
+
+        Returns:
+            str: The formatted anime name.
+
+        Raises:
+            Exception: If there is an error while formatting the anime name.
+        """
         try:
-            
-            # take the anime name and add - in between words and remove spaces
-            anime_name = anime_name.replace(' ', '-')
-            
+            anime_name = anime_name.replace(' ', '-').lower()
             return anime_name
         except Exception as e:
             logger.error(f"Error while formatting anime name url: {e}")
             raise
 
     def format_episode_link(self, episode_number, anime_name):
+        """
+        Formats the episode link for a given episode number and anime name.
+
+        Args:
+            episode_number (int): The episode number.
+            anime_name (str): The name of the anime.
+
+        Returns:
+            str: The formatted episode link.
+
+        Raises:
+            Exception: If there is an error while formatting the episode link.
+        """
         try:
-            
             url = f"https://gogoanime3.net/{anime_name}-episode-{episode_number}"
             return url
         except Exception as e:
             logger.error(f"Error while formatting episode link: {e}")
             raise
-        
-        
-    def format_number_episodes(self, episodes):
-        try:
-            episodes = episodes.get_attribute('innerHTML')
-            episodes = episodes.split(' ')
-            return int(episodes[2])
-        except Exception as e:
-            logger.error(f"Error while formatting number of episodes: {e}")
-            raise
-        
-        
-        
-    def get_anime_video_player(self, anime_url):
-        try:
-            self.web_interactions.naviguate(anime_url)
-            video_player = self.web_interactions.find_single_element(By.ID, 'iframe_ext82377')
-            return video_player.get_attribute('src')
-        except Exception as e:
-            logger.error(f"Error while getting anime video player: {e}")
-            raise
+

@@ -12,26 +12,47 @@ logger = setup_logging('anime_watch', Config.ANIME_WATCH_LOG_PATH)
 
 class AnimeWatch:
     def __init__(self, web_interactions=None, anime_interactions=None):
+        """
+        Initializes a new instance of the WatchOperations class.
+
+        Args:
+            web_interactions (WebInteractions, optional): An instance of the WebInteractions class. Defaults to None.
+            anime_interactions (AnimeInteractions, optional): An instance of the AnimeInteractions class. Defaults to None.
+        """
         self.web_interactions = web_interactions if web_interactions else WebInteractions()
         self.anime_interactions = anime_interactions if anime_interactions else AnimeInteractions(
             self.web_interactions)
-        self.file_operations = FileOperations()
-        self.url_interactions = UrlInteractions("best")
-        self.video_player = None
+        self.file_operations = FileOperations() # Create an instance of FileOperations
+        self.url_interactions = UrlInteractions("best") # default quality is best
+        self.video_player = None # Create an instance of VideoPlayer
 
     def naviguate_fetch_episodes(self, url, anime_name):
-        try:
-            self.web_interactions.naviguate(url)
-            start_episode, max_episode = self.anime_interactions.get_number_episodes()
-            prompt = self.get_user_input(start_episode, max_episode)
+        """
+        Navigates to the given URL and fetches the episodes for the specified anime.
 
+        Args:
+            url (str): The URL to navigate to.
+            anime_name (str): The name of the anime.
+
+        Returns:
+            bool: True if the application needs to be restarted, False otherwise.
+        """
+        try:
+            # Navigate to the URL
+            self.web_interactions.naviguate(url)
+            # Get the start and max episodes from the page
+            start_episode, max_episode = self.anime_interactions.get_number_episodes()
+            # Get the user's input for the episode they want to start watching
+            prompt = self.get_user_input(start_episode, max_episode)
+            # If the user wants to exit, return False to exit the program
             if prompt is None:
                 print("Exiting...")
                 return True  # Signal to restart the application
-
+            # Create an instance of EpisodeMenu to display the episode menu and handle the user's choice
             episode_menu = EpisodeMenu(start_episode, max_episode)
-
+            
             while True:
+                # Format the anime name (e.g "Jujutsu Kaisen" -> "jujutsu-kaisen")
                 anime_name = self.anime_interactions.format_anime_name(anime_name)
                 episode_url = self.anime_interactions.format_episode_link(prompt, anime_name)
                 self.play_episode(episode_url)
@@ -133,15 +154,28 @@ class AnimeWatch:
 
 class Main:
     def get_valid_index(self, prompt, max_index):
-        while True:
-            try:
-                selected_index = int(input(prompt))
-                if selected_index == 0 or 0 <= selected_index <= max_index:
-                    return selected_index
-                else:
-                    print("Invalid index. Please enter a valid index.")
-            except ValueError:
-                print("Invalid input. Please enter a valid number.")
+            """
+            Prompts the user for an index and validates it.
+
+            Args:
+                prompt (str): The prompt message to display to the user.
+                max_index (int): The maximum valid index.
+
+            Returns:
+                int: The valid index entered by the user.
+
+            Raises:
+                ValueError: If the user enters an invalid number.
+            """
+            while True:
+                try:
+                    selected_index = int(input(prompt))
+                    if selected_index == 0 or 0 <= selected_index <= max_index:
+                        return selected_index
+                    else:
+                        print("Invalid index. Please enter a valid index.")
+                except ValueError:
+                    print("Invalid input. Please enter a valid number.")
                 
     def select_anime(self, animes):
         """
@@ -195,13 +229,14 @@ class Main:
                         # Exit the program by setting restart to False and continuing the loop
                         restart = False
                         continue
-
+                    # Get the selected anime
                     selected_anime = animes[selected_index - 1]
+                    # Print the selected anime
                     print(f"Selected anime: {selected_anime['title']}")
+                    # Navigate to the selected anime's episodes and start watching
                     restart = anime_watch.naviguate_fetch_episodes(
-                        selected_anime['link'], selected_anime['title']
-                    )
-
+                        selected_anime['link'], selected_anime['title'])
+                    
                 else:
                     print("Anime not found")
                     anime_watch.web_interactions.cleanup() # cleanup the web instance

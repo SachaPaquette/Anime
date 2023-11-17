@@ -9,7 +9,7 @@ from Config.config import Config
 from Config.logs_config import setup_logging
 from Driver.driver_config import driver_setup
 from AnimeWatcher.WebOperations import WebInteractions, AnimeInteractions
-from database import connect_collection_db, insert_anime_to_db, create_index
+from database import connect_collection_db, insert_anime_to_db, create_index, detect_duplicates 
 
 logger = setup_logging('anime_fetch', Config.MANGA_FETCH_LOG_PATH)
 
@@ -67,26 +67,40 @@ class AnimeFetch:
         "Do you want to add anime names to the database? (Y/n): ", default="y")
         
     def fetch_all_anime_data(self):
+        """
+        Fetches all anime data by iterating through the pages and inserting the data into the database.
+
+        Raises:
+            Exception: If an unexpected exception occurs during the process.
+        """
         try:
             for page_number in range(1, Config.TOTAL_PAGES + 1):
-
+                # Get the anime cards from the page
                 manga = self.anime_interactions.find_anime_cards(page_number)
-                
+                # Get the anime data from the anime page
                 anime_data = self.anime_interactions.get_anime_page_data(manga)
+                # Insert the anime data into the database
                 insert_anime_to_db(anime_data)
+            # Detect duplicates and remove them from the database
+            detect_duplicates()
         except Exception as e:
+            # Handle unexpected exceptions
             self.handle_unexpected_exception(logger, e)  # Handle unexpected exceptions
             
     
     def main(self):
-        
+        """
+        Main function that handles the execution of the program.
+        Fetches all anime data and inserts it into the database.
+        """
         try:
             user_input = self.handle_user_confirmation()  # Get user confirmation
             if user_input == "n":  # If the user enters 'n', exit the program
                 print("Exiting...")
                 return
-            
+            # Fetch all anime data
             self.fetch_all_anime_data()
+            
         except Exception as e:
             self.handle_unexpected_exception(logger, e)  # Handle unexpected exceptions
         except KeyboardInterrupt:
