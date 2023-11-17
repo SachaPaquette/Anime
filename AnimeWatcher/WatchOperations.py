@@ -73,17 +73,24 @@ class AnimeWatch:
             Returns:
                 str: The user's input, which is either a valid episode number or '0' to exit.
             """
-            while True:
-                user_input = input(f"Enter the episode you want to start watching between {start_episode}-{max_episode} (or 0 to exit): ")
+            try:
+                while True:
+                    user_input = input(f"Enter the episode you want to start watching between {start_episode}-{max_episode} (or 0 to exit): ")
 
-                if user_input == '0':
-                    print("Exiting...")
-                    return None
+                    if user_input == '0':
+                        print("Exiting...")
+                        return None
 
-                if user_input.isdigit() and start_episode <= int(user_input) <= max_episode:
-                    return user_input
-                else:
-                    print("Invalid input. Please enter a valid episode or '0' to exit.")
+                    if user_input.isdigit() and start_episode <= int(user_input) <= max_episode:
+                        return user_input
+                    else:
+                        print("Invalid input. Please enter a valid episode or '0' to exit.")
+            except Exception as e:
+                logger.error(f"Error while getting user input: {e}")
+                raise
+            except KeyboardInterrupt:
+                print("Exiting...")
+                return None
 
 
         
@@ -148,8 +155,8 @@ class Main:
                 if animes:
                     print("Search results: ")
                     for i, anime in enumerate(animes):
-                        print(f"{i + 1}. {anime['title']}")
-
+                        print(f"{i + 1}. {anime['title']}") # Print the anime titles with their index
+                    # Prompt the user to select an anime
                     selected_index = self.get_valid_index(
                         "Enter the index of the anime you want to watch (or 0 to exit): ",
                         len(animes)
@@ -157,8 +164,12 @@ class Main:
 
                     if selected_index == 0:
                         print("Exiting...")
-                        return
-
+                        # Cleanup the web instance 
+                        anime_watch.web_interactions.cleanup()
+                        # Exit the program by setting restart to False and continuing the loop
+                        restart = False
+                        continue
+                    
                     selected_anime = animes[selected_index - 1]
                     print(f"Selected anime: {selected_anime['title']}")
                     restart = anime_watch.naviguate_fetch_episodes(
