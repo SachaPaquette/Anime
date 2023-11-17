@@ -142,34 +142,60 @@ class Main:
                     print("Invalid index. Please enter a valid index.")
             except ValueError:
                 print("Invalid input. Please enter a valid number.")
+                
+    def select_anime(self, animes):
+        """
+        Displays the search results and prompts the user to select an anime.
+
+        Args:
+            animes (list): List of anime dictionaries.
+
+        Returns:
+            int: The selected index of the anime, or 0 to exit.
+        """
+        print("Search results: ")
+        for i, anime in enumerate(animes):
+            print(f"{i + 1}. {anime['title']}")
+        
+        return self.get_valid_index("Enter the index of the anime you want to watch (or 0 to exit): ", len(animes))
+           
+                
     def main(self):
+        """
+        Main function for watching anime.
+
+        This function prompts the user to enter the anime they want to watch,
+        searches for the anime, and allows the user to select an anime to watch.
+        It then navigates to the selected anime's episodes and starts watching.
+
+        Returns:
+            None
+        """
+        # Initialize the restart variable to True to start the loop
         restart = True
 
         while restart:
+            # Create an instance of AnimeWatch
             anime_watch = AnimeWatch(None, None)
 
             try:
+                # Prompt the user to enter the anime they want to watch
                 user_input = input("Enter the anime you want to watch: ")
+                # Search for the anime in the database
                 animes = find_anime(user_input)
-
+                # Check if the anime was found
                 if animes:
-                    print("Search results: ")
-                    for i, anime in enumerate(animes):
-                        print(f"{i + 1}. {anime['title']}") # Print the anime titles with their index
-                    # Prompt the user to select an anime
-                    selected_index = self.get_valid_index(
-                        "Enter the index of the anime you want to watch (or 0 to exit): ",
-                        len(animes)
-                    )
-
+                    #If the anime was found, prompt the user to select an anime to watch (ex: 1. Naruto)
+                    selected_index = self.select_anime(animes)
+                    # If the user selected the exit option, exit the program
                     if selected_index == 0:
                         print("Exiting...")
-                        # Cleanup the web instance 
+                        # Cleanup the web instance
                         anime_watch.web_interactions.cleanup()
                         # Exit the program by setting restart to False and continuing the loop
                         restart = False
                         continue
-                    
+
                     selected_anime = animes[selected_index - 1]
                     print(f"Selected anime: {selected_anime['title']}")
                     restart = anime_watch.naviguate_fetch_episodes(
@@ -178,7 +204,10 @@ class Main:
 
                 else:
                     print("Anime not found")
-                    restart = False
+                    anime_watch.web_interactions.cleanup() # cleanup the web instance
+                    # re-prompts the user to enter the anime they want to watch
+                    continue
+                    
 
             except Exception as e:
                 anime_watch.web_interactions.cleanup()
