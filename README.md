@@ -6,7 +6,6 @@ This CLI (Command-Line Interface) application allows users to fetch anime data, 
 
     Anime Data Fetching:
         The application fetches anime data from a specified source on the internet.
-        The fetched data includes information about various anime, such as title, genres, and episodes.
 
     Database Integration:
         The fetched anime data is stored in a database for easy retrieval and management.
@@ -51,7 +50,7 @@ Run the main application to select an anime and watch episodes:
 
 ```bash
 
-python main.py
+python animewatch.py
 ```
 
 Follow the on-screen instructions to navigate and select an anime and episode.
