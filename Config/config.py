@@ -13,26 +13,13 @@ class Config:
     #        animewatch.py    #
     #        constants           #
     ##############################
-    UK_FLAG = 'https://mangadex.org/img/flags/gb.svg' # UK flag URL (used to check if the manga is available in English)
-    CHAPTER_CARDS = 'bg-accent.rounded-sm'  # Class name of the chapter cards
-    CHAPTER_NUMBER = 'font-bold.self-center.whitespace-nowrap' # Class name of the chapter number
-    CHAPTER_LINK = 'chapter-grid.flex-grow'  # Class name of the chapter link
     IMG = 'img'  # Tag name of the image
-    LONG_MANGA_PARENT_DIV = "mx-auto.h-full.w-full" # Class name of the parent div of the long manga image
-    LONG_MANGA_SUBDIV = "md--page.ls.limit-width.mx-auto" # Class name of the subdiv of the long manga image
-    # Class name of the page wrap
-    PAGE_WRAP = 'min-w-0.relative.pages-wrap.md--reader-pages'
-    NEXT_PAGE_BUTTON = "feather-arrow-right"  # Class name of the next page button
-    DEACTIVATED_NEXT_PAGE_BUTTON = "rounded relative md-btn flex items-center px-3 overflow-hidden accent disabled text rounded-full !px-0" # With spaces since the output has spaces
-    POP_UP = "md-modal__box.flex-grow"  # Class name of the pop up
     DIV = "div"  # Tag name of the div
     SRC = "src"  # Attribute name of the src
     HREF = "href"  # Attribute name of the href
     HYPERLINK = "a"  # Tag name of the hyperlink
-    MANGA_IMAGE = "mx-auto.h-full.md--page.flex" # Class name of the manga image
-    LONG_MANGA_IMAGE = "md--page.ls.limit-width.mx-auto" # Class name of the long manga image
-    MANGA_DOWNLOAD_LOG_PATH = "./Logs/MangaDownload.log" # Path to the log file
-    UNLOADED_SUB_DIV = ".unloaded.mx-auto" # Class name of the unloaded sub div
+    LI_ELEMENT = "li" # Tag name of the list element
+    XPATH_HREF = ".//a" # XPath to the hyperlink
     
     ANIME_WATCH_LOG_PATH = "./Logs/AnimeWatch.log" # Path to the log file
 
@@ -40,8 +27,7 @@ class Config:
     #        mangafetch.py       #
     #        constants           #
     ##############################
-    ANIME_SITE_BASE_URL = "https://123anime.info/az-all-anime/all/?page={}" # URL to the MangaDex titles page
-    GOGO_ANIME_SITE_BASE_URL = "https://gogoanime3.net/anime-list.html?page={}"
+    GOGO_ANIME_SITE_BASE_URL = "https://gogoanime3.net/anime-list.html?page={}" # Base URL of the GoGoAnime site
     TOTAL_PAGES = 95  # Total number of pages to fetch
     MIN_SLEEP_THRESHOLD = 30 # Sleep after every x pages (to avoid getting blocked by MangaDex)
     MAX_SLEEP_THRESHOLD = 40 # Sleep after every x pages (to avoid getting blocked by MangaDex)
@@ -52,27 +38,23 @@ class Config:
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36 Edg/91.0.864.48",
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36 OPR/77.0.4054.254",
     ]  # List of user agents to rotate through
-    MANGA_FETCH_LOG_PATH = "./Logs/MangaFetch.log" # Path to the log file
     ANIME_LIST = "film-list" # Class name of the anime list
     ANIME_CARDS = "item" # Class name of the anime cards
 
     ##############################
-    #        driver_config.py       #
-    
+    #        driver_config.py    #
+    ##############################
     
     CRX_PATH = "./Extensions/uBlock-origin.crx" # Path to the AdBlock extension
     EXTENSION_PATH = r"D:\school\ECOLE\PERSONAL\Anime\Extensions\uBlock"
-    # proxy list
-    PROXY_LIST = []
     
     ##############################
     #        WebOperations.py    #
+    ##############################
     
-    EP_START = "ep_start"
-    EP_END = "ep_end"
-    LI_ELEMENT = "li"
-    EPISODE_PAGE = "episode_page"
-    ANIME_VIDEO_BODY = "anime_video_body"
-    XPATH_HREF = ".//a"
-    ANIME_LIST_BODY = "anime_list_body"
-    ANIME_LISTING = "listing"
+    EP_START = "ep_start" # Start episode number
+    EP_END = "ep_end" # End episode number
+    EPISODE_PAGE = "episode_page" # Episode page class name
+    ANIME_VIDEO_BODY = "anime_video_body" # Anime video body class name
+    ANIME_LIST_BODY = "anime_list_body" # Anime list body class name
+    ANIME_LISTING = "listing" # Anime listing class name

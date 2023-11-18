@@ -73,9 +73,12 @@ class EpisodeMenu:
         Returns:
             int: The previous episode number if it exists, otherwise the current episode number.
         """
+        # Check if the current episode is greater than the start episode
         if current_episode > self.start_episode:
+            # If the current episode is greater than the start episode, return the previous episode
             return current_episode - 1
         else:
+            # If the current episode is equal to the start episode, print an error message and return the current episode
             print("Already at the first episode.")
             return current_episode
     def change_anime(self):
