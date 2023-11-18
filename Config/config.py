@@ -64,3 +64,15 @@ class Config:
     EXTENSION_PATH = r"D:\school\ECOLE\PERSONAL\Anime\Extensions\uBlock"
     # proxy list
     PROXY_LIST = []
+    
+    ##############################
+    #        WebOperations.py    #
+    
+    EP_START = "ep_start"
+    EP_END = "ep_end"
+    LI_ELEMENT = "li"
+    EPISODE_PAGE = "episode_page"
+    ANIME_VIDEO_BODY = "anime_video_body"
+    XPATH_HREF = ".//a"
+    ANIME_LIST_BODY = "anime_list_body"
+    ANIME_LISTING = "listing"

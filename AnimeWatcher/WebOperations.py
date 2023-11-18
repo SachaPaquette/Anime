@@ -18,7 +18,7 @@ class WebInteractions:
 
     def cleanup(self):
         """Function to close the browser window and quit the driver"""
-        self.driver.quit()
+        self.driver.quit() # Close the browser window
         print("Browser closed")
 
     def naviguate(self, url):
@@ -33,6 +33,7 @@ class WebInteractions:
 
         """
         try:
+            # Navigate to the URL
             self.driver.get(url)
         except Exception as e:
             logger.error(f"Error while navigating to {url}: {e}")
@@ -53,10 +54,13 @@ class WebInteractions:
         Raises:
             NoSuchElementException: If the element is not found.
         """
+        # Get the search type (e.g., "class name", "tag name", etc.)
         by_type = getattr(By, type_name.replace(' ', '_').upper())
         if element:
+            # If an element is provided, search within that element
             return element.find_element(by=by_type, value=value)
         else:
+            # If no element is provided, search on the entire page
             return self.driver.find_element(by=by_type, value=value)
 
     def find_multiple_elements(self, type_name, value, element=None):
@@ -71,12 +75,14 @@ class WebInteractions:
         Returns:
             A list of WebElements that match the specified search criteria.
         """
+        # Get the search type (e.g., "class name", "tag name", etc.)
         by_type = getattr(By, type_name.replace(' ', '_').upper())
-
+        # If an element is provided, search within that element
         if element:
-
+            # Find the elements within the element provided
             return element.find_elements(by=by_type, value=value)
         else:
+            # Find the elements on the entire page
             return self.driver.find_elements(by=by_type, value=value)
 
     def click_on_element(self, element):
@@ -135,20 +141,20 @@ class AnimeInteractions:
 
             # Find the anime list body
             anime_list = self.web_interactions.find_single_element(
-                By.CLASS_NAME, "anime_list_body")
+                By.CLASS_NAME, Config.ANIME_LIST_BODY)
 
             if anime_list is None:
                 raise Exception("Anime list not found")
 
             # Find the anime listing
             anime_listing = self.web_interactions.find_single_element(
-                By.CSS_SELECTOR, ".anime_list_body > .listing", element=anime_list)
+                By.CSS_SELECTOR, f".{Config.ANIME_LIST_BODY} > .{Config.ANIME_LISTING}", element=anime_list)
             if anime_listing is None:
                 raise Exception("Anime listing not found")
 
             # Find the anime cards
             anime_cards = self.web_interactions.find_multiple_elements(
-                By.CSS_SELECTOR, ".listing > li", element=anime_listing)
+                By.CSS_SELECTOR, f".{Config.ANIME_LISTING} > {Config.LI_ELEMENT}", element=anime_listing)
             if anime_cards is None:
                 raise Exception("Anime cards not found")
 
@@ -158,13 +164,26 @@ class AnimeInteractions:
             raise  # Re-raise the exception to stop further execution
 
     def get_anime_page_data(self, anime_cards):
+        """
+        Retrieves the anime data from the given anime cards.
+
+        Args:
+            anime_cards (list): List of anime cards.
+
+        Returns:
+            list: List of dictionaries containing anime data, with each dictionary
+                  having 'title' and 'link' keys.
+
+        Raises:
+            Exception: If there is an error while getting anime data.
+        """
         try:
             anime_data_array = []
             for anime_card in anime_cards:
                 # Get the anime title and link
-                anime_title = anime_card.find_element(By.XPATH, './/a').text
+                anime_title = anime_card.find_element(By.XPATH, Config.XPATH_HREF).text
                 anime_link = anime_card.find_element(
-                    By.XPATH, './/a').get_attribute(Config.HREF)
+                    By.XPATH, Config.XPATH_HREF).get_attribute(Config.HREF)
                 # Create a dictionary to store the anime data
                 anime_data = {
                     'title': anime_title,
@@ -178,39 +197,77 @@ class AnimeInteractions:
             logger.error(f"Error while getting anime data: {e}")
             raise
 
-    # TODO: Format this function to be cleaner, create more functions to make it more readable
     def find_episodes_body(self):
-        try:
-            episodes_body = self.web_interactions.find_single_element(
-                By.CLASS_NAME, 'anime_video_body')
-            if episodes_body is None:
-                raise Exception("Episodes list not found")
+            """
+            Finds and returns the episodes body element on the webpage.
 
-            return episodes_body
+            Returns:
+                episodes_body (WebElement): The episodes body element.
 
-        except Exception as e:
-            logger.error(f"Error while finding episodes body: {e}")
-            raise
+            Raises:
+                Exception: If the episodes list is not found.
+            """
+            try:
+                # Find the episodes body
+                episodes_body = self.web_interactions.find_single_element(
+                    By.CLASS_NAME, Config.ANIME_VIDEO_BODY)
+                if episodes_body is None:
+                    # If the episodes body is not found, raise an exception
+                    raise Exception("Episodes list not found")
+                # Return the episodes body
+                return episodes_body
+
+            except Exception as e:
+                logger.error(f"Error while finding episodes body: {e}")
+                raise
 
     def find_episodes(self, episodes_body):
-        try:
-            episodes = self.web_interactions.find_single_element(
-                By.ID, 'episode_page', element=episodes_body)
-            if episodes is None:
-                raise Exception("Episodes not found")
+            """
+            Finds and returns the episodes element from the given episodes_body.
 
-            return episodes
+            Args:
+                episodes_body: The body element containing the episodes.
 
-        except Exception as e:
-            logger.error(f"Error while finding episodes: {e}")
-            raise
+            Returns:
+                The episodes element if found.
+
+            Raises:
+                Exception: If episodes element is not found.
+            """
+            try:
+                # Find the episodes element
+                episodes = self.web_interactions.find_single_element(
+                    By.ID, Config.EPISODE_PAGE, element=episodes_body)
+                if episodes is None:
+                    # If the episodes element is not found, raise an exception
+                    raise Exception("Episodes not found")
+                # Return the episodes element
+                return episodes
+
+            except Exception as e:
+                logger.error(f"Error while finding episodes: {e}")
+                raise
 
     def find_li_elements(self, episodes):
-        try:
-            li_elements = episodes.find_elements(By.CSS_SELECTOR, 'li')
-            if li_elements is None:
-                raise Exception("Episodes list not found")
+        """
+        Find and return a list of <li> elements within the given 'episodes' element.
 
+        Args:
+            episodes (WebElement): The parent element containing the <li> elements.
+
+        Returns:
+            list: A list of <li> elements found within the 'episodes' element.
+
+        Raises:
+            Exception: If the 'episodes' element is not found or if an error occurs during the process.
+        """
+        try:
+            # Find the <li> elements
+            li_elements = episodes.find_elements(By.CSS_SELECTOR, Config.LI_ELEMENT)
+            if li_elements is None:
+                # If no <li> elements are found, raise an exception
+                raise Exception("Episodes list not found")
+            # Return the <li> elements
             return li_elements
 
         except Exception as e:
@@ -218,11 +275,25 @@ class AnimeInteractions:
             raise
 
     def get_episode_range(self, li_element):
-        try:
-            episode_link = li_element.find_element(By.CSS_SELECTOR, 'a')
-            ep_start = int(episode_link.get_attribute('ep_start'))
-            ep_end = int(episode_link.get_attribute('ep_end'))
+        """
+        Get the episode range from the given li_element.
 
+        Args:
+            li_element (WebElement): The li element containing the episode information.
+
+        Returns:
+            Two variables containing the start and end episode numbers.
+
+        Raises:
+            Exception: If there is an error while getting the episode range.
+        """
+        try:
+            # Get the episode link
+            episode_link = li_element.find_element(By.CSS_SELECTOR, Config.HYPERLINK)
+            # Find the episode range from the episode link
+            ep_start = int(episode_link.get_attribute(Config.EP_START))
+            ep_end = int(episode_link.get_attribute(Config.EP_END))
+            # Return the episode range
             return ep_start, ep_end
 
         except Exception as e:
@@ -230,25 +301,33 @@ class AnimeInteractions:
             raise
 
     def get_number_episodes(self):
-        try:
-            episodes_body = self.find_episodes_body()
-            episodes = self.find_episodes(episodes_body)
-            li_elements = self.find_li_elements(episodes)
+            """
+            Retrieves the number of episodes for the anime.
 
-            min_start = float('inf')  # set to positive infinity
-            max_end = float('-inf')  # set to negative infinity
+            Returns:
+                Two variables, the minimum and maximum episode numbers.
+            Raises:
+                Exception: If there is an error while getting the number of episodes.
+            """
+            try:
+                episodes_body = self.find_episodes_body()
+                episodes = self.find_episodes(episodes_body)
+                li_elements = self.find_li_elements(episodes)
 
-            for li_element in li_elements:
-                ep_start, ep_end = self.get_episode_range(li_element)
+                min_start = float('inf')  # set to positive infinity
+                max_end = float('-inf')  # set to negative infinity
 
-                min_start = min(min_start, ep_start)
-                max_end = max(max_end, ep_end)
+                for li_element in li_elements:
+                    ep_start, ep_end = self.get_episode_range(li_element)
 
-            return min_start + 1, max_end
+                    min_start = min(min_start, ep_start)
+                    max_end = max(max_end, ep_end)
 
-        except Exception as e:
-            logger.error(f"Error while getting number of episodes: {e}")
-            raise
+                return min_start + 1, max_end
+
+            except Exception as e:
+                logger.error(f"Error while getting number of episodes: {e}")
+                raise
 
 
     def format_anime_name(self, anime_name):
