@@ -156,54 +156,43 @@ def detect_duplicates():
     print('Duplicates are now removed :)')
 
 
-def fetch_animes():
-    """
-    Fetches all the anime documents from the "Collection" collection in the "Manga" database.
 
-    Returns:
-    mangas (pymongo.cursor.Cursor): A cursor object containing all the manga documents.
-    """
-    # Connect to the "Manga" database and "Collection" collection
-    collection = connect_collection_db()
-    # Create an index on the 'title' field for better performance
-    create_index(collection)
-    # Find all the documents in the collection
-    mangas = collection.find(
-        {}, {'_id': 0})
-    return mangas
-
+import re
 
 def create_regex_pattern(input):
     """
-    Creates a regular expression pattern that matches any string containing the given input, ignoring case.
+    Create a regular expression pattern that matches any string containing the given input.
 
     Args:
-        input (str): The input string to match.
+        input (str): The input string to be escaped and used in the pattern.
 
     Returns:
-        A compiled regular expression pattern object.
+        re.Pattern: A compiled regular expression pattern that matches any string containing the input.
+
     """
     return re.compile(f".*{re.escape(input)}.*", re.IGNORECASE)
 
 def find_anime(input):
     """
-    Finds mangas in the "Manga" database that match the given input.
+    Find anime titles that match the given input.
 
     Args:
-        input (str): The input string to match against the manga titles.
+        input (str): The input string to search for.
 
     Returns:
-        list: A list of dictionaries containing the matching manga documents. Each dictionary contains the title, link, status, and desc fields.
-        None: If an error occurs during the database query, returns None.
+        list: A list of dictionaries representing the matching anime titles, links, and statuses.
+              Each dictionary contains the following fields: 'title', 'link', 'status'.
+
+    Raises:
+        Exception: If there is an error in the database connection or query execution.
     """
     try:
+        collection = connect_collection_db()
+
         # Create a regex pattern for matching substrings of the input
         pattern = create_regex_pattern(input)
 
-        # Connect to the "Manga" database and "Collection" collection
-        collection = connect_collection_db()
-
-        # Use the regex pattern in the query to find matching documents and return only the title, link, status and desc fields
+        # Use the regex pattern in the query to find matching documents and return only the title and link fields
         anime_cursor = collection.find(
             {'title': {'$regex': pattern}},
             {'_id': 0, 'title': 1, 'link': 1}
@@ -212,9 +201,17 @@ def find_anime(input):
         # Convert the cursor to a list
         animes = list(anime_cursor)
 
+        # Prioritize titles that start with the input and sort the rest alphabetically
+        animes.sort(key=lambda x: (
+            not x['title'].lower().startswith(input.lower()), x['title']))
+
         return animes  # Return the list of matching documents
+
     except Exception as e:
-        logger.error(f"Error in find_mangas: {e}")
+        logger.error(f"Error in find_anime: {e}")
         return None
+
+
+
 
 

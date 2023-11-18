@@ -2,7 +2,6 @@ from Config.config import Config
 from Config.logs_config import setup_logging
 from AnimeWatcher.WebOperations import WebInteractions, AnimeInteractions
 from database import find_anime
-from AnimeWatcher.FileOperations import FileOperations
 from AnimeWatcher.VideoPlayer import VideoPlayer
 from AnimeWatcher.UrlOperations import UrlInteractions
 from AnimeWatcher.EpisodeOperations import EpisodeMenu
@@ -22,7 +21,6 @@ class AnimeWatch:
         self.web_interactions = web_interactions if web_interactions else WebInteractions()
         self.anime_interactions = anime_interactions if anime_interactions else AnimeInteractions(
             self.web_interactions)
-        self.file_operations = FileOperations()  # Create an instance of FileOperations
         self.url_interactions = UrlInteractions(
             "best")  # default quality is best
         self.video_player = None  # Create an instance of VideoPlayer
