@@ -54,8 +54,10 @@ class AnimeWatch:
                 # Format the anime name (e.g "Jujutsu Kaisen" -> "jujutsu-kaisen")
                 anime_name = self.anime_interactions.format_anime_name(
                     anime_name)
+                print(f"Selected anime: {anime_name}")
                 episode_url = self.anime_interactions.format_episode_link(
                     prompt, anime_name)
+                print(f"Selected episode: {prompt}")
                 self.play_episode(episode_url)
 
                 episode_menu.display_menu()
