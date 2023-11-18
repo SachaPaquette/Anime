@@ -9,7 +9,7 @@ import re
 import base64
 import json
 
-
+# Setup logging 
 logger = setup_logging('anime_watch', Config.ANIME_WATCH_LOG_PATH)
 
 class UrlInteractions:
@@ -24,18 +24,17 @@ class UrlInteractions:
         Returns:
             None
         """
-        self.session = requests.Session()
-        retry = Retry(connect=3, backoff_factor=0.5)
-        adapter = HTTPAdapter(max_retries=retry)
-        self.session.mount("http://", adapter)
-        self.session.mount("https://", adapter)
-        self.ajax_url = "/encrypt-ajax.php?"
-        self.enc_key_api = "https://raw.githubusercontent.com/justfoolingaround/animdl-provider-benchmarks/master/api/gogoanime.json"
-        self.mode = AES.MODE_CBC
-        self.pad = lambda s: s + chr(len(s) % 16) * (16 - len(s) % 16)
+        self.session = requests.Session() # create a new session
+        retry = Retry(connect=3, backoff_factor=0.5) # retry the request 3 times with a backoff factor of 0.5
+        adapter = HTTPAdapter(max_retries=retry) # create a new HTTP adapter
+        self.session.mount("http://", adapter) # mount the HTTP adapter to the session
+        self.session.mount("https://", adapter) # mount the HTTPS adapter to the session
+        self.ajax_url = "/encrypt-ajax.php?" # the URL to the AJAX endpoint
+        self.mode = AES.MODE_CBC # the mode to use for AES encryption
+        self.pad = lambda s: s + chr(len(s) % 16) * (16 - len(s) % 16) # the padding function to use for AES encryption
         self.qual = quality.lower().strip("p")  # quality of the video
         
-    def response_err(self, request, url):
+    def response_error(self, request, url):
             """
             Raises an exception if the request to the given URL is not successful.
 
@@ -83,16 +82,17 @@ class UrlInteractions:
         - Exception: If there is an error while getting the embedded video player URL.
         """
         try:
-
+            # Send a GET request to the episode URL 
             r = self.session.get(ep_url)
-
-            self.response_err(r, ep_url)
-
+            # Check if the request was successful
+            self.response_error(r, ep_url)
+            # Create a BeautifulSoup object from the response content
             soup = BeautifulSoup(r.content, "html.parser")
-
+            # Find the active link
             link = soup.find("a", {"class": "active", "rel": "1"})
-
+            # Check if the active link exists
             self.locate_error(link, ep_url, "embed-url")
+            # Get the embedded video player URL
             ep_url = f'https:{link["data-video"]}' if not link["data-video"].startswith(
                 "https:") else link["data-video"]
             return ep_url
@@ -110,10 +110,15 @@ class UrlInteractions:
         Returns:
             str: The data for the given episode URL.
         """
+        # Send a GET request to the episode URL
         request = self.session.get(ep_url)
+        # Get the response content as a BeautifulSoup object
         soup = BeautifulSoup(request.content, "html.parser")
+        # Find the script tag containing the data
         crypto = soup.find("script", {"data-name": "episode"})
+        # Check if the requested data exists
         self.locate_error(crypto, ep_url, "token")
+        # Return the data
         return crypto["data-value"]
 
     def get_enc_key(self, ep_url):
@@ -126,17 +131,19 @@ class UrlInteractions:
         Returns:
             dict: A dictionary containing the encryption key, initialization vector, and second key.
         """
+        # Send a GET request to the episode URL 
         page = self.session.get(ep_url).text
-
+        # Find the encryption keys
         keys = re.findall(r"(?:container|videocontent)-(\d+)", page)
-
+        # Check if the encryption keys exist
         if not keys:
             return {}
-
+        # Get the encryption keys
         key, iv, second_key = keys
+        # Return the encryption keys as a dictionary
         return {
             "key": key.encode(),
-            "iv": iv.encode(),
+            "iv": iv.encode(), 
             "second_key": second_key.encode()
         }
 
@@ -171,7 +178,7 @@ class UrlInteractions:
         return (
             AES.new(key, self.mode, iv=iv)
             .decrypt(base64.b64decode(data))
-            .strip(b"\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\x0c\r\x0e\x0f\x10")
+            .strip(b"\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\x0c\r\x0e\x0f\x10") 
         )
 
     def create_ajax_url(self, ep_url):
@@ -338,7 +345,7 @@ class UrlInteractions:
         # Send the POST request
         request = self.send_post_request(self.ajax_url, data, id, headers)
         # Check if the request was successful
-        self.response_err(request, request.url)
+        self.response_error(request, request.url)
         # Create the JSON response
         json_response = self.create_json_response(request, encryption_keys)
         # Get the source data

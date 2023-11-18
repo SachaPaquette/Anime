@@ -1,5 +1,4 @@
 from python_mpv_jsonipc import MPV
-import time
 
 class VideoPlayer:
     # Create a singleton instance of the VideoPlayer class
@@ -20,8 +19,13 @@ class VideoPlayer:
         return cls._instance # Return the instance of the VideoPlayer class
 
     def play_video(self, url):
-        self.mpv.play(url)
-        #time.sleep(5)  # Wait for the player to initialize
+        """
+        Plays a video from the given URL.
+
+        Args:
+            url (str): The URL of the video to be played.
+        """
+        self.mpv.play(url) # Play the video
 
         # Bind a property observer for the idle-active property
         self.observer_id = self.mpv.bind_property_observer("idle-active", self.should_skip_video)
