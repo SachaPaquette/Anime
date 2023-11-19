@@ -16,6 +16,9 @@ class VideoPlayer:
             cls._instance = super(VideoPlayer, cls).__new__(cls) # Call the __new__ method of the superclass
             cls._instance.observer_id = None # Initialize the observer ID to None
             cls._instance.mpv = MPV()  # Create a new instance of the MPV class
+            # Options to be passed to the MPV instance
+            cls._instance.mpv.fullscreen = True
+            
         return cls._instance # Return the instance of the VideoPlayer class
 
     def play_video(self, url):

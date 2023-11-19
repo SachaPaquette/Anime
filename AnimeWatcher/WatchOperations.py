@@ -5,9 +5,9 @@ from database import find_anime
 from AnimeWatcher.VideoPlayer import VideoPlayer
 from AnimeWatcher.UrlOperations import UrlInteractions
 from AnimeWatcher.EpisodeOperations import EpisodeMenu
+
 # Configure the logger
 logger = setup_logging('anime_watch', Config.ANIME_WATCH_LOG_PATH)
-
 
 class AnimeWatch:
     def __init__(self, web_interactions=None, anime_interactions=None):
@@ -21,8 +21,7 @@ class AnimeWatch:
         self.web_interactions = web_interactions if web_interactions else WebInteractions()
         self.anime_interactions = anime_interactions if anime_interactions else AnimeInteractions(
             self.web_interactions)
-        self.url_interactions = UrlInteractions(
-            "best")  # default quality is best
+        self.url_interactions = UrlInteractions(Config.QUALITY)  # default quality is best
         self.video_player = None  # Create an instance of VideoPlayer
 
     def naviguate_fetch_episodes(self, url, anime_name):

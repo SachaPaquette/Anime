@@ -59,3 +59,4 @@ class Config:
     ANIME_VIDEO_BODY = "anime_video_body" # Anime video body class name
     ANIME_LIST_BODY = "anime_list_body" # Anime list body class name
     ANIME_LISTING = "listing" # Anime listing class name
+    QUALITY = "best" # Quality of the video
