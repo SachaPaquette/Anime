@@ -41,7 +41,7 @@ class Config:
     ]  # List of user agents to rotate through
     ANIME_LIST = "film-list" # Class name of the anime list
     ANIME_CARDS = "item" # Class name of the anime cards
-
+    ANIME_FETCH_LOG_PATH = "./Logs/AnimeFetch.log" # Path to the log file
     ##############################
     #        driver_config.py    #
     ##############################

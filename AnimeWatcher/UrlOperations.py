@@ -382,20 +382,23 @@ class UrlInteractions:
         Returns:
             None
         """
-        # self.entry.quality = ""
 
+        # Initialize the stream quality to an empty array
         streams = []
+        # Iterate through the JSON data
         for i in json_data:
+            # Check if the stream is HLS 
             if "m3u8" in i["file"] or i["type"] == "hls":
                 type = "hls"
             else:
+                # Otherwise, the stream is MP4
                 type = "mp4"
-
+            # Get the quality of the stream
             quality = i["label"].replace(" P", "").lower()
-
+            # Append the stream to the list of streams
             streams.append(
                 {"file": i["file"], "type": type, "quality": quality})
-
+        # Filter the streams based on the user's quality preference
         filtered_q_user = list(
             filter(lambda x: x["quality"] == self.qual, streams))
         if filtered_q_user:
@@ -406,5 +409,5 @@ class UrlInteractions:
             stream = streams[0]
         else:
             stream = streams[-1]
-
+        # Return the stream quality
         self.quality = stream["quality"]

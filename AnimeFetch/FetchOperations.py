@@ -5,7 +5,7 @@ from Driver.driver_config import driver_setup
 from AnimeWatcher.WebOperations import WebInteractions, AnimeInteractions
 from database import  insert_anime_to_db, detect_duplicates
 
-logger = setup_logging('anime_fetch', Config.MANGA_FETCH_LOG_PATH)
+logger = setup_logging('anime_fetch', Config.ANIME_FETCH_LOG_PATH)
 
 
 class AnimeFetch:
