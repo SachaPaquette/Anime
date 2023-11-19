@@ -331,7 +331,8 @@ class AnimeInteractions:
             # Replace any spaces by the - symbol -> Naruto Shippuden = naruto-shippuden
             anime_name = anime_name.replace(' ', '-').lower()
             # Remove any symbols beside the - symbol
-            anime_name = re.sub(r'[:;\\[\]]', '', anime_name)
+            anime_name = re.sub(r'[:;\\[\]()]', '', anime_name)
+            
             # Return the formatted anime name
             return anime_name
         except Exception as e:

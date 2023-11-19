@@ -39,7 +39,7 @@ class UrlInteractions:
         self.pad = lambda s: s + chr(len(s) % 16) * (16 - len(s) % 16)
         self.qual = quality.lower().strip("p")  # quality of the video
 
-    def response_error(self, request, url):
+    def check_response_error(self, request, url):
         """
         Raises an exception if the request to the given URL is not successful.
 
@@ -73,12 +73,12 @@ class UrlInteractions:
             print(f"Error while locating {element} in {link}")
             raise Exception(f"Error while locating {element} in {link}")
 
-    def embed_url(self, ep_url):
+    def get_embedded_video_url(self, episode_url):
         """
         Given an episode URL, returns the URL of the embedded video player for that episode.
 
         Args:
-        - ep_url (str): The URL of the episode to get the embedded video player URL for.
+        - episode_url (str): The URL of the episode to get the embedded video player URL for.
 
         Returns:
         - str: The URL of the embedded video player for the given episode.
@@ -88,22 +88,27 @@ class UrlInteractions:
         """
         try:
             # Send a GET request to the episode URL
-            r = self.session.get(ep_url)
+            r = self.session.get(episode_url)
             # Check if the request was successful
-            self.response_error(r, ep_url)
+            self.check_response_error(r, episode_url)
+
             # Create a BeautifulSoup object from the response content
             soup = BeautifulSoup(r.content, "html.parser")
-            # Find the active link
-            link = soup.find("a", {"class": "active", "rel": "1"})
-            # Check if the active link exists
-            self.locate_error(link, ep_url, "embed-url")
-            # Get the embedded video player URL
-            ep_url = f'https:{link["data-video"]}' if not link["data-video"].startswith(
-                "https:") else link["data-video"]
-            return ep_url
 
+            # Find the active link
+            active_link = soup.find("a", {"class": "active", "rel": "1"})
+            # Check if the active link exists
+            self.locate_error(active_link, episode_url, "embed-url")
+
+            # Get the embedded video player URL
+            embedded_url = f'https:{active_link["data-video"]}' if not active_link["data-video"].startswith(
+                "https:") else active_link["data-video"]
+
+            return embedded_url
         except Exception as e:
-            logger.error(f"Error while getting embed url: {e}")
+            # Add more details to the error message if needed
+            raise Exception(f"Error while getting embedded video player URL: {e}")
+
 
     def get_data(self, ep_url):
         """
@@ -140,10 +145,10 @@ class UrlInteractions:
         page = self.session.get(ep_url).text
         # Find the encryption keys
         keys = re.findall(r"(?:container|videocontent)-(\d+)", page)
-        # Check if the encryption keys exist
+        # Check if there are any keys found
         if not keys:
             return {}
-        # Get the encryption keys
+        # Create variables for the encryption keys and initialization vector (IV) from the list of keys
         key, iv, second_key = keys
         # Return the encryption keys as a dictionary
         return {
@@ -345,7 +350,7 @@ class UrlInteractions:
             str: The URL of the video stream.
         """
         # Get the embedded episode URL
-        embded_episode_url = self.embed_url(ep_url)
+        embded_episode_url = self.get_embedded_video_url(ep_url)
         # Get the encryption keys
         encryption_keys = self.get_enc_key(embded_episode_url)
         # Get the AJAX URL
@@ -362,7 +367,7 @@ class UrlInteractions:
         # Send the POST request
         request = self.send_post_request(self.ajax_url, data, id, headers)
         # Check if the request was successful
-        self.response_error(request, request.url)
+        self.check_response_error(request, request.url)
         # Create the JSON response
         json_response = self.create_json_response(request, encryption_keys)
         # Get the source data
