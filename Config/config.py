@@ -25,7 +25,7 @@ class Config:
     ANIME_WATCH_LOG_PATH = "./Logs/AnimeWatch.log" # Path to the log file
 
     ##############################
-    #        mangafetch.py       #
+    #        animefetch.py       #
     #        constants           #
     ##############################
     GOGO_ANIME_SITE_BASE_URL = "https://gogoanime3.net/anime-list.html?page={}" # Base URL of the GoGoAnime site
@@ -42,6 +42,7 @@ class Config:
     ANIME_LIST = "film-list" # Class name of the anime list
     ANIME_CARDS = "item" # Class name of the anime cards
     ANIME_FETCH_LOG_PATH = "./Logs/AnimeFetch.log" # Path to the log file
+    
     ##############################
     #        driver_config.py    #
     ##############################
