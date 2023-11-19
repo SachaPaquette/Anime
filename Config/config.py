@@ -1,5 +1,6 @@
 import os
-
+from dotenv import load_dotenv
+load_dotenv()
 
 class Config:
     ##############################
@@ -46,7 +47,7 @@ class Config:
     ##############################
     
     CRX_PATH = "./Extensions/uBlock-origin.crx" # Path to the AdBlock extension
-    EXTENSION_PATH = r"D:\school\ECOLE\PERSONAL\Anime\Extensions\uBlock"
+    EXTENSION_PATH = os.getenv("EXTENSION_PATH") # Path to the AdBlock extension
     
     ##############################
     #        WebOperations.py    #

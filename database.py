@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 import re
 from Config.config import Config
 from Config.logs_config import setup_logging
+
 # Load environment variables from .env file
 load_dotenv()
 
@@ -47,7 +48,7 @@ def connect_collection_db():
 
 def create_index(collection):
     """Function to create an index on the 'title' field for better performance
-    
+
 
     Args:
         collection (pymongo.collection.Collection): The MongoDB collection
@@ -90,6 +91,7 @@ def insert_anime_to_db(data):
     else:
         logger.info("No data to insert")
 
+
 def delete_duplicates(collection, duplicates_cursor):
     """
     Deletes extra occurrences of duplicate documents in a MongoDB collection.
@@ -107,6 +109,8 @@ def delete_duplicates(collection, duplicates_cursor):
         extra_occurrences = duplicate_group['ids'][1:]
         # Delete the extra occurrences
         collection.delete_many({'_id': {'$in': extra_occurrences}})
+
+
 def detect_duplicates():
     """
     Detect and remove duplicate documents in the MongoDB collection.
@@ -151,13 +155,8 @@ def detect_duplicates():
     duplicates_cursor = collection.aggregate(duplicates_pipeline)
     # Remove the duplicate documents
     delete_duplicates(collection, duplicates_cursor)
-
-
     print('Duplicates are now removed :)')
 
-
-
-import re
 
 def create_regex_pattern(input):
     """
@@ -171,6 +170,7 @@ def create_regex_pattern(input):
 
     """
     return re.compile(f".*{re.escape(input)}.*", re.IGNORECASE)
+
 
 def find_anime(input):
     """
@@ -210,8 +210,3 @@ def find_anime(input):
     except Exception as e:
         logger.error(f"Error in find_anime: {e}")
         return None
-
-
-
-
-
