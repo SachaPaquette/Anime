@@ -44,7 +44,7 @@ class AnimeWatch:
             prompt = self.get_user_input(start_episode, max_episode)
             # If the user wants to exit, return False to exit the program
             if prompt is None:
-                print("Exiting...")
+                self.web_interactions.exiting_statement()
                 return True  # Signal to restart the application
             # Create an instance of EpisodeMenu to display the episode menu and handle the user's choice
             episode_menu = EpisodeMenu(start_episode, max_episode)
@@ -67,13 +67,13 @@ class AnimeWatch:
 
                 # if the user wants to change anime
                 if prompt is False:
-                    print("Exiting...")
+                    self.web_interactions.exiting_statement()
                     self.video_player.terminate_player()  # terminate the video player
                     self.web_interactions.cleanup()  # cleanup the web instance
                     return True  # Signal to restart the application
 
                 if prompt is None:
-                    print("Exiting...")
+                    self.web_interactions.exiting_statement()
                     self.video_player.terminate_player()  # terminate the video player
                     self.web_interactions.cleanup()  # cleanup the web instance
                     return False  # Signal to exit the program
@@ -100,7 +100,7 @@ class AnimeWatch:
                     f"Enter the episode you want to start watching between {start_episode}-{max_episode} (or 0 to exit): ")
                 # If the user wants to exit, return None to exit the program
                 if user_input == '0':
-                    print("Exiting...")
+                    self.web_interactions.exiting_statement()
                     return None
                 # If the user entered a valid episode, return the episode number
                 if user_input.isdigit() and start_episode <= int(user_input) <= max_episode:
@@ -114,7 +114,7 @@ class AnimeWatch:
             raise
         except KeyboardInterrupt:
             # If the user presses Ctrl+C, exit the program
-            print("Exiting...")
+            self.web_interactions.exiting_statement()
             return None
 
     def play_episode(self, episode_url):
@@ -147,7 +147,7 @@ class AnimeWatch:
             logger.error(f"Error while playing episode: {e}")
             raise
         except KeyboardInterrupt:
-            print("\nExiting...")
+            self.web_interactions.exiting_statement()
             return None
 
 
@@ -224,7 +224,7 @@ class Main:
                     selected_index = self.select_anime(animes)
                     # If the user selected the exit option, exit the program
                     if selected_index == 0:
-                        print("Exiting...")
+                        anime_watch.web_interactions.exiting_statement()
                         # Cleanup the web instance
                         anime_watch.web_interactions.cleanup()
                         # Exit the program by setting restart to False and continuing the loop
@@ -248,8 +248,8 @@ class Main:
                 anime_watch.web_interactions.cleanup()  # cleanup the web instance
                 # log the error
                 logger.error(f"Error while watching anime: {e}")
-                print("Exiting...")
+                anime_watch.web_interactions.exiting_statement()
                 restart = False  # Prevent the loop from restarting
             except KeyboardInterrupt:
-                print("\nExiting...")
+                anime_watch.web_interactions.exiting_statement()
                 exit()  # exit the program

@@ -94,7 +94,10 @@ class WebInteractions:
             string: The formatted anime URL
         """
         return Config.GOGO_ANIME_SITE_BASE_URL.format(page_number)
-
+    
+    def exiting_statement(self):
+        """Function to print an exiting statement"""
+        print(f"\n {Config.EXITING_MESSAGE}")
 
 class AnimeInteractions:
     def __init__(self, web_interactions):

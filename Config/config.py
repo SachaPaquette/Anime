@@ -3,6 +3,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class Config:
+    
+    
     ##############################
     #        database.py         #
     #        constants           #
@@ -42,7 +44,7 @@ class Config:
     ANIME_LIST = "film-list" # Class name of the anime list
     ANIME_CARDS = "item" # Class name of the anime cards
     ANIME_FETCH_LOG_PATH = "./Logs/AnimeFetch.log" # Path to the log file
-    
+    EXITING_MESSAGE = "Exiting..." # Message to display when exiting the script
     ##############################
     #        driver_config.py    #
     ##############################
