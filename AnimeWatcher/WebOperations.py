@@ -97,7 +97,7 @@ class WebInteractions:
     
     def exiting_statement(self):
         """Function to print an exiting statement"""
-        print(f"\n {Config.EXITING_MESSAGE}")
+        print(f"\n{Config.EXITING_MESSAGE}")
 
 class AnimeInteractions:
     def __init__(self, web_interactions):

@@ -61,6 +61,68 @@ class AnimeWatch:
             logger.error(f"Unexpected error: {e}")
             return False  # Signal to exit the program
 
+    def format_and_play_episode(self, anime_name, prompt):
+        """
+        Formats the anime name, creates the episode URL, and plays the episode.
+
+        Args:
+            anime_name (str): The name of the anime.
+            prompt (str): The user's input for the episode they want to start watching.
+
+        Returns:
+            str: The formatted episode URL.
+        """
+        anime_name = self.anime_interactions.format_anime_name(anime_name)
+        episode_url = self.anime_interactions.format_episode_link(prompt, anime_name)
+        self.play_episode(episode_url)
+        return episode_url
+
+    def handle_user_choice(self, prompt, start_episode, max_episode):
+        """
+        Handles the user's choice in the episode menu.
+
+        Args:
+            prompt (str): The current episode prompt.
+            start_episode (int): The first episode available to watch.
+            max_episode (int): The last episode available to watch.
+
+        Returns:
+            str: The updated episode prompt.
+        """
+        episode_menu = EpisodeMenu(start_episode, max_episode)
+        episode_menu.display_menu()
+
+        while True:
+            user_choice = input("Enter your choice: ").lower()
+
+            if user_choice in ['n', 'p', 'q', 'c']:
+                # Handle the user's choice
+                updated_prompt = episode_menu.handle_choice(user_choice, int(prompt))
+                self.url_interactions = UrlInteractions("best")
+                if updated_prompt is False:
+                    # User wants to change the anime
+                    self.web_interactions.exiting_statement()
+                    self.video_player.terminate_player()
+                    self.web_interactions.cleanup()
+                    return False
+
+                elif updated_prompt is None:
+                    # User wants to quit the program
+                    self.web_interactions.exiting_statement()
+                    self.video_player.terminate_player()
+                    self.web_interactions.cleanup()
+                    return None
+
+                else:
+                    # User chose 'n' or 'p', update the prompt and continue
+                    return updated_prompt
+
+            else:
+                print("Invalid choice. Please enter 'n', 'p', 'c' or 'q'.")
+
+
+        
+
     def handle_episodes(self, anime_name, prompt, start_episode, max_episode):
         """
         Handles the episode navigation and user interactions.
@@ -74,36 +136,24 @@ class AnimeWatch:
         Returns:
             bool: True if the application needs to be restarted, False otherwise.
         """
-        # Create an instance of EpisodeMenu
-        episode_menu = EpisodeMenu(start_episode, max_episode)
-
         while True:
-            # Format the anime name (e.g "Jujutsu Kaisen" -> "jujutsu-kaisen")
-            anime_name = self.anime_interactions.format_anime_name(anime_name)
-            # Create the episode URL (e.g "https://gogoanime.pe/jujutsu-kaisen-episode-1") from the anime name and the episode number (prompt is the episode number)
-            episode_url = self.anime_interactions.format_episode_link(prompt, anime_name)
-            # Play the episode with the url
-            self.play_episode(episode_url)
-            # Display the episode menu and handle the user's choice
-            episode_menu.display_menu()
-            user_choice = input("Enter your choice: ").lower()
-            # Create an instance of UrlInteractions to stream the episode
-            self.url_interactions = UrlInteractions("best")
+            self.format_and_play_episode(anime_name, prompt)
+            
+            
+
+
             # Handle the user's choice
-            prompt = episode_menu.handle_choice(user_choice, int(prompt))
+            prompt = self.handle_user_choice(prompt, start_episode, max_episode)
 
             # if the user wants to change anime
             if prompt is False:
-                self.web_interactions.exiting_statement()
-                self.video_player.terminate_player()  # terminate the video player
-                self.web_interactions.cleanup()  # cleanup the web instance
-                return True  # Signal to restart the application
+                # User wants to change the anime 
+                return True
 
             if prompt is None:
-                self.web_interactions.exiting_statement()
-                self.video_player.terminate_player()  # terminate the video player
-                self.web_interactions.cleanup()  # cleanup the web instance
-                return False  # Signal to exit the program
+                # User wants to quit the program
+                return False
+
 
 
     def play_episode(self, episode_url):
