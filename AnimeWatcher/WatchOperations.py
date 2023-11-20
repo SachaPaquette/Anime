@@ -72,9 +72,10 @@ class AnimeWatch:
         Returns:
             str: The formatted episode URL.
         """
+        # Format the anime name, create the episode URL, and play the episode
         anime_name = self.anime_interactions.format_anime_name(anime_name)
-        episode_url = self.anime_interactions.format_episode_link(prompt, anime_name)
-        self.play_episode(episode_url)
+        episode_url = self.anime_interactions.format_episode_link(prompt, anime_name) # Format the episode URL
+        self.play_episode(episode_url) # Play the episode
         return episode_url
 
     def handle_user_choice(self, prompt, start_episode, max_episode):
@@ -125,31 +126,26 @@ class AnimeWatch:
 
     def handle_episodes(self, anime_name, prompt, start_episode, max_episode):
         """
-        Handles the episode navigation and user interactions.
+        Handles the episodes of an anime.
 
         Args:
             anime_name (str): The name of the anime.
-            prompt (str): The user's input for the episode they want to start watching.
-            start_episode (int): The first episode available to watch.
-            max_episode (int): The last episode available to watch.
+            prompt (str): The user's choice.
+            start_episode (int): The starting episode number.
+            max_episode (int): The maximum episode number.
 
         Returns:
-            bool: True if the application needs to be restarted, False otherwise.
+            bool: True if the user wants to change the anime, False if the user wants to quit the program.
         """
         while True:
+            # Format the anime name, create the episode URL, and play the episode
             self.format_and_play_episode(anime_name, prompt)
-            
-            
-
-
             # Handle the user's choice
             prompt = self.handle_user_choice(prompt, start_episode, max_episode)
-
             # if the user wants to change anime
             if prompt is False:
                 # User wants to change the anime 
                 return True
-
             if prompt is None:
                 # User wants to quit the program
                 return False

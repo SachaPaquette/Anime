@@ -1,6 +1,16 @@
 import logging
 
 def setup_logging(logger_name, log_file):
+    """
+    Set up logging configuration.
+
+    Args:
+        logger_name (str): Name of the logger.
+        log_file (str): Path to the log file.
+
+    Returns:
+        logging.Logger: Configured logger object.
+    """
     logger = logging.getLogger(logger_name) # Create a logger
     logger.setLevel(logging.INFO) # Set the log level to INFO of the logger
     formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s') # Format the log messages
