@@ -107,8 +107,8 @@ class UrlInteractions:
             return embedded_url
         except Exception as e:
             # Add more details to the error message if needed
-            raise Exception(f"Error while getting embedded video player URL: {e}")
-
+            raise Exception(
+                f"Error while getting embedded video player URL: {e}")
 
     def get_data(self, ep_url):
         """
@@ -120,16 +120,19 @@ class UrlInteractions:
         Returns:
             str: The data for the given episode URL.
         """
-        # Send a GET request to the episode URL
-        request = self.session.get(ep_url)
-        # Get the response content as a BeautifulSoup object
-        soup = BeautifulSoup(request.content, "html.parser")
-        # Find the script tag containing the data
-        crypto = soup.find("script", {"data-name": "episode"})
-        # Check if the requested data exists
-        self.locate_error(crypto, ep_url, "token")
-        # Return the data
-        return crypto["data-value"]
+        try:
+            # Send a GET request to the episode URL
+            request = self.session.get(ep_url)
+            # Get the response content as a BeautifulSoup object
+            soup = BeautifulSoup(request.content, "html.parser")
+            # Find the script tag containing the data
+            crypto = soup.find("script", {"data-name": "episode"})
+            # Check if the requested data exists
+            self.locate_error(crypto, ep_url, "token")
+            # Return the data
+            return crypto["data-value"]
+        except Exception as e:
+            raise Exception(f"Error while getting data: {e}")
 
     def get_encryption_key(self, ep_url):
         """
@@ -141,21 +144,24 @@ class UrlInteractions:
         Returns:
             dict: A dictionary containing the encryption key, initialization vector, and second key.
         """
-        # Send a GET request to the episode URL
-        page = self.session.get(ep_url).text
-        # Find the encryption keys
-        keys = re.findall(r"(?:container|videocontent)-(\d+)", page)
-        # Check if there are any keys found
-        if not keys:
-            return {}
-        # Create variables for the encryption keys and initialization vector (IV) from the list of keys
-        key, iv, second_key = keys
-        # Return the encryption keys as a dictionary
-        return {
-            "key": key.encode(),
-            "iv": iv.encode(),
-            "second_key": second_key.encode()
-        }
+        try:
+            # Send a GET request to the episode URL
+            page = self.session.get(ep_url).text
+            # Find the encryption keys
+            keys = re.findall(r"(?:container|videocontent)-(\d+)", page)
+            # Check if there are any keys found
+            if not keys or len(keys) != 3:
+                raise ValueError("No encryption keys found.")
+            # Create variables for the encryption keys and initialization vector (IV) from the list of keys
+            key, iv, second_key = keys
+            # Return the encryption keys as a dictionary
+            return {
+                "key": key.encode(),
+                "iv": iv.encode(),
+                "second_key": second_key.encode()
+            }
+        except Exception as e:
+            raise Exception(f"Error while getting encryption key: {e}")
 
     def aes_encrypt(self, data, key, iv):
         """
@@ -216,7 +222,6 @@ class UrlInteractions:
             str: The decrypted episode URL.
         """
         return self.aes_decrypt(self.get_data(ep_url), encryption_keys["key"], encryption_keys["iv"]).decode()
-            
 
     def create_dict_data(self, ep_url, encryption_keys, encrypted_id):
         """
@@ -402,10 +407,12 @@ class UrlInteractions:
                 # Get the quality of the stream
                 quality = item["label"].replace(" P", "").lower()
                 # Append the stream to the list of streams
-                stream_infos.append({"file": item["file"], "type": stream_type, "quality": quality})
+                stream_infos.append(
+                    {"file": item["file"], "type": stream_type, "quality": quality})
 
             # Filter the streams based on the user's quality preference
-            filtered_q_user = list(filter(lambda x: x["quality"] == self.qual, stream_infos))
+            filtered_q_user = list(
+                filter(lambda x: x["quality"] == self.qual, stream_infos))
             if filtered_q_user:
                 stream = list(filtered_q_user)[0]
             elif self.qual == "best" or self.qual is None:
