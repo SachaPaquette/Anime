@@ -90,30 +90,35 @@ class AnimeWatch:
         Returns:
             str: The updated episode prompt.
         """
+        # Create an instance of EpisodeMenu and display the menu to the user
         episode_menu = EpisodeMenu(start_episode, max_episode)
         episode_menu.display_menu()
 
         while True:
+            # Prompt the user to enter their choice (n: next episode, p: previous episode, c: change anime, q: quit)
             user_choice = input("Enter your choice: ").lower()
 
             if user_choice in ['n', 'p', 'q', 'c']:
                 # Handle the user's choice
                 updated_prompt = episode_menu.handle_choice(user_choice, int(prompt))
+                # Initialize a new UrlInteractions instance (with the default quality of 'best')
                 self.url_interactions = UrlInteractions("best")
+                # User wants to change the anime
                 if updated_prompt is False:
-                    # User wants to change the anime
+                    # Exit the program
                     self.web_interactions.exiting_statement()
                     self.video_player.terminate_player()
                     return False
 
+                # User wants to quit the program
                 elif updated_prompt is None:
-                    # User wants to quit the program
+                    # Exit the program
                     self.web_interactions.exiting_statement()
                     self.video_player.terminate_player()
                     return None
-
+                # User chose 'n' or 'p', update the prompt and continue
                 else:
-                    # User chose 'n' or 'p', update the prompt and continue
+                    # Update the prompt
                     return updated_prompt
 
             else:
