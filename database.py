@@ -24,14 +24,16 @@ def connect_db(database_name, collection_name):
         pymongo.collection.Collection: The MongoDB collection object
     """
     try:
-        client = MongoClient(Config.CONNECTION_STRING, maxPoolSize=50)
+        client = MongoClient(Config.CONNECTION_STRING, maxPoolSize=5) # Connect to the MongoDB cluster 
         db = client[database_name]
         collection = db[collection_name]
         return collection
     except ConnectionFailure as e:
         logger.error(f"Error connecting to MongoDB: {e}")
         raise
-
+    except Exception as e:
+        logger.error(f"Unexpected error connecting to MongoDB: {e}")
+        raise
 
 def connect_collection_db():
     """Function to connect to the MongoDB collection and return the collection object
@@ -206,12 +208,14 @@ def find_anime(input):
 
         # Convert the cursor to a list
         animes = list(anime_cursor)
-
-        # Prioritize titles that start with the input and sort the rest alphabetically
-        animes.sort(key=lambda x: (
-            not x['title'].lower().startswith(input.lower()), x['title']))
-
-        return animes  # Return the list of matching documents
+        if animes:
+            # Prioritize titles that start with the input and sort the rest alphabetically
+            animes.sort(key=lambda x: (
+                not x['title'].lower().startswith(input.lower()), x['title']))
+            return animes  # Return the list of matching documents
+        else:
+            logger.info(f"No anime titles found matching '{input}'")
+            
 
     except Exception as e:
         logger.error(f"Error in find_anime: {e}")

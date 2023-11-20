@@ -214,30 +214,29 @@ class Main:
                 # Search for the anime in the database
                 animes = find_anime(user_input)
                 # Check if the anime was found
-                if animes:
-                    # If the anime was found, prompt the user to select an anime to watch (ex: 1. Naruto)
-                    selected_index = self.user_interactions.select_anime(animes)
-                    # If the user selected the exit option, exit the program
-                    if selected_index == 0:
-                        anime_watch.web_interactions.exiting_statement()
-                        # Cleanup the web instance
-                        anime_watch.web_interactions.cleanup()
-                        # Exit the program by setting restart to False and continuing the loop
-                        restart = False
-                        continue
-                    # Get the selected anime
-                    selected_anime = animes[selected_index - 1]
-                    # Print the selected anime
-                    print(f"Selected anime: {selected_anime['title']}")
-                    # Navigate to the selected anime's episodes and start watching
-                    restart = anime_watch.naviguate_fetch_episodes(
-                        selected_anime['link'], selected_anime['title'])
-
-                else:
+                while not animes:
                     print("Anime not found")
-                    anime_watch.web_interactions.cleanup()  # cleanup the web instance
-                    # re-prompts the user to enter the anime they want to watch
+                    # Re-prompt the user to enter the anime they want to watch
+                    user_input = input("Enter the anime you want to watch: ")
+                    animes = find_anime(user_input)
+
+                # If the anime was found, prompt the user to select an anime to watch (ex: 1. Naruto)
+                selected_index = self.user_interactions.select_anime(animes)
+                # If the user selected the exit option, exit the program
+                if selected_index == 0:
+                    # Cleanup the web instance
+                    anime_watch.web_interactions.cleanup()
+                    # Exit the program by setting restart to False and continuing the loop
+                    restart = False
                     continue
+
+                # Get the selected anime
+                selected_anime = animes[selected_index - 1]
+                # Print the selected anime
+                print(f"Selected anime: {selected_anime['title']}")
+                # Navigate to the selected anime's episodes and start watching
+                restart = anime_watch.naviguate_fetch_episodes(
+                    selected_anime['link'], selected_anime['title'])
 
             except Exception as e:
                 anime_watch.web_interactions.cleanup()  # cleanup the web instance
@@ -248,3 +247,4 @@ class Main:
             except KeyboardInterrupt:
                 anime_watch.web_interactions.exiting_statement()
                 exit()  # exit the program
+
