@@ -1,3 +1,4 @@
+from AnimeWatcher.UserInteractions import UserInteractions
 class Colors:
     # Class to store the colors used in the CLI
     red = '\033[91m' 
@@ -14,7 +15,7 @@ class EpisodeMenu:
         self.max_episode = max_episode
         # Initialize the color class
         self.color = Colors()
-        
+        self.user_interactions = UserInteractions()
     def reset_cli(self):
         """
         Resets the command line interface by clearing the screen.

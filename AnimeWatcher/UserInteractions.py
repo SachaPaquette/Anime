@@ -76,3 +76,6 @@ class UserInteractions:
             # If the user presses Ctrl+C, exit the program
             web_interactions.exiting_statement()
             return None
+        
+        
+    

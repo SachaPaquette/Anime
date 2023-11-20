@@ -6,6 +6,7 @@ from AnimeWatcher.VideoPlayer import VideoPlayer
 from AnimeWatcher.UrlOperations import UrlInteractions
 from AnimeWatcher.EpisodeOperations import EpisodeMenu
 from AnimeWatcher.UserInteractions import UserInteractions
+
 # Configure the logger
 logger = setup_logging('anime_watch', Config.ANIME_WATCH_LOG_PATH)
 
@@ -24,7 +25,7 @@ class AnimeWatch:
         self.url_interactions = UrlInteractions(Config.QUALITY)  # default quality is best
         self.video_player = None  # Create an instance of VideoPlayer
         self.user_interactions = UserInteractions()
-        
+            
     def naviguate_fetch_episodes(self, url, anime_name):
         """
         Navigates to the given URL and fetches the episodes for the specified anime.
@@ -47,41 +48,63 @@ class AnimeWatch:
             if prompt is None:
                 self.web_interactions.exiting_statement()
                 return True  # Signal to restart the application
-            # Create an instance of EpisodeMenu to display the episode menu and handle the user's choice
-            episode_menu = EpisodeMenu(start_episode, max_episode)
+            
+            return self.handle_episodes(anime_name, prompt, start_episode, max_episode)
 
-            while True:
-                # Format the anime name (e.g "Jujutsu Kaisen" -> "jujutsu-kaisen")
-                anime_name = self.anime_interactions.format_anime_name(
-                    anime_name)
-                print(f"Selected anime: {anime_name}")
-                episode_url = self.anime_interactions.format_episode_link(
-                    prompt, anime_name)
-                print(f"Selected episode: {prompt}")
-                self.play_episode(episode_url)
-
-                episode_menu.display_menu()
-                user_choice = input("Enter your choice: ").lower()
-                self.url_interactions = UrlInteractions("best")
-
-                prompt = episode_menu.handle_choice(user_choice, int(prompt))
-
-                # if the user wants to change anime
-                if prompt is False:
-                    self.web_interactions.exiting_statement()
-                    self.video_player.terminate_player()  # terminate the video player
-                    self.web_interactions.cleanup()  # cleanup the web instance
-                    return True  # Signal to restart the application
-
-                if prompt is None:
-                    self.web_interactions.exiting_statement()
-                    self.video_player.terminate_player()  # terminate the video player
-                    self.web_interactions.cleanup()  # cleanup the web instance
-                    return False  # Signal to exit the program
-
-        except Exception as e:
-            logger.error(f"Error while navigating to {url}: {e}")
+        except ValueError as ve:
+            logger.error(f"Error while converting prompt to integer: {ve}")
             return False  # Signal to exit the program
+        except KeyboardInterrupt:
+            self.web_interactions.exiting_statement()
+            return None
+        except Exception as e:
+            logger.error(f"Unexpected error: {e}")
+            return False  # Signal to exit the program
+
+    def handle_episodes(self, anime_name, prompt, start_episode, max_episode):
+        """
+        Handles the episode navigation and user interactions.
+
+        Args:
+            anime_name (str): The name of the anime.
+            prompt (str): The user's input for the episode they want to start watching.
+            start_episode (int): The first episode available to watch.
+            max_episode (int): The last episode available to watch.
+
+        Returns:
+            bool: True if the application needs to be restarted, False otherwise.
+        """
+        # Create an instance of EpisodeMenu
+        episode_menu = EpisodeMenu(start_episode, max_episode)
+
+        while True:
+            # Format the anime name (e.g "Jujutsu Kaisen" -> "jujutsu-kaisen")
+            anime_name = self.anime_interactions.format_anime_name(anime_name)
+            # Create the episode URL (e.g "https://gogoanime.pe/jujutsu-kaisen-episode-1") from the anime name and the episode number (prompt is the episode number)
+            episode_url = self.anime_interactions.format_episode_link(prompt, anime_name)
+            # Play the episode with the url
+            self.play_episode(episode_url)
+            # Display the episode menu and handle the user's choice
+            episode_menu.display_menu()
+            user_choice = input("Enter your choice: ").lower()
+            # Create an instance of UrlInteractions to stream the episode
+            self.url_interactions = UrlInteractions("best")
+            # Handle the user's choice
+            prompt = episode_menu.handle_choice(user_choice, int(prompt))
+
+            # if the user wants to change anime
+            if prompt is False:
+                self.web_interactions.exiting_statement()
+                self.video_player.terminate_player()  # terminate the video player
+                self.web_interactions.cleanup()  # cleanup the web instance
+                return True  # Signal to restart the application
+
+            if prompt is None:
+                self.web_interactions.exiting_statement()
+                self.video_player.terminate_player()  # terminate the video player
+                self.web_interactions.cleanup()  # cleanup the web instance
+                return False  # Signal to exit the program
+
 
     def play_episode(self, episode_url):
         """
