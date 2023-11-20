@@ -104,14 +104,12 @@ class AnimeWatch:
                     # User wants to change the anime
                     self.web_interactions.exiting_statement()
                     self.video_player.terminate_player()
-                    self.web_interactions.cleanup()
                     return False
 
                 elif updated_prompt is None:
                     # User wants to quit the program
                     self.web_interactions.exiting_statement()
                     self.video_player.terminate_player()
-                    self.web_interactions.cleanup()
                     return None
 
                 else:
@@ -215,7 +213,7 @@ class Main:
                 animes = find_anime(user_input)
                 # Check if the anime was found
                 while not animes:
-                    print("Anime not found")
+                    logger.warning(f"Anime '{user_input}' not found.")
                     # Re-prompt the user to enter the anime they want to watch
                     user_input = input("Enter the anime you want to watch: ")
                     animes = find_anime(user_input)
@@ -224,11 +222,7 @@ class Main:
                 selected_index = self.user_interactions.select_anime(animes)
                 # If the user selected the exit option, exit the program
                 if selected_index == 0:
-                    # Cleanup the web instance
-                    anime_watch.web_interactions.cleanup()
-                    # Exit the program by setting restart to False and continuing the loop
-                    restart = False
-                    continue
+                    break  # Exit the loop and cleanup
 
                 # Get the selected anime
                 selected_anime = animes[selected_index - 1]
@@ -239,12 +233,14 @@ class Main:
                     selected_anime['link'], selected_anime['title'])
 
             except Exception as e:
-                anime_watch.web_interactions.cleanup()  # cleanup the web instance
-                # log the error
                 logger.error(f"Error while watching anime: {e}")
                 anime_watch.web_interactions.exiting_statement()
                 restart = False  # Prevent the loop from restarting
+
             except KeyboardInterrupt:
                 anime_watch.web_interactions.exiting_statement()
-                exit()  # exit the program
+                break  # Exit the loop and cleanup
+
+            finally:
+                anime_watch.web_interactions.cleanup()  # cleanup the web instance
 
