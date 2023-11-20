@@ -131,7 +131,7 @@ class UrlInteractions:
         # Return the data
         return crypto["data-value"]
 
-    def get_enc_key(self, ep_url):
+    def get_encryption_key(self, ep_url):
         """
         Retrieves the encryption key for the given episode URL.
 
@@ -215,10 +215,8 @@ class UrlInteractions:
         Returns:
             str: The decrypted episode URL.
         """
-        return self.aes_decrypt(
-            self.get_data(
-                ep_url), encryption_keys["key"], encryption_keys["iv"]
-        ).decode()
+        return self.aes_decrypt(self.get_data(ep_url), encryption_keys["key"], encryption_keys["iv"]).decode()
+            
 
     def create_dict_data(self, ep_url, encryption_keys, encrypted_id):
         """
@@ -349,33 +347,36 @@ class UrlInteractions:
         Returns:
             str: The URL of the video stream.
         """
-        # Get the embedded episode URL
-        embded_episode_url = self.get_embedded_video_url(ep_url)
-        # Get the encryption keys
-        encryption_keys = self.get_enc_key(embded_episode_url)
-        # Get the AJAX URL
-        self.ajax_url = self.create_ajax_url(embded_episode_url)
-        # Get the ID
-        id = self.create_id(embded_episode_url)
-        # Encrypt the ID
-        encrypted_id = self.encrypt_id(id, encryption_keys)
-        # Create the data dictionary
-        data = self.create_dict_data(
-            embded_episode_url, encryption_keys, encrypted_id)
-        # Create the headers
-        headers = self.create_headers(embded_episode_url)
-        # Send the POST request
-        request = self.send_post_request(self.ajax_url, data, id, headers)
-        # Check if the request was successful
-        self.check_response_error(request, request.url)
-        # Create the JSON response
-        json_response = self.create_json_response(request, encryption_keys)
-        # Get the source data
-        source_data = self.get_source_data(json_response)
-        # Check if the source data is empty
-        self.quality(source_data)
-        # Return the stream URL
-        return source_data[0]["file"]
+        try:
+            # Get the embedded episode URL
+            embded_episode_url = self.get_embedded_video_url(ep_url)
+            # Get the encryption keys
+            encryption_keys = self.get_encryption_key(embded_episode_url)
+            # Get the AJAX URL
+            self.ajax_url = self.create_ajax_url(embded_episode_url)
+            # Get the ID
+            id = self.create_id(embded_episode_url)
+            # Encrypt the ID
+            encrypted_id = self.encrypt_id(id, encryption_keys)
+            # Create the data dictionary
+            data = self.create_dict_data(
+                embded_episode_url, encryption_keys, encrypted_id)
+            # Create the headers
+            headers = self.create_headers(embded_episode_url)
+            # Send the POST request
+            request = self.send_post_request(self.ajax_url, data, id, headers)
+            # Check if the request was successful
+            self.check_response_error(request, request.url)
+            # Create the JSON response
+            json_response = self.create_json_response(request, encryption_keys)
+            # Get the source data
+            source_data = self.get_source_data(json_response)
+            # Check if the source data is empty
+            self.quality(source_data)
+            # Return the stream URL
+            return source_data[0]["file"]
+        except Exception as e:
+            raise Exception(f"Error while getting stream URL: {e}")
 
     def quality(self, json_data):
         """
@@ -387,32 +388,34 @@ class UrlInteractions:
         Returns:
             None
         """
+        try:
+            # Initialize the stream quality to an empty array
+            stream_infos = []
+            # Iterate through the JSON data
+            for item in json_data:
+                # Check if the stream is HLS
+                if "m3u8" in item["file"] or item["type"] == "hls":
+                    stream_type = "hls"
+                else:
+                    # Otherwise, the stream is MP4
+                    stream_type = "mp4"
+                # Get the quality of the stream
+                quality = item["label"].replace(" P", "").lower()
+                # Append the stream to the list of streams
+                stream_infos.append({"file": item["file"], "type": stream_type, "quality": quality})
 
-        # Initialize the stream quality to an empty array
-        streams = []
-        # Iterate through the JSON data
-        for i in json_data:
-            # Check if the stream is HLS 
-            if "m3u8" in i["file"] or i["type"] == "hls":
-                type = "hls"
+            # Filter the streams based on the user's quality preference
+            filtered_q_user = list(filter(lambda x: x["quality"] == self.qual, stream_infos))
+            if filtered_q_user:
+                stream = list(filtered_q_user)[0]
+            elif self.qual == "best" or self.qual is None:
+                stream = stream_infos[-1]
+            elif self.qual == "worst":
+                stream = stream_infos[0]
             else:
-                # Otherwise, the stream is MP4
-                type = "mp4"
-            # Get the quality of the stream
-            quality = i["label"].replace(" P", "").lower()
-            # Append the stream to the list of streams
-            streams.append(
-                {"file": i["file"], "type": type, "quality": quality})
-        # Filter the streams based on the user's quality preference
-        filtered_q_user = list(
-            filter(lambda x: x["quality"] == self.qual, streams))
-        if filtered_q_user:
-            stream = list(filtered_q_user)[0]
-        elif self.qual == "best" or self.qual == None:
-            stream = streams[-1]
-        elif self.qual == "worst":
-            stream = streams[0]
-        else:
-            stream = streams[-1]
-        # Return the stream quality
-        self.quality = stream["quality"]
+                stream = stream_infos[-1]
+
+            # Return the stream quality
+            self.quality = stream["quality"]
+        except Exception as e:
+            raise Exception(f"Error while getting stream quality: {e}")

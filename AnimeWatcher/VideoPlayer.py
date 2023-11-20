@@ -58,10 +58,12 @@ class VideoPlayer:
         self.observer_id = None
         
     def terminate_player(self):
+        """
+        Terminate the video player.
+
+        This method unbinds the property observer, if any, and sends the 'quit' command to the mpv player.
+        """
         if self.observer_id:
             self.mpv.unbind_property_observer(self.observer_id)
             self.observer_id = None
         self.mpv.command("quit")
-        
-    def reset_observer_id(self):
-        self.observer_id = None
