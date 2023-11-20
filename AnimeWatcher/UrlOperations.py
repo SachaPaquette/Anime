@@ -26,14 +26,14 @@ class UrlInteractions:
             None
         """
         self.session = requests.Session()  # create a new session
-        # retry the request 3 times with a backoff factor of 0.5
+        # retry the request 3 times with a backoff factor of 0.5 (backoff factor = 0.5 means that the retry will sleep for 0.5 seconds before retrying) 
         retry = Retry(connect=3, backoff_factor=0.5)
         adapter = HTTPAdapter(max_retries=retry)  # create a new HTTP adapter
         # mount the HTTP adapter to the session
         self.session.mount("http://", adapter)
         # mount the HTTPS adapter to the session
         self.session.mount("https://", adapter)
-        self.ajax_url = "/encrypt-ajax.php?"  # the URL to the AJAX endpoint
+        self.ajax_url = "/encrypt-ajax.php?"  # the URL to the AJAX endpoint (used for decrypting the video URL)
         self.mode = AES.MODE_CBC  # the mode to use for AES encryption
         # the padding function to use for AES encryption
         self.pad = lambda s: s + chr(len(s) % 16) * (16 - len(s) % 16)

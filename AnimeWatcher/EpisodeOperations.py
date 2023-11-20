@@ -16,9 +16,17 @@ class EpisodeMenu:
         self.color = Colors()
         
     def reset_cli(self):
+        """
+        Resets the command line interface by clearing the screen.
+        """
+        print("\033c", end="")  # Clear the screen
+    def reset_cli(self):
         print("\033c", end="") # Clear the screen 
 
     def display_menu(self):
+        """
+        Display the menu options for the AnimeWatcher application.
+        """
         # Clear the screen before displaying the menu options
         self.reset_cli()
         # Display the menu options
@@ -29,6 +37,20 @@ class EpisodeMenu:
         print(f"{self.color.red}[Q] Quit{self.color.endc}\n")
 
     def handle_choice(self, user_choice, current_episode):
+        """
+        Handles the user's choice and returns the appropriate episode or action.
+
+        Parameters:
+        - user_choice (str): The user's choice ('n', 'p', 'q', or 'c').
+        - current_episode: The current episode.
+
+        Returns:
+        - The next episode if user_choice is 'n'.
+        - The previous episode if user_choice is 'p'.
+        - None if user_choice is 'q'.
+        - False if user_choice is 'c'.
+        - The current episode if user_choice is invalid.
+        """
         # Handle the user's choice 
         # If the user enters 'n', return the next episode
         if user_choice == 'n':

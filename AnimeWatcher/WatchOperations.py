@@ -5,7 +5,7 @@ from database import find_anime
 from AnimeWatcher.VideoPlayer import VideoPlayer
 from AnimeWatcher.UrlOperations import UrlInteractions
 from AnimeWatcher.EpisodeOperations import EpisodeMenu
-
+from AnimeWatcher.UserInteractions import UserInteractions
 # Configure the logger
 logger = setup_logging('anime_watch', Config.ANIME_WATCH_LOG_PATH)
 
@@ -23,7 +23,8 @@ class AnimeWatch:
             self.web_interactions)
         self.url_interactions = UrlInteractions(Config.QUALITY)  # default quality is best
         self.video_player = None  # Create an instance of VideoPlayer
-
+        self.user_interactions = UserInteractions()
+        
     def naviguate_fetch_episodes(self, url, anime_name):
         """
         Navigates to the given URL and fetches the episodes for the specified anime.
@@ -41,7 +42,7 @@ class AnimeWatch:
             # Get the start and max episodes from the page
             start_episode, max_episode = self.anime_interactions.get_number_episodes()
             # Get the user's input for the episode they want to start watching
-            prompt = self.get_user_input(start_episode, max_episode)
+            prompt = self.user_interactions.get_user_input(start_episode, max_episode, self.web_interactions, logger)
             # If the user wants to exit, return False to exit the program
             if prompt is None:
                 self.web_interactions.exiting_statement()
@@ -82,41 +83,6 @@ class AnimeWatch:
             logger.error(f"Error while navigating to {url}: {e}")
             return False  # Signal to exit the program
 
-    def get_user_input(self, start_episode, max_episode):
-        """
-        Prompts the user to enter the episode they want to start watching, between the given start and max episodes.
-
-        Args:
-            start_episode (int): The first episode available to watch.
-            max_episode (int): The last episode available to watch.
-
-        Returns:
-            str: The user's input, which is either a valid episode number or '0' to exit.
-        """
-        try:
-            while True:
-                # Prompt the user to enter the episode they want to start watching
-                user_input = input(
-                    f"Enter the episode you want to start watching between {start_episode}-{max_episode} (or 0 to exit): ")
-                # If the user wants to exit, return None to exit the program
-                if user_input == '0':
-                    self.web_interactions.exiting_statement()
-                    return None
-                # If the user entered a valid episode, return the episode number
-                if user_input.isdigit() and start_episode <= int(user_input) <= max_episode:
-                    return user_input
-                # If the user entered an invalid episode, prompt them to enter a valid episode
-                else:
-                    print("Invalid input. Please enter a valid episode or '0' to exit.")
-        except Exception as e:
-            # If an error occurs while getting the user's input, log the error and raise it
-            logger.error(f"Error while getting user input: {e}")
-            raise
-        except KeyboardInterrupt:
-            # If the user presses Ctrl+C, exit the program
-            self.web_interactions.exiting_statement()
-            return None
-
     def play_episode(self, episode_url):
         """
         Plays the episode at the given URL.
@@ -152,48 +118,7 @@ class AnimeWatch:
 
 
 class Main:
-    def get_valid_index(self, prompt, max_index):
-        """
-        Prompts the user for an index and validates it.
 
-        Args:
-            prompt (str): The prompt message to display to the user.
-            max_index (int): The maximum valid index.
-
-        Returns:
-            int: The valid index entered by the user.
-
-        Raises:
-            ValueError: If the user enters an invalid number.
-        """
-        while True:
-            try:
-                # Prompt the user to enter an index
-                selected_index = int(input(prompt))
-                # If the user entered a valid index, return it
-                if selected_index == 0 or 0 <= selected_index <= max_index:
-                    return selected_index  # Return the selected index
-                else:
-                    print("Invalid index. Please enter a valid index.")
-            except ValueError:
-                print("Invalid input. Please enter a valid number.")
-
-    def select_anime(self, animes):
-        """
-        Displays the search results and prompts the user to select an anime.
-
-        Args:
-            animes (list): List of anime dictionaries.
-
-        Returns:
-            int: The selected index of the anime, or 0 to exit.
-        """
-        print("Search results: ")
-        for i, anime in enumerate(animes):
-            # Print the anime's title
-            print(f"{i + 1}. {anime['title']}")
-        # Prompt the user to enter the index of the anime they want to watch
-        return self.get_valid_index("Enter the index of the anime you want to watch (or 0 to exit): ", len(animes))
 
     def main(self):
         """
@@ -206,6 +131,7 @@ class Main:
         Returns:
             None
         """
+        self.user_interactions = UserInteractions()
         # Initialize the restart variable to True to start the loop
         restart = True
 
@@ -221,7 +147,7 @@ class Main:
                 # Check if the anime was found
                 if animes:
                     # If the anime was found, prompt the user to select an anime to watch (ex: 1. Naruto)
-                    selected_index = self.select_anime(animes)
+                    selected_index = self.user_interactions.select_anime(animes)
                     # If the user selected the exit option, exit the program
                     if selected_index == 0:
                         anime_watch.web_interactions.exiting_statement()
