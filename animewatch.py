@@ -1,7 +1,7 @@
 from AnimeWatcher.WatchOperations import Main
 from Config.logs_config import setup_logging
 from Config.config import Config
-from AnimeWatcher.WebOperations import WebInteractions, AnimeInteractions
+# Set up the logger
 logger = setup_logging('anime_watch', Config.ANIME_WATCH_LOG_PATH)
 
 if __name__ == "__main__":

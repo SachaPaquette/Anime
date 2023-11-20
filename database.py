@@ -1,11 +1,10 @@
-import csv
-import os
-import pandas as pd
 import pymongo
 from dotenv import load_dotenv
 import re
 from Config.config import Config
 from Config.logs_config import setup_logging
+from pymongo import MongoClient
+from pymongo.errors import ConnectionFailure, PyMongoError
 
 # Load environment variables from .env file
 load_dotenv()
@@ -25,15 +24,13 @@ def connect_db(database_name, collection_name):
         pymongo.collection.Collection: The MongoDB collection object
     """
     try:
-        client = pymongo.MongoClient(
-            Config.CONNECTION_STRING)  # Connect to MongoDB
-        db = client[database_name]  # Connect to the "Manga" database
-        # Connect to the "Collection" collection
+        client = MongoClient(Config.CONNECTION_STRING, maxPoolSize=50)
+        db = client[database_name]
         collection = db[collection_name]
         return collection
-    except pymongo.errors.ConnectionFailure as e:
+    except ConnectionFailure as e:
         logger.error(f"Error connecting to MongoDB: {e}")
-        raise  # Re-raise the exception to stop further execution
+        raise
 
 
 def connect_collection_db():
@@ -65,8 +62,11 @@ def insert_to_db(collection, data):
         data (list): The data to insert
     """
     try:
-        # Insert the data into the MongoDB collection
-        collection.insert_many(data)
+        if data:
+            # Insert the data into the MongoDB collection
+            collection.insert_many(data)
+        else:
+            logger.info("No data to insert")
     except pymongo.errors.DuplicateKeyError as e:
         logger.error(f"Error inserting data to MongoDB: {e}")
         raise  # Re-raise the exception to stop further execution
@@ -103,13 +103,16 @@ def delete_duplicates(collection, duplicates_cursor):
     Returns:
         None
     """
-    # Iterate over the duplicate documents and remove extra occurrences
-    for duplicate_group in duplicates_cursor:
-        # Get the extra occurrences
-        extra_occurrences = duplicate_group['ids'][1:]
-        # Delete the extra occurrences
-        collection.delete_many({'_id': {'$in': extra_occurrences}})
-
+    try:
+        # Iterate over the duplicate documents and remove extra occurrences
+        for duplicate_group in duplicates_cursor:
+            # Get the extra occurrences
+            extra_occurrences = duplicate_group['ids'][1:]
+            # Delete the extra occurrences
+            collection.delete_many({'_id': {'$in': extra_occurrences}})
+    except Exception as e:
+        logger.error(f"Error deleting duplicates: {e}")
+        raise
 
 def detect_duplicates():
     """
@@ -126,37 +129,40 @@ def detect_duplicates():
         pymongo.errors.PyMongoError: If there is an error while connecting to
             the database or executing the aggregation pipeline.
     """
-    # Connect to the "Manga" database and "Collection" collection
-    collection = connect_collection_db()
+    try:
+        # Connect to the "Manga" database and "Collection" collection
+        collection = connect_collection_db()
 
-    # Create an index on the 'title' field for better performance
-    create_index(collection)
+        # Create an index on the 'title' field for better performance
+        create_index(collection)
 
-    # MongoDB aggregation pipeline to find and remove duplicates
-    duplicates_pipeline = [
-        {
-            '$group': {
-                '_id': '$title',
-                'count': {
-                    '$sum': 1
-                },
-                'ids': {'$push': '$_id'}
-            }
-        }, {
-            '$match': {
-                'count': {
-                    '$gt': 1
+        # MongoDB aggregation pipeline to find and remove duplicates
+        duplicates_pipeline = [
+            {
+                '$group': {
+                    '_id': '$title',
+                    'count': {
+                        '$sum': 1
+                    },
+                    'ids': {'$push': '$_id'}
+                }
+            }, {
+                '$match': {
+                    'count': {
+                        '$gt': 1
+                    }
                 }
             }
-        }
-    ]
+        ]
 
-    # Find all the duplicate documents
-    duplicates_cursor = collection.aggregate(duplicates_pipeline)
-    # Remove the duplicate documents
-    delete_duplicates(collection, duplicates_cursor)
-    print('Duplicates are now removed :)')
-
+        # Find all the duplicate documents
+        duplicates_cursor = collection.aggregate(duplicates_pipeline)
+        # Remove the duplicate documents
+        delete_duplicates(collection, duplicates_cursor)
+        print('Duplicates are now removed :)')
+    except PyMongoError as e:
+        logger.error(f"Error detecting duplicates: {e}")
+        raise
 
 def create_regex_pattern(input):
     """
