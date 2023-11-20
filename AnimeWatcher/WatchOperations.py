@@ -48,7 +48,7 @@ class AnimeWatch:
             if prompt is None:
                 self.web_interactions.exiting_statement()
                 return True  # Signal to restart the application
-            
+            # Returns True if the user wants to change the anime and False if the user wants to quit the program
             return self.handle_episodes(anime_name, prompt, start_episode, max_episode)
 
         except ValueError as ve:
@@ -56,7 +56,7 @@ class AnimeWatch:
             return False  # Signal to exit the program
         except KeyboardInterrupt:
             self.web_interactions.exiting_statement()
-            return None
+            return False # Signal to exit the program
         except Exception as e:
             logger.error(f"Unexpected error: {e}")
             return False  # Signal to exit the program
