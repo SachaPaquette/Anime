@@ -26,7 +26,7 @@ class AnimeWatch:
         self.video_player = None  # Create an instance of VideoPlayer
         self.user_interactions = UserInteractions()
             
-    def naviguate_fetch_episodes(self, url, anime_name):
+    def naviguate_fetch_episodes(self, url):
         """
         Navigates to the given URL and fetches the episodes for the specified anime.
 
@@ -50,7 +50,7 @@ class AnimeWatch:
                 self.web_interactions.exiting_statement()
                 return True  # Signal to restart the application
             # Returns True if the user wants to change the anime and False if the user wants to quit the program
-            return self.handle_episodes(anime_name, prompt, start_episode, max_episode, url)
+            return self.handle_episodes(prompt, start_episode, max_episode, url)
 
         except ValueError as ve:
             logger.error(f"Error while converting prompt to integer: {ve}")
@@ -126,7 +126,7 @@ class AnimeWatch:
             else:
                 print(f"Invalid choice. Please enter one of the following: {', '.join(episode_menu.available_choices())}.")
 
-    def handle_episodes(self, anime_name, prompt, start_episode, max_episode, url):
+    def handle_episodes(self, prompt, start_episode, max_episode, url):
         """
         Handles the episodes of an anime.
 
@@ -236,7 +236,7 @@ class Main:
                 print(f"Selected anime: {selected_anime['title']}")
                 # Navigate to the selected anime's episodes and start watching
                 restart = anime_watch.naviguate_fetch_episodes(
-                    selected_anime['link'], selected_anime['title'])
+                    selected_anime['link'])
 
             except Exception as e:
                 logger.error(f"Error while watching anime: {e}")
