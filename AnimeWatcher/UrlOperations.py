@@ -414,6 +414,72 @@ class UrlInteractions:
         except Exception as e:
             raise Exception(f"Error while getting stream URL: {e}")
 
+    def determine_stream_type(self, item):
+        """
+        Determines the type of the video stream (HLS or MP4).
+
+        Args:
+            item (dict): Dictionary containing information about a video stream.
+
+        Returns:
+            str: The type of the video stream.
+        """
+        if "m3u8" in item["file"] or item["type"] == "hls":
+            return "hls"
+        else:
+            return "mp4"
+
+    def parse_stream_info(self, item):
+        """
+        Parses the information about a video stream and returns a dictionary.
+
+        Args:
+            item (dict): Dictionary containing information about a video stream.
+
+        Returns:
+            dict: Parsed information about the video stream.
+        """
+        stream_type = self.determine_stream_type(item)
+        quality = item["label"].replace(" P", "").lower()
+        return {"file": item["file"], "type": stream_type, "quality": quality}
+
+    def filter_streams_by_quality(self, stream_infos, quality):
+        """
+        Filters the list of video streams based on the user's quality preference.
+
+        Args:
+            stream_infos (list): List of dictionaries containing information about video streams.
+            quality (str): User's quality preference.
+
+        Returns:
+            list: List of video streams filtered by quality.
+        """
+        return list(filter(lambda x: x["quality"] == quality, stream_infos))
+
+    def get_stream_with_highest_quality(self, stream_infos):
+        """
+        Returns the video stream with the highest quality.
+
+        Args:
+            stream_infos (list): List of dictionaries containing information about video streams.
+
+        Returns:
+            dict: Video stream with the highest quality.
+        """
+        return max(stream_infos, key=lambda x: x["quality"])
+
+    def get_stream_with_lowest_quality(self, stream_infos):
+        """
+        Returns the video stream with the lowest quality.
+
+        Args:
+            stream_infos (list): List of dictionaries containing information about video streams.
+
+        Returns:
+            dict: Video stream with the lowest quality.
+        """
+        return min(stream_infos, key=lambda x: x["quality"])
+
     def quality(self, json_data):
         """
         Determines the quality of the video stream based on the user's preference and the available streams.
@@ -426,34 +492,22 @@ class UrlInteractions:
         """
         try:
             # Initialize the stream quality to an empty array
-            stream_infos = []
-            # Iterate through the JSON data
-            for item in json_data:
-                # Check if the stream is HLS
-                if "m3u8" in item["file"] or item["type"] == "hls":
-                    stream_type = "hls"
-                else:
-                    # Otherwise, the stream is MP4
-                    stream_type = "mp4"
-                # Get the quality of the stream
-                quality = item["label"].replace(" P", "").lower()
-                # Append the stream to the list of streams
-                stream_infos.append(
-                    {"file": item["file"], "type": stream_type, "quality": quality})
+            stream_infos_list = [self.parse_stream_info(item) for item in json_data]
 
             # Filter the streams based on the user's quality preference
-            filtered_q_user = list(
-                filter(lambda x: x["quality"] == self.qual, stream_infos))
-            if filtered_q_user:
-                stream = list(filtered_q_user)[0]
+            filtered_by_quality = self.filter_streams_by_quality(stream_infos_list, self.qual)
+
+            if filtered_by_quality:
+                stream = filtered_by_quality[0]
             elif self.qual == "best" or self.qual is None:
-                stream = stream_infos[-1]
+                stream = self.get_stream_with_highest_quality(stream_infos_list)
             elif self.qual == "worst":
-                stream = stream_infos[0]
+                stream = self.get_stream_with_lowest_quality(stream_infos_list)
             else:
-                stream = stream_infos[-1]
+                stream = stream_infos_list[-1]
 
             # Return the stream quality
             self.quality = stream["quality"]
         except Exception as e:
             raise Exception(f"Error while getting stream quality: {e}")
+
