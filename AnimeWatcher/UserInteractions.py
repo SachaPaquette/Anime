@@ -41,7 +41,7 @@ class UserInteractions:
             print(f"{i + 1}. {anime['title']}")
         # Prompt the user to enter the index of the anime they want to watch
         return self.get_valid_index("Enter the index of the anime you want to watch (or 0 to exit): ", len(animes))
-    
+
     def get_user_input(self, start_episode, max_episode, web_interactions, logger):
         """
         Prompts the user to enter the episode they want to start watching, between the given start and max episodes.
@@ -76,6 +76,3 @@ class UserInteractions:
             # If the user presses Ctrl+C, exit the program
             web_interactions.exiting_statement()
             return None
-        
-        
-    

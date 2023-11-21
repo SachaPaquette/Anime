@@ -1,5 +1,6 @@
 from python_mpv_jsonipc import MPV
 
+
 class VideoPlayer:
     # Create a singleton instance of the VideoPlayer class
     _instance = None
@@ -11,15 +12,16 @@ class VideoPlayer:
         Returns:
             VideoPlayer: The instance of the VideoPlayer class.
         """
-        if cls._instance is None: # Check if the instance of the VideoPlayer class exists
+        if cls._instance is None:  # Check if the instance of the VideoPlayer class exists
             # If the instance doesn't exist, create a new instance
-            cls._instance = super(VideoPlayer, cls).__new__(cls) # Call the __new__ method of the superclass
-            cls._instance.observer_id = None # Initialize the observer ID to None
+            cls._instance = super(VideoPlayer, cls).__new__(
+                cls)  # Call the __new__ method of the superclass
+            cls._instance.observer_id = None  # Initialize the observer ID to None
             cls._instance.mpv = MPV()  # Create a new instance of the MPV class
             # Options to be passed to the MPV instance
             cls._instance.mpv.fullscreen = True
-            
-        return cls._instance # Return the instance of the VideoPlayer class
+
+        return cls._instance  # Return the instance of the VideoPlayer class
 
     def play_video(self, url):
         """
@@ -36,11 +38,13 @@ class VideoPlayer:
                 # Options to be passed to the MPV instance (fullscreen)
                 self.mpv.fullscreen = True
                 # Bind the property observer
-                self.observer_id = self.mpv.bind_property_observer("idle-active", self.should_skip_video)
+                self.observer_id = self.mpv.bind_property_observer(
+                    "idle-active", self.should_skip_video)
             # Play the video
-            self.mpv.play(url) # Play the video
+            self.mpv.play(url)  # Play the video
         except Exception as e:
-            raise e # Re-raise the exception to stop further execution
+            raise e  # Re-raise the exception to stop further execution
+
     def should_skip_video(self, name, value):
         """
         Determines whether the video should be skipped based on the player's state.
@@ -52,12 +56,12 @@ class VideoPlayer:
         Returns:
             None
         """
-        try: 
+        try:
             # If the player is not idle, return
             if not value:
                 return
-            
-            keep_player_open = True  # Keep the player open by default 
+
+            keep_player_open = True  # Keep the player open by default
             # Check if the media player is idle
             if not keep_player_open:
                 self.mpv.command("quit")
@@ -66,7 +70,8 @@ class VideoPlayer:
             self.mpv.unbind_property_observer(self.observer_id)
             self.observer_id = None
         except Exception as e:
-            raise e # Re-raise the exception to stop further execution
+            raise e  # Re-raise the exception to stop further execution
+
     def terminate_player(self):
         """
         Terminate the video player.
@@ -87,6 +92,7 @@ class VideoPlayer:
             self.mpv = None
         except Exception as e:
             raise e
+
     def is_closed(self):
         # Check if the mpv instance is None
         return self.mpv is None

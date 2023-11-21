@@ -40,6 +40,7 @@ class AnimeWatch:
         try:
             # Navigate to the URL
             self.web_interactions.naviguate(url)
+            
             # Get the start and max episodes from the page
             start_episode, max_episode = self.anime_interactions.get_number_episodes()
             # Get the user's input for the episode they want to start watching
@@ -49,7 +50,7 @@ class AnimeWatch:
                 self.web_interactions.exiting_statement()
                 return True  # Signal to restart the application
             # Returns True if the user wants to change the anime and False if the user wants to quit the program
-            return self.handle_episodes(anime_name, prompt, start_episode, max_episode)
+            return self.handle_episodes(anime_name, prompt, start_episode, max_episode, url)
 
         except ValueError as ve:
             logger.error(f"Error while converting prompt to integer: {ve}")
@@ -61,7 +62,7 @@ class AnimeWatch:
             logger.error(f"Unexpected error: {e}")
             return False  # Signal to exit the program
 
-    def format_and_play_episode(self, anime_name, prompt):
+    def format_and_play_episode(self, prompt, url):
         """
         Formats the anime name, creates the episode URL, and plays the episode.
 
@@ -73,8 +74,8 @@ class AnimeWatch:
             str: The formatted episode URL.
         """
         # Format the anime name, create the episode URL, and play the episode
-        anime_name = self.anime_interactions.format_anime_name(anime_name)
-        episode_url = self.anime_interactions.format_episode_link(prompt, anime_name) # Format the episode URL
+        formatted_anime_name = self.anime_interactions.format_anime_name(url)
+        episode_url = self.anime_interactions.format_episode_link(prompt, formatted_anime_name) # Format the episode URL
         self.play_episode(episode_url) # Play the episode
         return episode_url
 
@@ -125,7 +126,7 @@ class AnimeWatch:
             else:
                 print(f"Invalid choice. Please enter one of the following: {', '.join(episode_menu.available_choices())}.")
 
-    def handle_episodes(self, anime_name, prompt, start_episode, max_episode):
+    def handle_episodes(self, anime_name, prompt, start_episode, max_episode, url):
         """
         Handles the episodes of an anime.
 
@@ -140,7 +141,7 @@ class AnimeWatch:
         """
         while True:
             # Format the anime name, create the episode URL, and play the episode
-            self.format_and_play_episode(anime_name, prompt)
+            self.format_and_play_episode(prompt, url)
             # Handle the user's choice
             prompt = self.handle_user_choice(prompt, start_episode, max_episode)
             # if the user wants to change anime

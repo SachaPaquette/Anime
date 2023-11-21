@@ -314,12 +314,12 @@ class AnimeInteractions:
                 raise
 
 
-    def format_anime_name(self, anime_name):
+    def format_anime_name(self, url):
         """
-        Formats the given anime name by replacing spaces with hyphens and converting it to lowercase.
+        Formats the anime name extracted from the given URL.
 
         Args:
-            anime_name (str): The name of the anime to be formatted.
+            url (str): The URL from which the anime name is extracted.
 
         Returns:
             str: The formatted anime name.
@@ -327,23 +327,25 @@ class AnimeInteractions:
         Raises:
             Exception: If there is an error while formatting the anime name.
         """
+
         try:
-            # Replace consecutive spaces with a single hyphen
-            anime_name = re.sub(r'\s+', '-', anime_name)
+            # split the url by / and get the last part (the url looks like https://gogoanime3.net/anime-name)
+            url_name = url.split('/')[-1]
+            # remove the - between the words 
+            url_name = re.sub(r'\s+', '-', url_name)
             # Remove unwanted symbols except hyphen
-            anime_name = re.sub(r'[^a-zA-Z0-9-]', '', anime_name).lower()
-            # Remove consecutive hyphens
-            anime_name = re.sub(r'-+', '-', anime_name)
-            
+            url_name = re.sub(r'[^a-zA-Z0-9-]', '', url_name).lower()
+            # Remove consecutive hyphens (e.g., 'anime--name' becomes 'anime-name')
+            url_name = re.sub(r'-+', '-', url_name)
             # Return the formatted anime name
-            return anime_name
+            return url_name
         except Exception as e:
             logger.error(f"Error while formatting anime name url: {e}")
             raise
 
 
 
-    def format_episode_link(self, episode_number, anime_name):
+    def format_episode_link(self, episode_number, formatted_anime_name):
         """
         Formats the episode link for a given episode number and anime name.
 
@@ -358,7 +360,7 @@ class AnimeInteractions:
             Exception: If there is an error while formatting the episode link.
         """
         try:
-            url = f"https://gogoanime3.net/{anime_name}-episode-{episode_number}"
+            url = f"https://gogoanime3.net/{formatted_anime_name}-episode-{episode_number}"
             return url
         except Exception as e:
             logger.error(f"Error while formatting episode link: {e}")

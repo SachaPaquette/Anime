@@ -414,6 +414,9 @@ class UrlInteractions:
         except Exception as e:
             raise Exception(f"Error while getting stream URL: {e}")
 
+
+        
+    
     def determine_stream_type(self, item):
         """
         Determines the type of the video stream (HLS or MP4).
@@ -493,10 +496,10 @@ class UrlInteractions:
         try:
             # Initialize the stream quality to an empty array
             stream_infos_list = [self.parse_stream_info(item) for item in json_data]
-
+            print(stream_infos_list)
             # Filter the streams based on the user's quality preference
             filtered_by_quality = self.filter_streams_by_quality(stream_infos_list, self.qual)
-
+            print(filtered_by_quality)
             if filtered_by_quality:
                 stream = filtered_by_quality[0]
             elif self.qual == "best" or self.qual is None:
@@ -508,6 +511,7 @@ class UrlInteractions:
 
             # Return the stream quality
             self.quality = stream["quality"]
+            print(self.quality)
         except Exception as e:
             raise Exception(f"Error while getting stream quality: {e}")
 
