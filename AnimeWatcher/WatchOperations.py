@@ -97,8 +97,8 @@ class AnimeWatch:
         while True:
             # Prompt the user to enter their choice (n: next episode, p: previous episode, c: change anime, q: quit)
             user_choice = input("Enter your choice: ").lower()
-
-            if user_choice in ['n', 'p', 'q', 'c']:
+            # Check if the user's choice is valid (n, p, c, or q only are valid)
+            if user_choice in episode_menu.available_choices():
                 self.url_interactions = UrlInteractions("best")
                 # Handle the user's choice
                 updated_prompt = episode_menu.handle_choice(user_choice, int(prompt))

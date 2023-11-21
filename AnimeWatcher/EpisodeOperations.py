@@ -112,3 +112,12 @@ class EpisodeMenu:
             bool:  False if the user wants to change the anime.
         """
         return False
+    
+    def available_choices(self):
+        """
+        Returns a list of the available choices for the user.
+
+        Returns:
+            list: A list of the available choices for the user.
+        """
+        return ['n', 'p', 'c', 'q']
