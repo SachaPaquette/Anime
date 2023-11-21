@@ -82,6 +82,7 @@ class VideoPlayer:
             self.observer_id = None
         except Exception as e:
             raise e  # Re-raise the exception to stop further execution
+        
     def quit_command(self):
         """
         Sends the 'quit' command to the mpv player.
@@ -90,6 +91,7 @@ class VideoPlayer:
             self.mpv.command("quit")
         except Exception as e:
             raise e
+        
     def terminate_player(self):
         """
         Terminate the video player.

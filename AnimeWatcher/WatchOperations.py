@@ -47,6 +47,7 @@ class AnimeWatch:
             prompt = self.user_interactions.get_user_input(start_episode, max_episode, self.web_interactions, logger)
             # If the user wants to exit, return False to exit the program
             if prompt is None:
+                # Exit the program
                 self.web_interactions.exiting_statement()
                 return True  # Signal to restart the application
             # Returns True if the user wants to change the anime and False if the user wants to quit the program
