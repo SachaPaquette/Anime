@@ -23,6 +23,22 @@ class VideoPlayer:
 
         return cls._instance  # Return the instance of the VideoPlayer class
 
+    def initizalize_player(self):
+        """
+        Initialize the video player.
+
+        This method initializes the video player by binding the property observer and setting the fullscreen property to True.
+        """
+        try:
+            self.mpv = MPV()  # Create a new instance of the MPV class
+            # Bind the property observer
+            self.observer_id = self.mpv.bind_property_observer(
+                "idle-active", self.should_skip_video)
+            # Set the fullscreen property to True
+            self.mpv.fullscreen = True
+        except Exception as e:
+            raise e
+    
     def play_video(self, url):
         """
         Plays a video from the given URL.
@@ -34,12 +50,7 @@ class VideoPlayer:
             # Check if the player is closed
             if self.is_closed():
                 # Create a new instance of the MPV class
-                self.mpv = MPV()
-                # Options to be passed to the MPV instance (fullscreen)
-                self.mpv.fullscreen = True
-                # Bind the property observer
-                self.observer_id = self.mpv.bind_property_observer(
-                    "idle-active", self.should_skip_video)
+                self.initizalize_player()
             # Play the video
             self.mpv.play(url)  # Play the video
         except Exception as e:
