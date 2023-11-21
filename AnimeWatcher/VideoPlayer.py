@@ -28,11 +28,19 @@ class VideoPlayer:
         Args:
             url (str): The URL of the video to be played.
         """
-        self.mpv.play(url) # Play the video
-
-        # Bind a property observer for the idle-active property
-        self.observer_id = self.mpv.bind_property_observer("idle-active", self.should_skip_video)
-
+        try:
+            # Check if the player is closed
+            if self.is_closed():
+                # Create a new instance of the MPV class
+                self.mpv = MPV()
+                # Options to be passed to the MPV instance (fullscreen)
+                self.mpv.fullscreen = True
+                # Bind the property observer
+                self.observer_id = self.mpv.bind_property_observer("idle-active", self.should_skip_video)
+            # Play the video
+            self.mpv.play(url) # Play the video
+        except Exception as e:
+            raise e # Re-raise the exception to stop further execution
     def should_skip_video(self, name, value):
         """
         Determines whether the video should be skipped based on the player's state.
@@ -44,26 +52,41 @@ class VideoPlayer:
         Returns:
             None
         """
-        # If the player is not idle, return
-        if not value:
-            return
-        
-        keep_player_open = True  # Keep the player open by default 
-        # Check if the media player is idle
-        if not keep_player_open:
-            self.mpv.command("quit")
+        try: 
+            # If the player is not idle, return
+            if not value:
+                return
+            
+            keep_player_open = True  # Keep the player open by default 
+            # Check if the media player is idle
+            if not keep_player_open:
+                self.mpv.command("quit")
 
-        # Unbind the property observer
-        self.mpv.unbind_property_observer(self.observer_id)
-        self.observer_id = None
-        
+            # Unbind the property observer
+            self.mpv.unbind_property_observer(self.observer_id)
+            self.observer_id = None
+        except Exception as e:
+            raise e # Re-raise the exception to stop further execution
     def terminate_player(self):
         """
         Terminate the video player.
 
         This method unbinds the property observer, if any, and sends the 'quit' command to the mpv player.
         """
-        if self.observer_id:
-            self.mpv.unbind_property_observer(self.observer_id)
-            self.observer_id = None
-        self.mpv.command("quit")
+        try:
+            if self.observer_id:
+                # Unbind the property observer
+                self.mpv.unbind_property_observer(self.observer_id)
+                # Reset the observer ID to None
+                self.observer_id = None
+            # Send the 'quit' command to the mpv player
+            self.mpv.command("quit")
+            # Reset the instance to None (to allow the creation of a new instance)
+            self._instance = None
+            # Reset the instance of the VideoPlayer class to None (to allow the creation of a new instance)
+            self.mpv = None
+        except Exception as e:
+            raise e
+    def is_closed(self):
+        # Check if the mpv instance is None
+        return self.mpv is None

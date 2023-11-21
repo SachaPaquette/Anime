@@ -328,16 +328,20 @@ class AnimeInteractions:
             Exception: If there is an error while formatting the anime name.
         """
         try:
-            # Replace any spaces by the - symbol -> Naruto Shippuden = naruto-shippuden
-            anime_name = anime_name.replace(' ', '-').lower()
-            # Remove any symbols beside the - symbol
-            anime_name = re.sub(r'[:;\\[\]()]', '', anime_name)
+            # Replace consecutive spaces with a single hyphen
+            anime_name = re.sub(r'\s+', '-', anime_name)
+            # Remove unwanted symbols except hyphen
+            anime_name = re.sub(r'[^a-zA-Z0-9-]', '', anime_name).lower()
+            # Remove consecutive hyphens
+            anime_name = re.sub(r'-+', '-', anime_name)
             
             # Return the formatted anime name
             return anime_name
         except Exception as e:
             logger.error(f"Error while formatting anime name url: {e}")
             raise
+
+
 
     def format_episode_link(self, episode_number, anime_name):
         """

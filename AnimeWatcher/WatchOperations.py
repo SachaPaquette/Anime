@@ -99,10 +99,11 @@ class AnimeWatch:
             user_choice = input("Enter your choice: ").lower()
 
             if user_choice in ['n', 'p', 'q', 'c']:
+                self.url_interactions = UrlInteractions("best")
                 # Handle the user's choice
                 updated_prompt = episode_menu.handle_choice(user_choice, int(prompt))
                 # Initialize a new UrlInteractions instance (with the default quality of 'best')
-                self.url_interactions = UrlInteractions("best")
+                
                 # User wants to change the anime
                 if updated_prompt is False:
                     # Exit the program
@@ -169,9 +170,10 @@ class AnimeWatch:
             # Get the source data
             source_data = self.url_interactions.stream_url(episode_url)
             # Check if the video player is already running and create an instance if it's not
-            if self.video_player is None:
-                # Create an instance of VideoPlayer
+            if self.video_player is None or self.video_player.is_closed():
                 self.video_player = VideoPlayer()
+            # handle is closed error
+
             try:
                 # Play the video
                 self.video_player.play_video(source_data)
@@ -187,6 +189,7 @@ class AnimeWatch:
         except KeyboardInterrupt:
             self.web_interactions.exiting_statement()
             return None
+
 
 
 class Main:
