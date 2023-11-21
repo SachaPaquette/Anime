@@ -38,7 +38,7 @@ class VideoPlayer:
             self.mpv.fullscreen = True
         except Exception as e:
             raise e
-    
+
     def play_video(self, url):
         """
         Plays a video from the given URL.
@@ -75,14 +75,21 @@ class VideoPlayer:
             keep_player_open = True  # Keep the player open by default
             # Check if the media player is idle
             if not keep_player_open:
-                self.mpv.command("quit")
+                self.quit_command()  # Send the 'quit' command to the mpv player
 
             # Unbind the property observer
             self.mpv.unbind_property_observer(self.observer_id)
             self.observer_id = None
         except Exception as e:
             raise e  # Re-raise the exception to stop further execution
-
+    def quit_command(self):
+        """
+        Sends the 'quit' command to the mpv player.
+        """
+        try:
+            self.mpv.command("quit")
+        except Exception as e:
+            raise e
     def terminate_player(self):
         """
         Terminate the video player.
@@ -96,7 +103,7 @@ class VideoPlayer:
                 # Reset the observer ID to None
                 self.observer_id = None
             # Send the 'quit' command to the mpv player
-            self.mpv.command("quit")
+            self.quit_command()
             # Reset the instance to None (to allow the creation of a new instance)
             self._instance = None
             # Reset the instance of the VideoPlayer class to None (to allow the creation of a new instance)
