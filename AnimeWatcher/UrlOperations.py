@@ -12,7 +12,6 @@ import json
 # Setup logging
 logger = setup_logging('anime_watch', Config.ANIME_WATCH_LOG_PATH)
 
-
 class UrlInteractions:
 
     def __init__(self, quality=None):
@@ -36,7 +35,7 @@ class UrlInteractions:
         self.ajax_url = "/encrypt-ajax.php?"  # the URL to the AJAX endpoint (used for decrypting the video URL)
         self.mode = AES.MODE_CBC  # the mode to use for AES encryption
         # the padding function to use for AES encryption
-        self.pad = lambda s: s + chr(len(s) % 16) * (16 - len(s) % 16)
+        self.padding = lambda s: s + chr(len(s) % 16) * (16 - len(s) % 16)
         self.qual = quality.lower().strip("p")  # quality of the video
 
     def check_response_error(self, request, url):
@@ -50,14 +49,16 @@ class UrlInteractions:
         Raises:
             Exception: If the request was not successful, an exception is raised with an error message.
         """
+        # Check if the request was successful
         if request.ok:
             pass
         else:
+            # If the request was not successful, raise an exception with an error message
             print(f"Error while requesting {url}: {request.status_code}")
             raise Exception(
                 f"Error while requesting {url}: {request.status_code}")
 
-    def locate_error(self, soup, link, element):
+    def locating_element_error(self, soup, link, element):
         """
         Raises an exception if the specified element cannot be located in the given link's HTML soup.
 
@@ -73,6 +74,44 @@ class UrlInteractions:
             print(f"Error while locating {element} in {link}")
             raise Exception(f"Error while locating {element} in {link}")
 
+    def get_soup_object(self, url):
+        """
+        Retrieves the HTML soup of the given URL.
+
+        Args:
+            url (str): The URL to retrieve the HTML soup for.
+
+        Returns:
+            BeautifulSoup: The HTML soup of the given URL.
+        """
+        try:
+            # Send a GET request to the URL
+            request = self.session.get(url)
+            # Check if the request was successful
+            self.check_response_error(request, url)
+            # Create a BeautifulSoup object from the response content
+            soup = BeautifulSoup(request.content, "html.parser")
+            # Return the BeautifulSoup object
+            return soup
+        except Exception as e:
+            raise Exception(f"Error while getting HTML soup: {e}")
+    
+    def create_embedded_url(self, active_link):
+        """
+        Creates an embedded URL from the given active link.
+
+        Args:
+            active_link (bs4.element.Tag): The active link.
+
+        Returns:
+            str: The embedded URL.
+        """
+        # Get the embedded video player URL
+        embedded_url = f'https:{active_link["data-video"]}' if not active_link["data-video"].startswith(
+            "https:") else active_link["data-video"]
+        # Return the embedded video player URL
+        return embedded_url
+    
     def get_embedded_video_url(self, episode_url):
         """
         Given an episode URL, returns the URL of the embedded video player for that episode.
@@ -87,23 +126,17 @@ class UrlInteractions:
         - Exception: If there is an error while getting the embedded video player URL.
         """
         try:
-            # Send a GET request to the episode URL
-            r = self.session.get(episode_url)
-            # Check if the request was successful
-            self.check_response_error(r, episode_url)
-
-            # Create a BeautifulSoup object from the response content
-            soup = BeautifulSoup(r.content, "html.parser")
+            # Get the HTML soup of the episode URL
+            soup = self.get_soup_object(episode_url)
 
             # Find the active link
             active_link = soup.find("a", {"class": "active", "rel": "1"})
             # Check if the active link exists
-            self.locate_error(active_link, episode_url, "embed-url")
+            self.locating_element_error(active_link, episode_url, "embed-url")
 
             # Get the embedded video player URL
-            embedded_url = f'https:{active_link["data-video"]}' if not active_link["data-video"].startswith(
-                "https:") else active_link["data-video"]
-
+            embedded_url = self.create_embedded_url(active_link)
+            # Return the embedded video player URL
             return embedded_url
         except Exception as e:
             # Add more details to the error message if needed
@@ -121,14 +154,12 @@ class UrlInteractions:
             str: The data for the given episode URL.
         """
         try:
-            # Send a GET request to the episode URL
-            request = self.session.get(ep_url)
-            # Get the response content as a BeautifulSoup object
-            soup = BeautifulSoup(request.content, "html.parser")
+            # Get the HTML soup of the episode URL
+            soup = self.get_soup_object(ep_url)
             # Find the script tag containing the data
             crypto = soup.find("script", {"data-name": "episode"})
             # Check if the requested data exists
-            self.locate_error(crypto, ep_url, "token")
+            self.locating_element_error(crypto, ep_url, "token")
             # Return the data
             return crypto["data-value"]
         except Exception as e:
@@ -151,7 +182,7 @@ class UrlInteractions:
             keys = re.findall(r"(?:container|videocontent)-(\d+)", page)
             # Check if there are any keys found
             if not keys or len(keys) != 3:
-                raise ValueError("No encryption keys found.")
+                raise ValueError("No encryption keys were found.")
             # Create variables for the encryption keys and initialization vector (IV) from the list of keys
             key, iv, second_key = keys
             # Return the encryption keys as a dictionary
@@ -176,7 +207,7 @@ class UrlInteractions:
             bytes: The encrypted data in base64-encoded format.
         """
         return base64.b64encode(
-            AES.new(key, self.mode, iv=iv).encrypt(self.pad(data).encode())
+            AES.new(key, self.mode, iv=iv).encrypt(self.padding(data).encode())
         )
 
     def aes_decrypt(self, data, key, iv):

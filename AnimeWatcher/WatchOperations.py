@@ -123,10 +123,7 @@ class AnimeWatch:
                     return updated_prompt
 
             else:
-                print("Invalid choice. Please enter 'n', 'p', 'c' or 'q'.")
-
-
-        
+                print(f"Invalid choice. Please enter one of the following: {', '.join(episode_menu.available_choices())}.")
 
     def handle_episodes(self, anime_name, prompt, start_episode, max_episode):
         """
