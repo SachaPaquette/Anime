@@ -24,7 +24,8 @@ def connect_db(database_name, collection_name):
         pymongo.collection.Collection: The MongoDB collection object
     """
     try:
-        client = MongoClient(Config.CONNECTION_STRING, maxPoolSize=5) # Connect to the MongoDB cluster 
+        # Connect to the MongoDB cluster
+        client = MongoClient(Config.CONNECTION_STRING, maxPoolSize=5)
         db = client[database_name]
         collection = db[collection_name]
         return collection
@@ -34,6 +35,7 @@ def connect_db(database_name, collection_name):
     except Exception as e:
         logger.error(f"Unexpected error connecting to MongoDB: {e}")
         raise
+
 
 def connect_collection_db():
     """Function to connect to the MongoDB collection and return the collection object
@@ -116,6 +118,7 @@ def delete_duplicates(collection, duplicates_cursor):
         logger.error(f"Error deleting duplicates: {e}")
         raise
 
+
 def detect_duplicates():
     """
     Detect and remove duplicate documents in the MongoDB collection.
@@ -166,6 +169,7 @@ def detect_duplicates():
         logger.error(f"Error detecting duplicates: {e}")
         raise
 
+
 def create_regex_pattern(input):
     """
     Create a regular expression pattern that matches any string containing the given input.
@@ -195,6 +199,7 @@ def find_anime(input):
         Exception: If there is an error in the database connection or query execution.
     """
     try:
+        # Connect to the "Manga" database and "Collection" collection
         collection = connect_collection_db()
 
         # Create a regex pattern for matching substrings of the input
@@ -208,14 +213,15 @@ def find_anime(input):
 
         # Convert the cursor to a list
         animes = list(anime_cursor)
+        # If there are matching documents
         if animes:
             # Prioritize titles that start with the input and sort the rest alphabetically
             animes.sort(key=lambda x: (
                 not x['title'].lower().startswith(input.lower()), x['title']))
             return animes  # Return the list of matching documents
         else:
+            # If there are no matching documents
             logger.info(f"No anime titles found matching '{input}'")
-            
 
     except Exception as e:
         logger.error(f"Error in find_anime: {e}")

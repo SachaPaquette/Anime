@@ -331,8 +331,7 @@ class UrlInteractions:
         Returns:
             The response from the server.
         """
-        return self.session.post(
-            url + urlencode(data) + f"&alias={id}", headers=header)
+        return self.session.post(url + urlencode(data) + f"&alias={id}", headers=header)
 
     def send_post_request(self, url, data, id, header):
         """
@@ -397,8 +396,7 @@ class UrlInteractions:
             # Encrypt the ID
             encrypted_id = self.encrypt_id(id, encryption_keys)
             # Create the data dictionary
-            data = self.create_dict_data(
-                embded_episode_url, encryption_keys, encrypted_id)
+            data = self.create_dict_data(embded_episode_url, encryption_keys, encrypted_id)
             # Create the headers
             headers = self.create_headers(embded_episode_url)
             # Send the POST request

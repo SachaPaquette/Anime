@@ -1,12 +1,23 @@
 from selenium import webdriver
 import undetected_chromedriver as uc
 from selenium.webdriver.chrome.options import Options
-from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
 import random
 from Config.config import Config
 
-def disable_logging(options):
+def configure_browser_options(options, user_agents, crx_path):
+    """
+    Configures the browser options for automated testing.
+
+    Args:
+        options (Options): The browser options object.
+        user_agents (list): List of user agents to choose from.
+        crx_path (str): The path to the extension file.
+
+    Returns:
+        None
+    """
     # Disable logging (1: INFO, 2: WARNING, 3: ERROR)
     options.add_argument("--log-level=3")
     # Disable the "DevTools listening on ws:// 
@@ -15,33 +26,40 @@ def disable_logging(options):
     options.add_experimental_option("excludeSwitches", ["enable-automation"])
     # Turn-off userAutomationExtension
     options.add_experimental_option("useAutomationExtension", False)
-    
-    
-
-def driver_setup():
-   # Set up the driver options
-    options = Options()
-    # Keep the browser open after the script finishes executing (for debugging)
-    options.add_experimental_option('detach', True)
-    # Run in headless mode (without opening a browser window)
-    options.add_argument('--headless')
-    # Disable logging 
-    disable_logging(options)
     # Set a random user agent
-    options.add_argument(f"user-agent={random.choice(Config.USER_AGENTS)}")
-    # Add the extension to the driver (uBlock Origin since it's the most popular adblocker and there is a lot of ads on the site)
-    options.add_extension(Config.CRX_PATH)
+    options.add_argument(f"user-agent={random.choice(user_agents)}")
+    # Add the extension to the driver
+    options.add_extension(crx_path)
     # Adding argument to disable the AutomationControlled flag
     options.add_argument("--disable-blink-features=AutomationControlled")
-    # ChromeDriverManager will install the latest version of ChromeDriver
-    driver = webdriver.Chrome(service=Service(
-        ChromeDriverManager().install()), options=options)
-    # Changing the property of the navigator value for webdriver to undefined
-    driver.execute_script(
-        "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
-    # put the browser in focus
-    driver.switch_to.window(driver.current_window_handle)
-    return driver
+
+def driver_setup():
+    """
+    Set up and configure the web driver for automated browser testing.
+
+    Returns:
+        WebDriver: The configured web driver instance.
+    Raises:
+        Exception: If an error occurs during the driver setup process.
+    """
+    try:
+        # Set up the driver options
+        options = Options()
+        # Keep the browser open after the script finishes executing (for debugging)
+        options.add_experimental_option('detach', True)
+        # Run in headless mode (without opening a browser window)
+        options.add_argument('--headless')
+        # Disable logging and configure other options
+        configure_browser_options(options, Config.USER_AGENTS, Config.CRX_PATH)
+        # ChromeDriverManager will install the latest version of ChromeDriver
+        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+        # Changing the property of the navigator value for webdriver to undefined
+        driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+        # put the browser in focus
+        driver.switch_to.window(driver.current_window_handle)
+        return driver
+    except Exception as e:
+        raise e
 
 
 """def driver_setup():

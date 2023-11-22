@@ -205,7 +205,9 @@ class Main:
         Returns:
             None
         """
+        # Initialize the user interactions class
         self.user_interactions = UserInteractions()
+        
         # Initialize the restart variable to True to start the loop
         restart = True
 
