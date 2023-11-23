@@ -19,10 +19,9 @@ class AnimeWatch:
             web_interactions (WebInteractions, optional): An instance of the WebInteractions class. Defaults to None.
             anime_interactions (AnimeInteractions, optional): An instance of the AnimeInteractions class. Defaults to None.
         """
-        self.web_interactions = web_interactions if web_interactions else WebInteractions()
-        self.anime_interactions = anime_interactions if anime_interactions else AnimeInteractions(
-            self.web_interactions)
-        self.url_interactions = UrlInteractions(Config.QUALITY)  # default quality is best
+        self.web_interactions = web_interactions if web_interactions else WebInteractions() # Create an instance of WebInteractions
+        self.anime_interactions = anime_interactions if anime_interactions else AnimeInteractions(self.web_interactions) # Create an instance of AnimeInteractions
+        self.url_interactions = UrlInteractions(Config.QUALITY)  # Create an instance of UrlInteractions with the default quality (best)
         self.video_player = None  # Create an instance of VideoPlayer
         self.user_interactions = UserInteractions()
             
@@ -199,6 +198,21 @@ class Main:
         self.user_interactions = UserInteractions()
         self.anime_watch = AnimeWatch(None, None)
 
+    def find_anime_from_input(self):
+        try:
+            # Prompt the user to enter the anime they want to watch
+            user_input = input("Enter the anime you want to watch: ")
+            # Find the animes matching the user's input
+            animes = find_anime(user_input)
+            # Return the animes found
+            return animes, user_input
+        except Exception as e:
+            logger.error(f"Error while searching for anime: {e}")
+            exit()
+        except KeyboardInterrupt:
+            self.anime_watch.web_interactions.exiting_statement()
+            exit()
+    
     def search_and_select_anime(self):
         """
         Searches for an anime based on user input and allows the user to select from the search results.
@@ -208,9 +222,7 @@ class Main:
         """
         while True:
             # Prompt the user to enter the anime they want to watch
-            user_input = input("Enter the anime you want to watch: ")
-            # Find the animes matching the user's input
-            animes = find_anime(user_input)
+            animes, user_input = self.find_anime_from_input()
             # If animes were found, prompt the user to select an anime
             if animes:
                 # Prompt the user to select an anime
@@ -222,7 +234,7 @@ class Main:
                 return animes[selected_index - 1]
             else:
                 # If no animes were found, log a warning
-                logger.warning(f"Anime '{user_input}' not found.")
+                print(f"{user_input} was not found.")
 
     def watch_selected_anime(self, selected_anime):
         """
@@ -243,16 +255,21 @@ class Main:
             return False
 
     def main(self):
-        # Variable to control the loop 
-        restart = True
-        # Loop until the user wants to exit the program
-        while restart:
-            # Search for the anime and select it
-            selected_anime = self.search_and_select_anime()
-            # If the user wants to exit, exit the loop
-            if selected_anime is None:
-                break  # Exit the loop and cleanup
-            # Watch the selected anime
-            restart = self.watch_selected_anime(selected_anime)
+        try:
+            # Variable to control the loop 
+            restart = True
+            # Loop until the user wants to exit the program
+            while restart:
+                # Search for the anime and select it
+                selected_anime = self.search_and_select_anime()
+                # If the user wants to exit, exit the loop
+                if selected_anime is None:
+                    break  # Exit the loop and cleanup
+                # Watch the selected anime
+                restart = self.watch_selected_anime(selected_anime)
 
-        self.anime_watch.web_interactions.cleanup()
+            self.anime_watch.web_interactions.cleanup()
+        except KeyboardInterrupt:
+            self.anime_watch.web_interactions.exiting_statement()
+            self.anime_watch.web_interactions.cleanup()
+            exit()
