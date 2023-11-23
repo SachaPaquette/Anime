@@ -192,64 +192,67 @@ class AnimeWatch:
 
 
 class Main:
-
-
-    def main(self):
+    def __init__(self):
         """
-        Main function for watching anime.
+        Initializes a new instance of the WatchOperations class.
+        """
+        self.user_interactions = UserInteractions()
+        self.anime_watch = AnimeWatch(None, None)
 
-        This function prompts the user to enter the anime they want to watch,
-        searches for the anime, and allows the user to select an anime to watch.
-        It then navigates to the selected anime's episodes and starts watching.
+    def search_and_select_anime(self):
+        """
+        Searches for an anime based on user input and allows the user to select from the search results.
 
         Returns:
-            None
+            The selected anime object or None if the user cancels the selection.
         """
-        # Initialize the user interactions class
-        self.user_interactions = UserInteractions()
-        
-        # Initialize the restart variable to True to start the loop
-        restart = True
-
-        while restart:
-            # Create an instance of AnimeWatch
-            anime_watch = AnimeWatch(None, None)
-
-            try:
-                # Prompt the user to enter the anime they want to watch
-                user_input = input("Enter the anime you want to watch: ")
-                # Search for the anime in the database
-                animes = find_anime(user_input)
-                # Check if the anime was found
-                while not animes:
-                    logger.warning(f"Anime '{user_input}' not found.")
-                    # Re-prompt the user to enter the anime they want to watch
-                    user_input = input("Enter the anime you want to watch: ")
-                    animes = find_anime(user_input)
-
-                # If the anime was found, prompt the user to select an anime to watch (ex: 1. Naruto)
+        while True:
+            # Prompt the user to enter the anime they want to watch
+            user_input = input("Enter the anime you want to watch: ")
+            # Find the animes matching the user's input
+            animes = find_anime(user_input)
+            # If animes were found, prompt the user to select an anime
+            if animes:
+                # Prompt the user to select an anime
                 selected_index = self.user_interactions.select_anime(animes)
-                # If the user selected the exit option, exit the program
+                # If the user wants to exit, return None
                 if selected_index == 0:
-                    break  # Exit the loop and cleanup
+                    return None
+                # Return the selected anime
+                return animes[selected_index - 1]
+            else:
+                # If no animes were found, log a warning
+                logger.warning(f"Anime '{user_input}' not found.")
 
-                # Get the selected anime
-                selected_anime = animes[selected_index - 1]
-                # Print the selected anime
-                print(f"Selected anime: {selected_anime['title']}")
-                # Navigate to the selected anime's episodes and start watching
-                restart = anime_watch.naviguate_fetch_episodes(
-                    selected_anime['link'])
+    def watch_selected_anime(self, selected_anime):
+        """
+        Watch the selected anime.
 
-            except Exception as e:
-                logger.error(f"Error while watching anime: {e}")
-                anime_watch.web_interactions.exiting_statement()
-                restart = False  # Prevent the loop from restarting
+        Args:
+            selected_anime (dict): A dictionary containing information about the selected anime.
 
-            except KeyboardInterrupt:
-                anime_watch.web_interactions.exiting_statement()
+        Returns:
+            bool: True if the anime was watched successfully, False otherwise.
+        """
+        try:
+            print(f"Selected anime: {selected_anime['title']}")
+            return self.anime_watch.naviguate_fetch_episodes(selected_anime['link'])
+        except Exception as e:
+            logger.error(f"Error while watching anime: {e}")
+            self.anime_watch.web_interactions.exiting_statement()
+            return False
+
+    def main(self):
+        # Variable to control the loop 
+        restart = True
+        # Loop until the user wants to exit the program
+        while restart:
+            # Search for the anime and select it
+            selected_anime = self.search_and_select_anime()
+            # If the user wants to exit, exit the loop
+            if selected_anime is None:
                 break  # Exit the loop and cleanup
+            # Watch the selected anime
+            restart = self.watch_selected_anime(selected_anime)
 
-            finally:
-                anime_watch.web_interactions.cleanup()  # cleanup the web instance
-
+        self.anime_watch.web_interactions.cleanup()
