@@ -110,6 +110,7 @@ class AnimeWatch:
                     # Exit the program
                     self.web_interactions.exiting_statement()
                     self.video_player.terminate_player()
+                    self.url_interactions.close_session()
                     return False
 
                 # User wants to quit the program
@@ -117,6 +118,7 @@ class AnimeWatch:
                     # Exit the program
                     self.web_interactions.exiting_statement()
                     self.video_player.terminate_player()
+                    self.url_interactions.close_session()
                     return None
                 # User chose 'n' or 'p', update the prompt and continue
                 else:
@@ -166,7 +168,7 @@ class AnimeWatch:
         """
         try:
             # Get the source data
-            source_data = self.url_interactions.stream_url(episode_url)
+            source_data = self.url_interactions.get_streaming_url(episode_url)
             # Check if the video player is already running and create an instance if it's not
             if self.video_player is None or self.video_player.is_closed():
                 self.video_player = VideoPlayer()

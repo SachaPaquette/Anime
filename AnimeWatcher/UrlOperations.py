@@ -39,6 +39,10 @@ class UrlInteractions:
         # the padding function to use for AES encryption
         self.padding = lambda s: s + chr(len(s) % 16) * (16 - len(s) % 16)
 
+    def close_session(self):
+        """Closes the session."""
+        self.session.close()
+    
     def check_response_error(self, request, url):
         """
         Raises an exception if the request to the given URL is not successful.
@@ -330,23 +334,11 @@ class UrlInteractions:
         Returns:
             The response from the server.
         """
-        return self.session.post(url + urlencode(data) + f"&alias={id}", headers=header)
-
-    def send_post_request(self, url, data, id, header):
-        """
-        Sends a POST request to the specified URL with the provided data and headers.
-
-        Args:
-            url (str): The URL to send the request to.
-            data (dict): The data to include in the request body.
-            id (str): The ID to include in the request URL.
-            header (dict): The headers to include in the request.
-
-        Returns:
-            requests.Response: The response object received from the server.
-        """
-        return self.session.post(url + urlencode(data) + f"&alias={id}", headers=header)
-
+        try:
+            return self.session.post(url + urlencode(data) + f"&alias={id}", headers=header)
+        except requests.RequestException as e:
+            raise Exception(f"Error while sending POST request: {e}")
+        
     def create_json_response(self, request, encryption_keys):
         """
         Decrypts the data in the request using the provided encryption keys and returns the resulting JSON object.
@@ -373,7 +365,7 @@ class UrlInteractions:
         """
         return [x for x in json_response["source"]]
 
-    def stream_url(self, ep_url):
+    def get_streaming_url(self, ep_url):
         """
         Given an episode URL, returns the URL of the video stream.
 
