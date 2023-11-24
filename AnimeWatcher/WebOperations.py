@@ -5,6 +5,7 @@ from Config.config import Config
 from Config.logs_config import setup_logging
 from Driver.driver_config import driver_setup
 import re
+import requests
 logger = setup_logging('anime_download', Config.ANIME_WATCH_LOG_PATH)
 
 
@@ -314,7 +315,7 @@ class AnimeInteractions:
                 raise
 
 
-    def format_anime_name(self, url):
+    def format_anime_name_from_url(self, url, anime_name, prompt):
         """
         Formats the anime name extracted from the given URL.
 
@@ -337,31 +338,58 @@ class AnimeInteractions:
             url_name = re.sub(r'[^a-zA-Z0-9-]', '', url_name).lower()
             # Remove consecutive hyphens (e.g., 'anime--name' becomes 'anime-name')
             url_name = re.sub(r'-+', '-', url_name)
+            url_constructed = self.construct_episode_link(url_name, prompt)
+            return url_constructed
             # Return the formatted anime name
-            return url_name
+            #self.format_episode_link(url_name, anime_name, prompt)
         except Exception as e:
             logger.error(f"Error while formatting anime name url: {e}")
             raise
 
 
-
-    def format_episode_link(self, episode_number, formatted_anime_name):
-        """
-        Formats the episode link for a given episode number and anime name.
-
-        Args:
-            episode_number (int): The episode number.
-            anime_name (str): The name of the anime.
-
-        Returns:
-            str: The formatted episode link.
-
-        Raises:
-            Exception: If there is an error while formatting the episode link.
-        """
+    def format_anime_name(self, anime_name):
         try:
-            url = f"https://gogoanime3.net/{formatted_anime_name}-episode-{episode_number}"
-            return url
+            anime_name = re.sub(r'[^a-zA-Z0-9- ]', '', anime_name).lower()
+            anime_name = re.sub(r'\s+', '-', anime_name)
+            anime_name = re.sub(r'-+', '-', anime_name)
+            return anime_name
+        except Exception as e:
+            logger.error(f"Error while formatting anime name: {e}")
+            raise
+
+    def check_url_status(self, url):
+        try:
+            request = requests.get(url)
+            return request.status_code
+        except Exception as e:
+            logger.error(f"Error while checking URL status: {e}")
+            raise
+
+    def construct_episode_link(self, formatted_anime_name, episode_number):
+        return f"https://gogoanime3.net/{formatted_anime_name}-episode-{episode_number}"
+
+    def format_episode_link(self, url, anime_name, episode_number):
+        try:
+            url_constructed = self.format_anime_name_from_url(url, anime_name, episode_number)
+            
+            if self.check_url_status(url_constructed) == 200:
+                return url_constructed
+
+            formatted_anime_name = self.format_anime_name(anime_name)
+            original_url = self.construct_episode_link(formatted_anime_name, episode_number)
+
+            if self.check_url_status(original_url) == 200:
+                return original_url
+
+            if not hasattr(self, '_retry_attempted'):
+                formatted_anime_name = self.format_anime_name(anime_name)
+                alternative_url = self.construct_episode_link(formatted_anime_name, episode_number)
+
+                if self.check_url_status(alternative_url) == 200:
+                    self._retry_attempted = True
+                    return alternative_url
+
+            raise Exception(f"Episode {episode_number} not found")
         except Exception as e:
             logger.error(f"Error while formatting episode link: {e}")
             raise
