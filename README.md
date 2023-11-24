@@ -37,7 +37,7 @@ Before trying to use this application, make sure that your computer contains the
     cd Anime/
     ```
 
-3. **Install the required Python packages:**
+3. **Install the required Python packages:** <br>
     Windows:
     ```bash
     pip install -r Requirements\requirements.txt
