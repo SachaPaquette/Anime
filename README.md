@@ -13,6 +13,16 @@ This CLI (Command-Line Interface) application allows users to fetch anime data, 
     Command-Line Episode Viewer:
         Users can select an anime from the database and watch any available episode directly in the command line.
 
+### Dependencies
+Before trying to use this application, make sure that your computer contains the applications that follows
+
+    - Python 3.x
+    - Selenium
+    - MongoDB
+    - Chrome Browser
+    - Mpv
+
+
 ## Usage
 
 1. **Clone the repository:**
@@ -28,12 +38,14 @@ This CLI (Command-Line Interface) application allows users to fetch anime data, 
     ```
 
 3. **Install the required Python packages:**
-
+    Windows:
     ```bash
     pip install -r Requirements\requirements.txt
     ```
-
-
+    Linux:
+    ```bash
+    pip install -r Requirements/requirements.txt
+    ```
 
 ### Usage
 Fetching Anime Data
@@ -55,12 +67,7 @@ python animewatch.py
 
 Follow the on-screen instructions to navigate and select an anime and episode.
 
-### Dependencies
 
-    - Python 3.x
-    - Selenium
-    - MongoDB
-    - Chrome Browser
 
 ## License
 

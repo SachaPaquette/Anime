@@ -71,6 +71,7 @@ class AnimeFetch:
                 anime_data = self.anime_interactions.get_anime_page_data(manga)
                 # Insert the anime data into the database
                 insert_anime_to_db(anime_data)
+                print(f"Page {page_number} inserted!")
             # Detect duplicates and remove them from the database
             detect_duplicates()
         except Exception as e:

@@ -50,7 +50,7 @@ class Config:
     #        driver_config.py    #
     ##############################
     
-    CRX_PATH = "./Extensions/uBlock-origin.crx" # Path to the AdBlock extension
+    CRX_PATH = "Extensions/uBlock-Origin.crx" # Path to the AdBlock extension
     EXTENSION_PATH = os.getenv("EXTENSION_PATH") # Path to the AdBlock extension
     
     ##############################
