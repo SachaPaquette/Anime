@@ -16,11 +16,10 @@ This CLI (Command-Line Interface) application allows users to fetch anime data, 
 ### Dependencies
 Before trying to use this application, make sure that your computer contains the applications that follows
 
-    - Python 3.x
-    - Selenium
-    - MongoDB
-    - Chrome Browser
-    - Mpv
+- [Python 3.x](https://www.python.org/downloads/)
+- [MongoDB](https://www.mongodb.com/)
+- [Chrome Browser](https://www.google.com/chrome/)
+- [Mpv](https://mpv.io/)
 
 
 ## Usage
