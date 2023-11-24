@@ -315,7 +315,7 @@ class AnimeInteractions:
                 raise
 
 
-    def format_anime_name_from_url(self, url, anime_name, prompt):
+    def format_anime_name_from_url(self, url, prompt):
         """
         Formats the anime name extracted from the given URL.
 
@@ -348,6 +348,19 @@ class AnimeInteractions:
 
 
     def format_anime_name(self, anime_name):
+        """
+        Formats the given anime name by removing special characters, converting to lowercase,
+        and replacing spaces with hyphens.
+
+        Args:
+            anime_name (str): The anime name to be formatted.
+
+        Returns:
+            str: The formatted anime name.
+
+        Raises:
+            Exception: If an error occurs while formatting the anime name.
+        """
         try:
             anime_name = re.sub(r'[^a-zA-Z0-9- ]', '', anime_name).lower()
             anime_name = re.sub(r'\s+', '-', anime_name)
@@ -358,23 +371,60 @@ class AnimeInteractions:
             raise
 
     def check_url_status(self, url):
-        try:
-            request = requests.get(url)
-            return request.status_code
-        except Exception as e:
-            logger.error(f"Error while checking URL status: {e}")
-            raise
+            """
+            Check the status of a given URL.
+
+            Args:
+                url (str): The URL to check.
+
+            Returns:
+                int: The status code of the URL.
+
+            Raises:
+                Exception: If an error occurs while checking the URL status.
+            """
+            try:
+                request = requests.get(url)
+                return request.status_code
+            except Exception as e:
+                logger.error(f"Error while checking URL status: {e}")
+                raise
 
     def construct_episode_link(self, formatted_anime_name, episode_number):
+        """
+        Constructs the episode link for a given anime and episode number.
+
+        Args:
+            formatted_anime_name (str): The formatted name of the anime.
+            episode_number (int): The episode number.
+
+        Returns:
+            str: The constructed episode link.
+        """
         return f"https://gogoanime3.net/{formatted_anime_name}-episode-{episode_number}"
 
     def format_episode_link(self, url, anime_name, episode_number):
+        """
+        Formats the episode link based on the base anime URL, anime name, and episode number.
+
+        Args:
+            url (str): The base anime URL.
+            anime_name (str): The name of the anime.
+            episode_number (int): The episode number.
+
+        Returns:
+            str: The formatted episode link.
+
+        Raises:
+            Exception: If the episode link is not found.
+        """
         try:
-            url_constructed = self.format_anime_name_from_url(url, anime_name, episode_number)
-            
+            # Construct the episode link based on the base anime URL and the episode number
+            url_constructed = self.format_anime_name_from_url(url, episode_number)
+            # Check if the episode link exists (returns 200 if it exists)
             if self.check_url_status(url_constructed) == 200:
                 return url_constructed
-
+            # If the episode link did not exist, try to construct an alternative link from the anime name from the DB
             formatted_anime_name = self.format_anime_name(anime_name)
             original_url = self.construct_episode_link(formatted_anime_name, episode_number)
 
