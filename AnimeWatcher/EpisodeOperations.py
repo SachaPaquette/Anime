@@ -106,7 +106,7 @@ class EpisodeMenu:
             return current_episode
     def change_anime(self):
         """
-        Change the current anime being watched.
+        Change the current anime being watched by returning False to the main loop.
 
         Returns:
             bool:  False if the user wants to change the anime.

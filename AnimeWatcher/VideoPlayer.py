@@ -23,7 +23,7 @@ class VideoPlayer:
 
         return cls._instance  # Return the instance of the VideoPlayer class
 
-    def initizalize_player(self):
+    def initialize_player(self):
         """
         Initialize the video player.
 
@@ -50,7 +50,7 @@ class VideoPlayer:
             # Check if the player is closed
             if self.is_closed():
                 # Create a new instance of the MPV class
-                self.initizalize_player()
+                self.initialize_player()
             # Play the video
             self.mpv.play(url)  # Play the video
         except Exception as e:
