@@ -80,6 +80,11 @@ class AnimeWatch:
         self.play_episode(episode_url) # Play the episode
         return episode_url
 
+    def close_session(self):
+        self.web_interactions.exiting_statement()
+        self.video_player.terminate_player()
+        self.url_interactions.close_session()
+    
     def handle_user_choice(self, prompt, start_episode, max_episode):
         """
         Handles the user's choice in the episode menu.
@@ -109,17 +114,13 @@ class AnimeWatch:
                 # User wants to change the anime
                 if updated_prompt is False:
                     # Exit the program
-                    self.web_interactions.exiting_statement()
-                    self.video_player.terminate_player()
-                    self.url_interactions.close_session()
+                    self.close_session()
                     return False
 
                 # User wants to quit the program
                 elif updated_prompt is None:
                     # Exit the program
-                    self.web_interactions.exiting_statement()
-                    self.video_player.terminate_player()
-                    self.url_interactions.close_session()
+                    self.close_session()
                     return None
                 # User chose 'n' or 'p', update the prompt and continue
                 else:

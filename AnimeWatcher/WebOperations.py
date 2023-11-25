@@ -338,8 +338,9 @@ class AnimeInteractions:
             url_name = re.sub(r'[^a-zA-Z0-9-]', '', url_name).lower()
             # Remove consecutive hyphens (e.g., 'anime--name' becomes 'anime-name')
             url_name = re.sub(r'-+', '-', url_name)
-            url_constructed = self.construct_episode_link(url_name, prompt)
-            return url_constructed
+            # Return the constructed episode url
+            return self.construct_episode_link(url_name, prompt)
+            
             # Return the formatted anime name
             #self.format_episode_link(url_name, anime_name, prompt)
         except Exception as e:
@@ -420,10 +421,10 @@ class AnimeInteractions:
         """
         try:
             # Construct the episode link based on the base anime URL and the episode number
-            url_constructed = self.format_anime_name_from_url(url, episode_number)
+            contructed_url = self.format_anime_name_from_url(url, episode_number)
             # Check if the episode link exists (returns 200 if it exists)
-            if self.check_url_status(url_constructed) == 200:
-                return url_constructed
+            if self.check_url_status(contructed_url) == 200:
+                return contructed_url
             # If the episode link did not exist, try to construct an alternative link from the anime name from the DB
             formatted_anime_name = self.format_anime_name(anime_name)
             original_url = self.construct_episode_link(formatted_anime_name, episode_number)
