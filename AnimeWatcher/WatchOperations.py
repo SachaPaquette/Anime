@@ -133,6 +133,17 @@ class AnimeWatch:
 
             else:
                 print(f"Invalid choice. Please enter one of the following: {', '.join(episode_menu.available_choices())}.")
+    def format_and_play_episode(self, prompt, url, anime_name):
+        try:
+            episode_url = self.anime_interactions.format_episode_link(url, anime_name, prompt)
+            self.play_episode(episode_url)
+            return episode_url
+        except Exception as e:
+            logger.error(f"Error formatting or playing episode: {e}")
+            raise
+
+
+
 
     def handle_episodes(self, prompt, start_episode, max_episode, url, anime_name):
         """
@@ -148,16 +159,21 @@ class AnimeWatch:
             bool: True if the user wants to change the anime, False if the user wants to quit the program.
         """
         while True:
-            # Format the anime name, create the episode URL, and play the episode
-            self.format_and_play_episode(prompt, url, anime_name)
-            # Handle the user's choice
-            prompt = self.handle_user_choice(prompt, start_episode, max_episode)
-            # if the user wants to change anime
-            if prompt is False:
-                # User wants to change the anime 
-                return True
-            if prompt is None:
-                # User wants to quit the program
+            try:
+                self.format_and_play_episode(prompt, url, anime_name)
+                prompt = self.handle_user_choice(prompt, start_episode, max_episode)
+                if prompt is False:
+                    return True
+                if prompt is None:
+                    return False
+            except ValueError as ve:
+                logger.error(f"Error while handling episodes: {ve}")
+                return False
+            except KeyboardInterrupt:
+                self.web_interactions.exiting_statement()
+                return False
+            except Exception as e:
+                logger.error(f"Unexpected error while handling episodes: {e}")
                 return False
 
 
@@ -173,22 +189,16 @@ class AnimeWatch:
             Exception: If an error occurs while playing the episode.
         """
         try:
-            # Get the source data
             source_data = self.url_interactions.get_streaming_url(episode_url)
-            # Check if the video player is already running and create an instance if it's not
+
             if self.video_player is None or self.video_player.is_open():
                 self.video_player = VideoPlayer()
-            # handle is closed error
 
             try:
-                # Play the video
                 self.video_player.play_video(source_data)
-                return False
-
             except Exception as e:
                 logger.error(f"Error while playing episode: {e}")
                 raise
-
         except Exception as e:
             logger.error(f"Error while playing episode: {e}")
             raise
