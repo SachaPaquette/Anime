@@ -405,42 +405,34 @@ class AnimeInteractions:
         return f"https://gogoanime3.net/{formatted_anime_name}-episode-{episode_number}"
 
     def format_episode_link(self, url, anime_name, episode_number):
-        """
-        Formats the episode link based on the base anime URL, anime name, and episode number.
-
-        Args:
-            url (str): The base anime URL.
-            anime_name (str): The name of the anime.
-            episode_number (int): The episode number.
-
-        Returns:
-            str: The formatted episode link.
-
-        Raises:
-            Exception: If the episode link is not found.
-        """
         try:
             # Construct the episode link based on the base anime URL and the episode number
-            contructed_url = self.format_anime_name_from_url(url, episode_number)
+            constructed_url = self.format_anime_name_from_url(url, episode_number)
+
             # Check if the episode link exists (returns 200 if it exists)
-            if self.check_url_status(contructed_url) == 200:
-                return contructed_url
-            # If the episode link did not exist, try to construct an alternative link from the anime name from the DB
+            if self.check_url_status(constructed_url) == 200:
+                return constructed_url
+
+            # If the episode link did not exist, try the original and alternative links
             formatted_anime_name = self.format_anime_name(anime_name)
             original_url = self.construct_episode_link(formatted_anime_name, episode_number)
 
-            if self.check_url_status(original_url) == 200:
-                return original_url
+            return self.retry_format_episode_link(original_url, formatted_anime_name, episode_number)
 
-            if not hasattr(self, '_retry_attempted'):
-                formatted_anime_name = self.format_anime_name(anime_name)
-                alternative_url = self.construct_episode_link(formatted_anime_name, episode_number)
-
-                if self.check_url_status(alternative_url) == 200:
-                    self._retry_attempted = True
-                    return alternative_url
-
-            raise Exception(f"Episode {episode_number} not found")
         except Exception as e:
             logger.error(f"Error while formatting episode link: {e}")
             raise
+    
+    def retry_format_episode_link(self, original_url, formatted_anime_name, episode_number):
+        # Retry logic for formatting episode link
+        if self.check_url_status(original_url) == 200:
+            return original_url
+
+        if not hasattr(self, '_retry_attempted'):
+            alternative_url = self.construct_episode_link(formatted_anime_name, episode_number)
+
+            if self.check_url_status(alternative_url) == 200:
+                self._retry_attempted = True
+                return alternative_url
+
+        raise Exception(f"Episode {episode_number} not found")
