@@ -81,10 +81,13 @@ class AnimeWatch:
         return episode_url
 
     def close_session(self):
-        self.web_interactions.exiting_statement()
-        self.video_player.terminate_player()
-        self.url_interactions.close_session()
-    
+        try:
+            self.web_interactions.exiting_statement()
+            self.video_player.terminate_player()
+            #self.url_interactions.close_session()
+        except Exception as e:
+            logger.error(f"Error while closing session: {e}")
+            raise
     def handle_user_choice(self, prompt, start_episode, max_episode):
         """
         Handles the user's choice in the episode menu.
@@ -114,7 +117,8 @@ class AnimeWatch:
                 # User wants to change the anime
                 if updated_prompt is False:
                     # Exit the program
-                    self.close_session()
+                    self.video_player.terminate_player()
+                    #self.close_session()
                     return False
 
                 # User wants to quit the program
@@ -172,7 +176,7 @@ class AnimeWatch:
             # Get the source data
             source_data = self.url_interactions.get_streaming_url(episode_url)
             # Check if the video player is already running and create an instance if it's not
-            if self.video_player is None or self.video_player.is_closed():
+            if self.video_player is None or self.video_player.is_open():
                 self.video_player = VideoPlayer()
             # handle is closed error
 
