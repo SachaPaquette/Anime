@@ -32,20 +32,13 @@ class VideoPlayer:
         try:
             self.mpv = MPV()  # Create a new instance of the MPV class
             # Bind the property observer
-            self.observer_id = self.mpv.bind_property_observer(
-                "idle-active", self.should_skip_video)
+            self.observer_id = self.mpv.bind_property_observer("idle-active", self.should_skip_video)
             # Set the fullscreen property to True
             self.mpv.fullscreen = True
         except Exception as e:
             raise e
 
     def play_video(self, url):
-        """
-        Plays a video from the given URL.
-
-        Args:
-            url (str): The URL of the video to be played.
-        """
         try:
             # Check if the player is closed
             if self.is_closed():
@@ -54,7 +47,13 @@ class VideoPlayer:
             # Play the video
             self.mpv.play(url)  # Play the video
         except Exception as e:
-            raise e  # Re-raise the exception to stop further execution
+            # Recreate the MPV instance and try again if the socket is closed
+            if "socket is closed" in str(e):
+                self.initialize_player()
+                self.play_video(url)
+            else:
+                raise e  # Re-raise the exception if it's not a socket closed error
+
 
     def should_skip_video(self, name, value):
         """
