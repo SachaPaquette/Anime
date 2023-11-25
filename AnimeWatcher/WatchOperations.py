@@ -275,6 +275,17 @@ class Main:
             return False
 
     def main(self):
+        """
+        Main function that controls the anime watching operations.
+
+        This function runs in a loop until the user wants to exit the program.
+        It searches for an anime, selects it, and then watches the selected anime.
+        If the user wants to exit, the loop breaks and the program cleans up.
+
+        Raises:
+            KeyboardInterrupt: If the user interrupts the program execution.
+
+        """
         try:
             # Variable to control the loop
             restart = True
