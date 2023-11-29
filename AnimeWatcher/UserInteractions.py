@@ -58,7 +58,7 @@ class UserInteractions:
                 # Prompt the user to enter the episode they want to start watching
                 user_input = input(
                     f"Enter the episode you want to start watching between {start_episode}-{max_episode} (or 0 to exit): ")
-                # If the user wants to exit, return None to exit the program
+                # If the user wants to exit
                 if user_input == '0':
                     exit()
                 # If the user entered a valid episode, return the episode number
@@ -73,5 +73,4 @@ class UserInteractions:
             raise
         except KeyboardInterrupt:
             # If the user presses Ctrl+C, exit the program
-            web_interactions.exiting_statement()
-            return None
+            exit()

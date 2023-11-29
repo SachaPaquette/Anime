@@ -4,20 +4,20 @@ class VideoPlayer:
     # Singleton instance of the VideoPlayer class
     _instance = None
 
-    class VideoPlayer:
-        def __new__(cls):
-            """
-            Create a new instance of the VideoPlayer class if one doesn't exist.
 
-            Returns:
-                VideoPlayer: The instance of the VideoPlayer class.
-            """
-            if cls._instance is None:
-                cls._instance = super(VideoPlayer, cls).__new__(cls)
-                cls._instance.observer_id = None
-                cls._instance.mpv = None
-                return cls._instance
+    def __new__(cls):
+        """
+        Create a new instance of the VideoPlayer class if one doesn't exist.
+
+        Returns:
+            VideoPlayer: The instance of the VideoPlayer class.
+        """
+        if cls._instance is None:
+            cls._instance = super(VideoPlayer, cls).__new__(cls)
+            cls._instance.observer_id = None
+            cls._instance.mpv = None
             return cls._instance
+        return cls._instance
 
     def initialize_player(self):
         """
@@ -95,21 +95,30 @@ class VideoPlayer:
                 self._instance = None
                 self.mpv = None  # Set mpv to None explicitly
         except (OSError, BrokenPipeError) as socket_error:
-            # Handle socket closure gracefully (you can log the error or take other actions)
+            # Handle socket closure
             print(f"Socket closure error: {socket_error}")
             raise socket_error
         except Exception as e:
             raise e
 
     def is_open(self):
-        return self.mpv is not None
+            """
+            Check if the video player is open.
+
+            Returns:
+                bool: True if the video player is open, False otherwise.
+            """
+            return self.mpv is not None
 
     def check_if_socket_is_open(self):
         """
         Check if the socket is open.
         """
         try:
-            self.mpv.command("ignore")  # Corrected method call
+            # Ignore the command to check if the socket is open
+            self.mpv.command("ignore") 
+            # If the socket is open, return True
             return True
         except Exception as e:
+            # If the socket is closed, return False 
             return False
