@@ -5,6 +5,20 @@ from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 import random
 from Config.config import Config
+from selenium.common.exceptions import WebDriverException
+import sys
+def check_chrome_installed():
+    """
+    Check if Google Chrome is installed on the system.
+    """
+    try:
+        ChromeDriverManager().install()
+    except WebDriverException:
+        # Chrome is not installed on the system
+        print("Chrome is not installed on your system. Please install it and try again.")
+        sys.exit()
+
+
 
 def configure_browser_options(options, user_agents, crx_path):
     """

@@ -1,6 +1,5 @@
 from python_mpv_jsonipc import MPV
 
-
 class VideoPlayer:
     _instance = None
 

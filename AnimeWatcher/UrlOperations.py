@@ -10,7 +10,8 @@ import base64
 import json
 
 # Setup logging
-logger = setup_logging('anime_watch', Config.ANIME_WATCH_LOG_PATH)
+logger = setup_logging(Config.ANIME_WATCH_LOG_FILENAME,
+                       Config.ANIME_WATCH_LOG_PATH)
 
 
 class UrlInteractions:
@@ -42,7 +43,7 @@ class UrlInteractions:
     def close_session(self):
         """Closes the session."""
         self.session.close()
-    
+
     def check_response_error(self, request, url):
         """
         Raises an exception if the request to the given URL is not successful.
@@ -338,7 +339,7 @@ class UrlInteractions:
             return self.session.post(url + urlencode(data) + f"&alias={id}", headers=header)
         except requests.RequestException as e:
             raise Exception(f"Error while sending POST request: {e}")
-        
+
     def create_json_response(self, request, encryption_keys):
         """
         Decrypts the data in the request using the provided encryption keys and returns the resulting JSON object.
@@ -387,7 +388,8 @@ class UrlInteractions:
             # Encrypt the ID
             encrypted_id = self.encrypt_id(id, encryption_keys)
             # Create the data dictionary
-            data = self.create_dict_data(embded_episode_url, encryption_keys, encrypted_id)
+            data = self.create_dict_data(
+                embded_episode_url, encryption_keys, encrypted_id)
             # Create the headers
             headers = self.create_headers(embded_episode_url)
             # Send the POST request

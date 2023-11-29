@@ -25,7 +25,7 @@ class Config:
     XPATH_HREF = ".//a" # XPath to the hyperlink
     
     ANIME_WATCH_LOG_PATH = "./Logs/AnimeWatch.log" # Path to the log file
-
+    ANIME_WATCH_LOG_FILENAME = "AnimeWatch" # Log file name
     ##############################
     #        animefetch.py       #
     #        constants           #

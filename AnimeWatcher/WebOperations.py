@@ -6,7 +6,7 @@ from Config.logs_config import setup_logging
 from Driver.driver_config import driver_setup
 import re
 import requests
-logger = setup_logging('anime_download', Config.ANIME_WATCH_LOG_PATH)
+logger = setup_logging(Config.ANIME_WATCH_LOG_FILENAME, Config.ANIME_WATCH_LOG_PATH)
 
 
 class WebInteractions:

@@ -8,7 +8,7 @@ from AnimeWatcher.EpisodeOperations import EpisodeMenu
 from AnimeWatcher.UserInteractions import UserInteractions
 
 # Configure the logger
-logger = setup_logging('anime_watch', Config.ANIME_WATCH_LOG_PATH)
+logger = setup_logging(Config.ANIME_WATCH_LOG_FILENAME, Config.ANIME_WATCH_LOG_PATH)
 
 
 class AnimeWatch:
@@ -143,6 +143,8 @@ class AnimeWatch:
         try:
             episode_url = self.anime_interactions.format_episode_link(
                 url, anime_name, prompt)
+            
+
             self.play_episode(episode_url)
             return episode_url
         except Exception as e:
