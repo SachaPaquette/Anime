@@ -66,7 +66,7 @@ def driver_setup():
         # Disable logging and configure other options
         configure_browser_options(options, Config.USER_AGENTS, Config.CRX_PATH)
         # ChromeDriverManager will install the latest version of ChromeDriver
-        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+        driver = webdriver.Chrome(service=Service(check_chrome_installed()), options=options)
         # Changing the property of the navigator value for webdriver to undefined
         driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
         # put the browser in focus
