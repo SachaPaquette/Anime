@@ -1,20 +1,31 @@
 from python_mpv_jsonipc import MPV
 
-
 class VideoPlayer:
+    # Singleton instance of the VideoPlayer class
     _instance = None
 
-    def __new__(cls):
-        if cls._instance is None:
-            # Create a new instance if one doesn't exist
-            cls._instance = super(VideoPlayer, cls).__new__(cls)
-            # Initialize the observer_id to None
-            cls._instance.observer_id = None
-            cls._instance.mpv = None  # Initialize the mpv instance to None
+    class VideoPlayer:
+        def __new__(cls):
+            """
+            Create a new instance of the VideoPlayer class if one doesn't exist.
+
+            Returns:
+                VideoPlayer: The instance of the VideoPlayer class.
+            """
+            if cls._instance is None:
+                cls._instance = super(VideoPlayer, cls).__new__(cls)
+                cls._instance.observer_id = None
+                cls._instance.mpv = None
+                return cls._instance
             return cls._instance
-        return cls._instance
 
     def initialize_player(self):
+        """
+        Initializes the video player by creating a new MPV instance and setting it to fullscreen mode.
+
+        Raises:
+            Exception: If there is an error initializing the player.
+        """
         try:
             if self.mpv is not None:
                 self.terminate_player()  # Terminate the existing player instance
@@ -26,6 +37,15 @@ class VideoPlayer:
             raise e
 
     def play_video(self, url):
+        """
+        Play a video using the MPV player.
+
+        Args:
+            url (str): The URL of the video to be played.
+
+        Raises:
+            Exception: If an error occurs while playing the video.
+        """
         try:
             # Initialize the MPV instance
             self.initialize_player()
@@ -56,6 +76,15 @@ class VideoPlayer:
             raise e
 
     def terminate_player(self):
+        """
+        Terminate the video player.
+
+        This method terminates the MPV instance and cleans up any associated resources.
+
+        Raises:
+            OSError: If there is an error with the socket closure.
+            Exception: If there is any other unexpected error.
+        """
         try:
             if self.mpv is not None:
                 if self.observer_id:
@@ -68,6 +97,7 @@ class VideoPlayer:
         except (OSError, BrokenPipeError) as socket_error:
             # Handle socket closure gracefully (you can log the error or take other actions)
             print(f"Socket closure error: {socket_error}")
+            raise socket_error
         except Exception as e:
             raise e
 
