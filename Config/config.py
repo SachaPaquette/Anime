@@ -30,11 +30,7 @@ class AnimeFetcherConfig:
     MAX_SLEEP_THRESHOLD = 40
     MIN_SLEEP_DURATION = 60
     MAX_SLEEP_DURATION = 120
-    USER_AGENTS = [
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36 Edg/91.0.864.48",
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36 OPR/77.0.4054.254",
-    ]
+    
     
 
 class DriverConfig:
@@ -44,6 +40,11 @@ class DriverConfig:
 
     CRX_PATH = "Extensions/uBlock-Origin.crx"
     EXTENSION_PATH = os.getenv("EXTENSION_PATH")
+    USER_AGENTS = [
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36 Edg/91.0.864.48",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36 OPR/77.0.4054.254",
+    ]
 class WebOperationsConfig:
     ##############################
     #        Web Operations       #

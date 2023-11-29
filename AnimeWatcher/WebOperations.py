@@ -333,11 +333,9 @@ class AnimeInteractions:
             # split the url by / and get the last part (the url looks like https://gogoanime3.net/anime-name)
             url_name = url.split('/')[-1]
             # remove the - between the words 
-            url_name = re.sub(r'\s+', '-', url_name)
             # Remove unwanted symbols except hyphen
-            url_name = re.sub(r'[^a-zA-Z0-9-]', '', url_name).lower()
             # Remove consecutive hyphens (e.g., 'anime--name' becomes 'anime-name')
-            url_name = re.sub(r'-+', '-', url_name)
+            url_name = re.sub(r'[\s-]+', '-', re.sub(r'[^a-zA-Z0-9\s-]', '', url_name)).lower()
             # Return the constructed episode url
             return self.construct_episode_link(url_name, prompt)
             
@@ -363,10 +361,7 @@ class AnimeInteractions:
             Exception: If an error occurs while formatting the anime name.
         """
         try:
-            anime_name = re.sub(r'[^a-zA-Z0-9- ]', '', anime_name).lower()
-            anime_name = re.sub(r'\s+', '-', anime_name)
-            anime_name = re.sub(r'-+', '-', anime_name)
-            return anime_name
+            return re.sub(r'[\s-]+', '-', re.sub(r'[^a-zA-Z0-9\s-]', '', anime_name)).lower()
         except Exception as e:
             logger.error(f"Error while formatting anime name: {e}")
             raise

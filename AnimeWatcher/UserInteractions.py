@@ -60,8 +60,7 @@ class UserInteractions:
                     f"Enter the episode you want to start watching between {start_episode}-{max_episode} (or 0 to exit): ")
                 # If the user wants to exit, return None to exit the program
                 if user_input == '0':
-                    web_interactions.exiting_statement()
-                    return None
+                    exit()
                 # If the user entered a valid episode, return the episode number
                 if user_input.isdigit() and start_episode <= int(user_input) <= max_episode:
                     return user_input
