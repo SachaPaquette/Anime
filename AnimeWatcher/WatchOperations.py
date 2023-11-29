@@ -8,7 +8,8 @@ from AnimeWatcher.EpisodeOperations import EpisodeMenu
 from AnimeWatcher.UserInteractions import UserInteractions
 
 # Configure the logger
-logger = setup_logging(AnimeWatcherConfig.ANIME_WATCH_LOG_FILENAME, AnimeWatcherConfig.ANIME_WATCH_LOG_PATH)
+logger = setup_logging(AnimeWatcherConfig.ANIME_WATCH_LOG_FILENAME,
+                       AnimeWatcherConfig.ANIME_WATCH_LOG_PATH)
 
 
 class AnimeWatch:
@@ -140,11 +141,13 @@ class AnimeWatch:
             Exception: If there is an error formatting or playing the episode.
         """
         try:
+            # Format the episode link using the prompt, URL, and anime name
             episode_url = self.anime_interactions.format_episode_link(
                 url, anime_name, prompt)
-            
 
+            # Play the episode with the formatted URL
             self.play_episode(episode_url)
+            # Return the formatted episode URL
             return episode_url
         except Exception as e:
             logger.error(f"Error formatting or playing episode: {e}")
@@ -165,22 +168,26 @@ class AnimeWatch:
         """
         while True:
             try:
+                # Format the episode link and play the episode
                 self.format_and_play_episode(prompt, url, anime_name)
+                # Get the user's choice for the episode to watch
                 prompt = self.handle_user_choice(
                     prompt, start_episode, max_episode)
+                # Check if the user wants to change the anime
                 if prompt is False:
                     return True
+                # Check if the user wants to quit the program
                 if prompt is None:
                     return False
             except ValueError as ve:
                 logger.error(f"Error while handling episodes: {ve}")
-                return False
+                exit()
             except KeyboardInterrupt:
                 self.web_interactions.exiting_statement()
-                return False
+                exit()
             except Exception as e:
                 logger.error(f"Unexpected error while handling episodes: {e}")
-                return False
+                exit()
 
     def play_episode(self, episode_url):
         """
@@ -193,12 +200,16 @@ class AnimeWatch:
             Exception: If an error occurs while playing the episode.
         """
         try:
+            # Get the streaming URL for the episode (m3u8 file format)
             source_data = self.url_interactions.get_streaming_url(episode_url)
 
             if self.video_player is None or self.video_player.is_open():
+                # Create a new instance of VideoPlayer if one
+                # doesn't exist or if the current instance is closed
                 self.video_player = VideoPlayer()
 
             try:
+                # Try to play the episode using the video player instance
                 self.video_player.play_video(source_data)
             except Exception as e:
                 logger.error(f"Error while playing episode: {e}")
@@ -291,7 +302,9 @@ class Main:
             return self.anime_watch.naviguate_fetch_episodes(selected_anime['link'], selected_anime['title'])
         except Exception as e:
             logger.error(f"Error while watching anime: {e}")
+            # Print the exiting statement
             self.anime_watch.web_interactions.exiting_statement()
+            # Exit the program by returning False
             return False
 
     def main(self):
