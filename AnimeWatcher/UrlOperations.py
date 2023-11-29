@@ -229,6 +229,7 @@ class UrlInteractions:
             bytes: The decrypted data.
         """
         try:
+            # Decrypt the data
             decrypted_data = AES.new(key, self.mode, iv=iv).decrypt(base64.b64decode(data))
             # Remove padding
             decrypted_data = decrypted_data.rstrip(b"\x00")

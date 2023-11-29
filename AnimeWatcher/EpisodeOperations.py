@@ -21,9 +21,6 @@ class EpisodeMenu:
         Resets the command line interface by clearing the screen.
         """
         print("\033c", end="")  # Clear the screen
-    def reset_cli(self):
-        print("\033c", end="") # Clear the screen 
-
     def display_menu(self):
         """
         Display the menu options for the AnimeWatcher application.
