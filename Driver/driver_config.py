@@ -7,6 +7,8 @@ import random
 from Config.config import Config
 from selenium.common.exceptions import WebDriverException
 import sys
+
+
 def check_chrome_installed():
     """
     Check if Google Chrome is installed on the system.
@@ -17,7 +19,6 @@ def check_chrome_installed():
         # Chrome is not installed on the system
         print("Chrome is not installed on your system. Please install it and try again.")
         sys.exit()
-
 
 
 def configure_browser_options(options, user_agents, crx_path):
@@ -34,7 +35,7 @@ def configure_browser_options(options, user_agents, crx_path):
     """
     # Disable logging (1: INFO, 2: WARNING, 3: ERROR)
     options.add_argument("--log-level=3")
-    # Disable the "DevTools listening on ws:// 
+    # Disable the "DevTools listening on ws://
     options.add_experimental_option("excludeSwitches", ["enable-logging"])
     # Disable the "Chrome is being controlled by automated test software" notification
     options.add_experimental_option("excludeSwitches", ["enable-automation"])
@@ -46,6 +47,7 @@ def configure_browser_options(options, user_agents, crx_path):
     options.add_extension(crx_path)
     # Adding argument to disable the AutomationControlled flag
     options.add_argument("--disable-blink-features=AutomationControlled")
+
 
 def driver_setup():
     """
@@ -66,9 +68,11 @@ def driver_setup():
         # Disable logging and configure other options
         configure_browser_options(options, Config.USER_AGENTS, Config.CRX_PATH)
         # ChromeDriverManager will install the latest version of ChromeDriver
-        driver = webdriver.Chrome(service=Service(check_chrome_installed()), options=options)
+        driver = webdriver.Chrome(service=Service(
+            check_chrome_installed()), options=options)
         # Changing the property of the navigator value for webdriver to undefined
-        driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+        driver.execute_script(
+            "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
         # put the browser in focus
         driver.switch_to.window(driver.current_window_handle)
         return driver
