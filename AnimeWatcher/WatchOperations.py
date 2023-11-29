@@ -43,7 +43,6 @@ class AnimeWatch:
         try:
             # Navigate to the URL
             self.web_interactions.naviguate(url)
-
             # Get the start and max episodes from the page
             start_episode, max_episode = self.anime_interactions.get_number_episodes()
             # Get the user's input for the episode they want to start watching
@@ -215,12 +214,28 @@ class AnimeWatch:
 class Main:
     def __init__(self):
         """
-        Initializes a new instance of the WatchOperations class.
+        Initializes a new instance of the Main class.
+
+        Parameters:
+            None
+
+        Returns:
+            None
         """
+        # Create an instance of UserInteractions
         self.user_interactions = UserInteractions()
+        # Create an instance of AnimeWatch
         self.anime_watch = AnimeWatch(None, None)
 
     def find_anime_from_input(self):
+        """
+        Prompts the user to enter the anime they want to watch,
+        finds the animes matching the user's input, and returns
+        the found animes along with the user's input.
+
+        Returns:
+            tuple: A tuple containing the found animes and the user's input.
+        """
         try:
             # Prompt the user to enter the anime they want to watch
             user_input = input("Enter the anime you want to watch: ")
@@ -230,8 +245,10 @@ class Main:
             return animes, user_input
         except Exception as e:
             logger.error(f"Error while searching for anime: {e}")
+            # If an error occurs, exit the program
             exit()
         except KeyboardInterrupt:
+            # If the user interrupts the program execution, exit the program
             self.anime_watch.web_interactions.exiting_statement()
             exit()
 
@@ -270,6 +287,7 @@ class Main:
         """
         try:
             print(f"Selected anime: {selected_anime['title']}")
+            # Navigate to the anime's page and fetch the episodes for the anime
             return self.anime_watch.naviguate_fetch_episodes(selected_anime['link'], selected_anime['title'])
         except Exception as e:
             logger.error(f"Error while watching anime: {e}")
@@ -300,9 +318,12 @@ class Main:
                     break  # Exit the loop and cleanup
                 # Watch the selected anime
                 restart = self.watch_selected_anime(selected_anime)
-
+            # Call the web instance cleanup function
             self.anime_watch.web_interactions.cleanup()
         except KeyboardInterrupt:
+            # Print the exiting statement
             self.anime_watch.web_interactions.exiting_statement()
+            # Call the web instance cleanup function
             self.anime_watch.web_interactions.cleanup()
+            # Exit the program
             exit()
