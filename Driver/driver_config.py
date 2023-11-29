@@ -4,7 +4,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 import random
-from Config.config import Config
+from Config.config import DriverConfig
 from selenium.common.exceptions import WebDriverException
 import sys
 
@@ -66,7 +66,7 @@ def driver_setup():
         # Run in headless mode (without opening a browser window)
         options.add_argument('--headless')
         # Disable logging and configure other options
-        configure_browser_options(options, Config.USER_AGENTS, Config.CRX_PATH)
+        configure_browser_options(options, DriverConfig.USER_AGENTS, DriverConfig.CRX_PATH)
         # ChromeDriverManager will install the latest version of ChromeDriver
         driver = webdriver.Chrome(service=Service(
             check_chrome_installed()), options=options)

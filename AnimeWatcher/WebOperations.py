@@ -1,12 +1,12 @@
 
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import ElementClickInterceptedException
-from Config.config import Config
+from Config.config import WebOperationsConfig, AnimeWatcherConfig, WebElementsConfig
 from Config.logs_config import setup_logging
 from Driver.driver_config import driver_setup
 import re
 import requests
-logger = setup_logging(Config.ANIME_WATCH_LOG_FILENAME, Config.ANIME_WATCH_LOG_PATH)
+logger = setup_logging(AnimeWatcherConfig.ANIME_WATCH_LOG_FILENAME, AnimeWatcherConfig.ANIME_WATCH_LOG_PATH)
 
 
 class WebInteractions:
@@ -94,11 +94,11 @@ class WebInteractions:
         Returns:
             string: The formatted anime URL
         """
-        return Config.GOGO_ANIME_SITE_BASE_URL.format(page_number)
+        return WebOperationsConfig.GOGO_ANIME_SITE_BASE_URL.format(page_number)
     
     def exiting_statement(self):
         """Function to print an exiting statement"""
-        print(f"\n{Config.EXITING_MESSAGE}")
+        print(f"\n{WebOperationsConfig.EXITING_MESSAGE}")
 
 class AnimeInteractions:
     def __init__(self, web_interactions):
@@ -126,20 +126,20 @@ class AnimeInteractions:
 
             # Find the anime list body
             anime_list = self.web_interactions.find_single_element(
-                By.CLASS_NAME, Config.ANIME_LIST_BODY)
+                By.CLASS_NAME, WebOperationsConfig.ANIME_LIST_BODY)
 
             if anime_list is None:
                 raise Exception("Anime list not found")
 
             # Find the anime listing
             anime_listing = self.web_interactions.find_single_element(
-                By.CSS_SELECTOR, f".{Config.ANIME_LIST_BODY} > .{Config.ANIME_LISTING}", element=anime_list)
+                By.CSS_SELECTOR, f".{WebOperationsConfig.ANIME_LIST_BODY} > .{WebOperationsConfig.ANIME_LISTING}", element=anime_list)
             if anime_listing is None:
                 raise Exception("Anime listing not found")
 
             # Find the anime cards
             anime_cards = self.web_interactions.find_multiple_elements(
-                By.CSS_SELECTOR, f".{Config.ANIME_LISTING} > {Config.LI_ELEMENT}", element=anime_listing)
+                By.CSS_SELECTOR, f".{WebOperationsConfig.ANIME_LISTING} > {WebElementsConfig.LI_ELEMENT}", element=anime_listing)
             if anime_cards is None:
                 raise Exception("Anime cards not found")
 
@@ -166,9 +166,9 @@ class AnimeInteractions:
             anime_data_array = []
             for anime_card in anime_cards:
                 # Get the anime title and link
-                anime_title = anime_card.find_element(By.XPATH, Config.XPATH_HREF).text
+                anime_title = anime_card.find_element(By.XPATH, WebElementsConfig.XPATH_HREF).text
                 anime_link = anime_card.find_element(
-                    By.XPATH, Config.XPATH_HREF).get_attribute(Config.HREF)
+                    By.XPATH, WebElementsConfig.XPATH_HREF).get_attribute(WebElementsConfig.HREF)
                 # Create a dictionary to store the anime data
                 anime_data = {
                     'title': anime_title,
@@ -195,7 +195,7 @@ class AnimeInteractions:
             try:
                 # Find the episodes body
                 episodes_body = self.web_interactions.find_single_element(
-                    By.CLASS_NAME, Config.ANIME_VIDEO_BODY)
+                    By.CLASS_NAME, WebOperationsConfig.ANIME_VIDEO_BODY)
                 if episodes_body is None:
                     # If the episodes body is not found, raise an exception
                     raise Exception("Episodes list not found")
@@ -222,7 +222,7 @@ class AnimeInteractions:
             try:
                 # Find the episodes element
                 episodes = self.web_interactions.find_single_element(
-                    By.ID, Config.EPISODE_PAGE, element=episodes_body)
+                    By.ID, WebOperationsConfig.EPISODE_PAGE, element=episodes_body)
                 if episodes is None:
                     # If the episodes element is not found, raise an exception
                     raise Exception("Episodes not found")
@@ -248,7 +248,7 @@ class AnimeInteractions:
         """
         try:
             # Find the <li> elements
-            li_elements = episodes.find_elements(By.CSS_SELECTOR, Config.LI_ELEMENT)
+            li_elements = episodes.find_elements(By.CSS_SELECTOR, WebElementsConfig.LI_ELEMENT)
             if li_elements is None:
                 # If no <li> elements are found, raise an exception
                 raise Exception("Episodes list not found")
@@ -274,10 +274,10 @@ class AnimeInteractions:
         """
         try:
             # Get the episode link
-            episode_link = li_element.find_element(By.CSS_SELECTOR, Config.HYPERLINK)
+            episode_link = li_element.find_element(By.CSS_SELECTOR, WebElementsConfig.HYPERLINK)
             # Find the episode range from the episode link
-            ep_start = int(episode_link.get_attribute(Config.EP_START))
-            ep_end = int(episode_link.get_attribute(Config.EP_END))
+            ep_start = int(episode_link.get_attribute(WebOperationsConfig.EP_START))
+            ep_end = int(episode_link.get_attribute(WebOperationsConfig.EP_END))
             # Return the episode range
             return ep_start, ep_end
 

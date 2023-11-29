@@ -1,10 +1,10 @@
 from AnimeFetch.FetchOperations import AnimeFetch
 from Config.logs_config import setup_logging
-from Config.config import Config
+from Config.config import AnimeFetcherConfig
 from AnimeWatcher.WebOperations import WebInteractions, AnimeInteractions
 
 # Set up the logger
-logger = setup_logging('anime_fetch', Config.ANIME_FETCH_LOG_PATH)
+logger = setup_logging('anime_fetch', AnimeFetcherConfig.ANIME_FETCH_LOG_PATH)
 
 if __name__ == "__main__":
     try:

@@ -1,11 +1,10 @@
-from database import detect_duplicates
-from Config.config import Config
+from Config.config import AnimeFetcherConfig
 from Config.logs_config import setup_logging
 from Driver.driver_config import driver_setup
 from AnimeWatcher.WebOperations import WebInteractions, AnimeInteractions
 from database import  insert_anime_to_db, detect_duplicates
 
-logger = setup_logging('anime_fetch', Config.ANIME_FETCH_LOG_PATH)
+logger = setup_logging(AnimeFetcherConfig.ANIME_FETCH_LOG_FILENAME, AnimeFetcherConfig.ANIME_FETCH_LOG_PATH)
 
 
 class AnimeFetch:
@@ -64,7 +63,7 @@ class AnimeFetch:
             Exception: If an unexpected exception occurs during the process.
         """
         try:
-            for page_number in range(1, Config.TOTAL_PAGES + 1):
+            for page_number in range(1, AnimeFetcherConfig.TOTAL_PAGES + 1):
                 # Get the anime cards from the page
                 manga = self.anime_interactions.find_anime_cards(page_number)
                 # Get the anime data from the anime page

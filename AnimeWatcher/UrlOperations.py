@@ -1,5 +1,5 @@
 from Config.logs_config import setup_logging
-from Config.config import Config
+from Config.config import AnimeWatcherConfig
 from bs4 import BeautifulSoup
 import requests
 from requests.adapters import HTTPAdapter, Retry
@@ -10,8 +10,8 @@ import base64
 import json
 
 # Setup logging
-logger = setup_logging(Config.ANIME_WATCH_LOG_FILENAME,
-                       Config.ANIME_WATCH_LOG_PATH)
+logger = setup_logging(AnimeWatcherConfig.ANIME_WATCH_LOG_FILENAME,
+                       AnimeWatcherConfig.ANIME_WATCH_LOG_PATH)
 
 
 class UrlInteractions:

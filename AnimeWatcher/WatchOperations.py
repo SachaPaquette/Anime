@@ -1,4 +1,4 @@
-from Config.config import Config
+from Config.config import AnimeWatcherConfig, WebOperationsConfig
 from Config.logs_config import setup_logging
 from AnimeWatcher.WebOperations import WebInteractions, AnimeInteractions
 from database import find_anime
@@ -8,7 +8,7 @@ from AnimeWatcher.EpisodeOperations import EpisodeMenu
 from AnimeWatcher.UserInteractions import UserInteractions
 
 # Configure the logger
-logger = setup_logging(Config.ANIME_WATCH_LOG_FILENAME, Config.ANIME_WATCH_LOG_PATH)
+logger = setup_logging(AnimeWatcherConfig.ANIME_WATCH_LOG_FILENAME, AnimeWatcherConfig.ANIME_WATCH_LOG_PATH)
 
 
 class AnimeWatch:
@@ -25,7 +25,7 @@ class AnimeWatch:
         self.anime_interactions = anime_interactions if anime_interactions else AnimeInteractions(
             self.web_interactions)  # Create an instance of AnimeInteractions
         # Create an instance of UrlInteractions with the default quality (best)
-        self.url_interactions = UrlInteractions(Config.QUALITY)
+        self.url_interactions = UrlInteractions(WebOperationsConfig.QUALITY)
         self.video_player = None  # Create an instance of VideoPlayer
         self.user_interactions = UserInteractions()
 

@@ -1,7 +1,7 @@
 import pymongo
 from dotenv import load_dotenv
 import re
-from Config.config import Config
+from Config.config import DatabaseConfig
 from Config.logs_config import setup_logging
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure, PyMongoError
@@ -10,7 +10,7 @@ from pymongo.errors import ConnectionFailure, PyMongoError
 load_dotenv()
 
 # Set up logging to a file
-logger = setup_logging('database', Config.DATABASE_LOG_PATH)
+logger = setup_logging('database', DatabaseConfig.DATABASE_LOG_PATH)
 
 
 def connect_db(database_name, collection_name):
@@ -25,7 +25,7 @@ def connect_db(database_name, collection_name):
     """
     try:
         # Connect to the MongoDB cluster
-        client = MongoClient(Config.CONNECTION_STRING, maxPoolSize=5)
+        client = MongoClient(DatabaseConfig.CONNECTION_STRING, maxPoolSize=5)
         db = client[database_name]
         collection = db[collection_name]
         return collection
