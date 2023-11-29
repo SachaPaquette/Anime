@@ -10,5 +10,4 @@ pymongo==4.5.0
 python-dotenv==1.0.0
 undetected-chromedriver==3.5.3
 webdriver_manager==4.0.1
-python-dotenv==1.0.0
 mpv==1.0.4
