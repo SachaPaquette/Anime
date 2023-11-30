@@ -1,9 +1,9 @@
 from python_mpv_jsonipc import MPV
 
+
 class VideoPlayer:
     # Singleton instance of the VideoPlayer class
     _instance = None
-
 
     def __new__(cls):
         """
@@ -12,10 +12,15 @@ class VideoPlayer:
         Returns:
             VideoPlayer: The instance of the VideoPlayer class.
         """
+        # Check if an instance of the VideoPlayer class exists
         if cls._instance is None:
+            # Create a new instance of the VideoPlayer class
             cls._instance = super(VideoPlayer, cls).__new__(cls)
+            # Set the observer ID to None
             cls._instance.observer_id = None
+            # Set the MPV instance to None
             cls._instance.mpv = None
+            # Return the instance of the VideoPlayer class
             return cls._instance
         return cls._instance
 
@@ -64,7 +69,6 @@ class VideoPlayer:
             except Exception as e:
                 raise e
 
-
     def terminate(self):
         """
         Terminate the MPV instance.
@@ -88,10 +92,11 @@ class VideoPlayer:
         try:
             if self.mpv is not None:
                 if self.observer_id:
-                    self.mpv.unbind_property_observer(self.observer_id) # Unbind the property observer
-                    self.observer_id = None # Set the observer ID to None
+                    self.mpv.unbind_property_observer(
+                        self.observer_id)  # Unbind the property observer
+                    self.observer_id = None  # Set the observer ID to None
                 self.terminate()  # Terminate the MPV instance
-                self._instance = None # Set the singleton instance to None
+                self._instance = None  # Set the singleton instance to None
                 self.mpv = None  # Set mpv to None explicitly
         except (OSError, BrokenPipeError) as socket_error:
             # Handle socket closure
@@ -100,13 +105,13 @@ class VideoPlayer:
             raise e
 
     def is_open(self):
-            """
-            Check if the video player is open.
+        """
+        Check if the video player is open.
 
-            Returns:
-                bool: True if the video player is open, False otherwise.
-            """
-            return self.mpv is not None
+        Returns:
+            bool: True if the video player is open, False otherwise.
+        """
+        return self.mpv is not None
 
     def check_if_socket_is_open(self):
         """
@@ -114,9 +119,9 @@ class VideoPlayer:
         """
         try:
             # Ignore the command to check if the socket is open
-            self.mpv.command("ignore") 
+            self.mpv.command("ignore")
             # If the socket is open, return True
             return True
         except Exception as e:
-            # If the socket is closed, return False 
+            # If the socket is closed, return False
             return False
