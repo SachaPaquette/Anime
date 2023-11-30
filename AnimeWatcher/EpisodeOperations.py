@@ -1,11 +1,14 @@
 from AnimeWatcher.UserInteractions import UserInteractions
+
+
 class Colors:
     # Class to store the colors used in the CLI
-    red = '\033[91m' 
+    red = '\033[91m'
     green = '\033[92m'
     yellow = '\033[93m'
     orange = '\033[33m'
     endc = '\033[0m'
+
 
 class EpisodeMenu:
 
@@ -16,11 +19,13 @@ class EpisodeMenu:
         # Initialize the color class
         self.color = Colors()
         self.user_interactions = UserInteractions()
+
     def reset_cli(self):
         """
         Resets the command line interface by clearing the screen.
         """
         print("\033c", end="")  # Clear the screen
+
     def display_menu(self):
         """
         Display the menu options for the AnimeWatcher application.
@@ -28,9 +33,9 @@ class EpisodeMenu:
         # Clear the screen before displaying the menu options
         self.reset_cli()
         # Display the menu options
-        print("\n===== Menu =====\n") 
+        print("\n===== Menu =====\n")
         print(f"{self.color.green}[N] Next Episode{self.color.endc}\n")
-        print(f"{self.color.yellow}[P] Previous Episode{self.color.endc}\n")  
+        print(f"{self.color.yellow}[P] Previous Episode{self.color.endc}\n")
         print(f"{self.color.orange}[C] Change Anime{self.color.endc}\n")
         print(f"{self.color.red}[Q] Quit{self.color.endc}\n")
 
@@ -49,7 +54,7 @@ class EpisodeMenu:
         - False if user_choice is 'c'.
         - The current episode if user_choice is invalid.
         """
-        # Handle the user's choice 
+        # Handle the user's choice
         # If the user enters 'n', return the next episode
         if user_choice == 'n':
             return self.next_episode(current_episode)
@@ -101,6 +106,7 @@ class EpisodeMenu:
             # If the current episode is equal to the start episode, print an error message and return the current episode
             print("Already at the first episode.")
             return current_episode
+
     def change_anime(self):
         """
         Change the current anime being watched by returning False to the main loop.
@@ -109,7 +115,7 @@ class EpisodeMenu:
             bool:  False if the user wants to change the anime.
         """
         return False
-    
+
     def available_choices(self):
         """
         Returns a list of the available choices for the user.

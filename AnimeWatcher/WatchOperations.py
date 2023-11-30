@@ -67,7 +67,9 @@ class AnimeWatch:
 
     def close_session(self):
         try:
+            # Print the exiting statement
             self.web_interactions.exiting_statement()
+            # Close the video player
             self.video_player.terminate_player()
             # self.url_interactions.close_session()
         except Exception as e:
