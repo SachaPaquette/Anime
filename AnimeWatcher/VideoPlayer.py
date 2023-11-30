@@ -1,5 +1,10 @@
 from python_mpv_jsonipc import MPV
+from Config.logs_config import setup_logging
+from Config.config import AnimeWatcherConfig
 
+# Configure the logger
+logger = setup_logging(AnimeWatcherConfig.ANIME_WATCH_LOG_FILENAME,
+                       AnimeWatcherConfig.ANIME_WATCH_LOG_PATH)
 
 class VideoPlayer:
     # Singleton instance of the VideoPlayer class
@@ -90,8 +95,11 @@ class VideoPlayer:
             Exception: If there is any other unexpected error.
         """
         try:
+            # Check if the MPV instance is open
             if self.mpv is not None:
+                # Check if the socket is open
                 if self.observer_id:
+                    # Unbind the property observer if it is bound
                     self.mpv.unbind_property_observer(
                         self.observer_id)  # Unbind the property observer
                     self.observer_id = None  # Set the observer ID to None
@@ -100,7 +108,7 @@ class VideoPlayer:
                 self.mpv = None  # Set mpv to None explicitly
         except (OSError, BrokenPipeError) as socket_error:
             # Handle socket closure
-            print(f"Socket closure error: {socket_error}")
+            logger.error(f"Socket closure error: {socket_error}")
         except Exception as e:
             raise e
 
