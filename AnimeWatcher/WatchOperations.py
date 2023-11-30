@@ -179,13 +179,18 @@ class AnimeWatch:
                 if prompt is None:
                     return False
             except ValueError as ve:
+                # If the user enters an invalid prompt, log an error and exit the program
                 logger.error(f"Error while handling episodes: {ve}")
+                self.web_interactions.exiting_statement()
                 exit()
             except KeyboardInterrupt:
+                # If the user interrupts the program execution, exit the program
                 self.web_interactions.exiting_statement()
                 exit()
             except Exception as e:
+                # If an unexpected error occurs, log an error and exit the program
                 logger.error(f"Unexpected error while handling episodes: {e}")
+                self.web_interactions.exiting_statement()
                 exit()
 
     def play_episode(self, episode_url):
@@ -211,12 +216,15 @@ class AnimeWatch:
                 # Try to play the episode using the video player instance
                 self.video_player.play_video(source_data)
             except Exception as e:
+                # If an error occurs while playing the episode, log an error and raise an exception
                 logger.error(f"Error while playing episode: {e}")
                 raise
         except Exception as e:
+            # If an error occurs while getting the streaming URL, log an error and raise an exception
             logger.error(f"Error while playing episode: {e}")
             raise
         except KeyboardInterrupt:
+            # If the user interrupts the program execution, exit the program
             self.web_interactions.exiting_statement()
             return None
 

@@ -229,11 +229,11 @@ class UrlInteractions:
             bytes: The decrypted data.
         """
         try:
-            # Decrypt the data
-            decrypted_data = AES.new(key, self.mode, iv=iv).decrypt(base64.b64decode(data))
-            # Remove padding
-            decrypted_data = decrypted_data.rstrip(b"\x00")
-            return decrypted_data
+            return (
+                        AES.new(key, self.mode, iv=iv)
+                        .decrypt(base64.b64decode(data))
+                        .strip(b"\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\x0c\r\x0e\x0f\x10")
+                    )
         except Exception as e:
             raise Exception(f"Error during AES decryption of data: {e}")
 

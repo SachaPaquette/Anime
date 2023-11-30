@@ -52,18 +52,18 @@ class VideoPlayer:
             # Try to play the video
             self.mpv.play(url)
 
-        except Exception as e:
+        except (OSError, BrokenPipeError) as socket_error:
             # Recreate the MPV instance and try again if the socket is closed
-            if "socket is closed" in str(e):
+            try:
                 # Terminate the MPV instance
                 self.mpv = None
                 # Reinitialize the MPV instance
                 self.initialize_player()
                 # Retry playing the video
                 self.play_video(url)
-
-            else:
+            except Exception as e:
                 raise e
+
 
     def terminate(self):
         """
@@ -97,7 +97,9 @@ class VideoPlayer:
         except (OSError, BrokenPipeError) as socket_error:
             # Handle socket closure
             print(f"Socket closure error: {socket_error}")
-            raise socket_error
+            #self.mpv = None
+            #self.initialize_player()
+            
         except Exception as e:
             raise e
 
