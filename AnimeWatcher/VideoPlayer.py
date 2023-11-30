@@ -88,18 +88,14 @@ class VideoPlayer:
         try:
             if self.mpv is not None:
                 if self.observer_id:
-                    self.mpv.unbind_property_observer(self.observer_id)
-                    self.observer_id = None
-
+                    self.mpv.unbind_property_observer(self.observer_id) # Unbind the property observer
+                    self.observer_id = None # Set the observer ID to None
                 self.terminate()  # Terminate the MPV instance
-                self._instance = None
+                self._instance = None # Set the singleton instance to None
                 self.mpv = None  # Set mpv to None explicitly
         except (OSError, BrokenPipeError) as socket_error:
             # Handle socket closure
             print(f"Socket closure error: {socket_error}")
-            #self.mpv = None
-            #self.initialize_player()
-            
         except Exception as e:
             raise e
 
