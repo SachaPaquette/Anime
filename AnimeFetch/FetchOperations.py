@@ -2,13 +2,20 @@ from Config.config import AnimeFetcherConfig
 from Config.logs_config import setup_logging
 from Driver.driver_config import driver_setup
 from AnimeWatcher.WebOperations import WebInteractions, AnimeInteractions
-from database import  insert_anime_to_db, detect_duplicates
+from database import insert_anime_to_db, detect_duplicates
 
-logger = setup_logging(AnimeFetcherConfig.ANIME_FETCH_LOG_FILENAME, AnimeFetcherConfig.ANIME_FETCH_LOG_PATH)
-
+logger = setup_logging(AnimeFetcherConfig.ANIME_FETCH_LOG_FILENAME,
+                       AnimeFetcherConfig.ANIME_FETCH_LOG_PATH)
 
 class AnimeFetch:
     def __init__(self, web_interactions=None, anime_interactions=None):
+        """
+        Initializes a new instance of the FetchOperations class.
+
+        Parameters:
+        - web_interactions (WebInteractions): An instance of the WebInteractions class. If not provided, a new instance will be created.
+        - anime_interactions (AnimeInteractions): An instance of the AnimeInteractions class. If not provided, a new instance will be created.
+        """
         self.web_interactions = web_interactions if web_interactions else WebInteractions()
         self.anime_interactions = anime_interactions if anime_interactions else AnimeInteractions()
 
@@ -63,6 +70,7 @@ class AnimeFetch:
             Exception: If an unexpected exception occurs during the process.
         """
         try:
+            # Iterate through all the pages
             for page_number in range(1, AnimeFetcherConfig.TOTAL_PAGES + 1):
                 # Get the anime cards from the page
                 manga = self.anime_interactions.find_anime_cards(page_number)
@@ -74,8 +82,7 @@ class AnimeFetch:
             # Detect duplicates and remove them from the database
             detect_duplicates()
         except Exception as e:
-            # Handle unexpected exceptions
-            # Handle unexpected exceptions
+            # Handle unexpected exceptions and re-raise them
             self.handle_unexpected_exception(logger, e)
 
     def main(self):
@@ -90,7 +97,6 @@ class AnimeFetch:
                 return
             # Fetch all anime data
             self.fetch_all_anime_data()
-
         except Exception as e:
             # Handle unexpected exceptions
             self.handle_unexpected_exception(logger, e)
