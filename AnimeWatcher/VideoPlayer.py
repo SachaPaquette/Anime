@@ -110,6 +110,7 @@ class VideoPlayer:
             # Handle socket closure
             logger.error(f"Socket closure error: {socket_error}")
         except Exception as e:
+            # Raise any other unexpected errors
             raise e
 
     def is_open(self):

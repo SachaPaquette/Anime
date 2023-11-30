@@ -11,15 +11,15 @@ import sys
 
 def check_chrome_installed():
     """
-    Check if Google Chrome is installed on the system.
+    Function to check if Google Chrome is installed on the user's system.
     """
     try:
+        # Try to install ChromeDriver 
         ChromeDriverManager().install()
     except WebDriverException:
         # Chrome is not installed on the system
         print("Chrome is not installed on your system. Please install it and try again.")
         sys.exit()
-
 
 def configure_browser_options(options, user_agents, crx_path):
     """
@@ -39,15 +39,14 @@ def configure_browser_options(options, user_agents, crx_path):
     options.add_experimental_option("excludeSwitches", ["enable-logging"])
     # Disable the "Chrome is being controlled by automated test software" notification
     options.add_experimental_option("excludeSwitches", ["enable-automation"])
-    # Turn-off userAutomationExtension
+    # Turn-off userAutomationExtension 
     options.add_experimental_option("useAutomationExtension", False)
-    # Set a random user agent
+    # Set a random user agent (pretend to be a real browser)
     options.add_argument(f"user-agent={random.choice(user_agents)}")
-    # Add the extension to the driver
+    # Add the extension to the driver (for ad blocking)
     options.add_extension(crx_path)
     # Adding argument to disable the AutomationControlled flag
     options.add_argument("--disable-blink-features=AutomationControlled")
-
 
 def driver_setup():
     """
@@ -75,8 +74,10 @@ def driver_setup():
             "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
         # put the browser in focus
         driver.switch_to.window(driver.current_window_handle)
+        # Return the driver instance
         return driver
     except Exception as e:
+        # Raise the exception
         raise e
 
 
