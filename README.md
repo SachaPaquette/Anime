@@ -36,7 +36,7 @@ Before trying to use this application, make sure that your computer contains the
     ```bash
     cd Anime/
     ```
-3. **Install the project's dependencies**
+3. **Install the project's dependencies** <br>
     Linux:
     ```bash
     sudo chmod +x Scripts/installer.sh
