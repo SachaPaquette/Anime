@@ -36,8 +36,13 @@ Before trying to use this application, make sure that your computer contains the
     ```bash
     cd Anime/
     ```
+3. **Install the project's dependencies**
+    Linux:
+    ```bash
+    sudo chmod +x Scripts/installer.sh
+    ./Scripts/installer.sh 
 
-3. **Install the required Python packages:** <br>
+4. **Install the required Python packages:** <br>
     Windows:
     ```bash
     pip install -r Requirements\requirements.txt
