@@ -10,6 +10,8 @@ from AnimeWatcher.UserInteractions import UserInteractions
 # Configure the logger
 logger = setup_logging(AnimeWatcherConfig.ANIME_WATCH_LOG_FILENAME,
                        AnimeWatcherConfig.ANIME_WATCH_LOG_PATH)
+
+
 class AnimeWatch:
     def __init__(self, web_interactions=None, anime_interactions=None):
         """
