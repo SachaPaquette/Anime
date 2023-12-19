@@ -238,10 +238,71 @@ class AnimeInteractions:
             logger.error(f"Error while finding episodes: {e}")
             raise
 
+    def find_pagination_links(self, pagination_div):
+        """Find and return the pagination links from the pagination div.
+
+        Args:
+            pagination_div (WebElement): The pagination div element.
+
+        Returns:
+            list: A list of pagination links.
+        """
+        pagination_links = pagination_div.find_elements(
+            By.CSS_SELECTOR, 'ul.pagination-list li a')
+        return [link.get_attribute('data-page') for link in pagination_links]
+
+    def process_anime_list_page(self, input_anime_name, page_number=1):
+        """Process a single page of the anime list and return the results.
+
+        Args:
+            input_anime_name (str): The input anime name for searching.
+            page_number (int): The page number to process.
+
+        Returns:
+            list: A list of dictionaries containing anime data.
+        """
+        anime_list = []
+
+        # Navigate to the anime page
+        self.web_interactions.naviguate(
+            WebOperationsConfig.GOGO_ANIME_SEARCH.format(input_anime_name) + f"&page={page_number}")
+
+        # Find the ul element items
+        ul_element = self.web_interactions.find_single_element(
+            By.CSS_SELECTOR, 'ul.items')
+
+        # Find all the li elements
+        li_elements = ul_element.find_elements(
+            By.CSS_SELECTOR, WebElementsConfig.LI_ELEMENT)
+
+        # Check if there are any li elements
+        if not li_elements:
+            raise Exception("Anime list not found")
+
+        # Find the first li element
+        for li in li_elements:
+            # We only want the first line
+            anime_name = li.text.split('\n')[0]
+            # Find the a element
+            a_element = li.find_element(
+                By.CSS_SELECTOR, WebElementsConfig.HYPERLINK)
+
+            # Get the href attribute
+            href = a_element.get_attribute(WebElementsConfig.HREF)
+
+            # Append the results to the anime list
+            anime_list.append({
+                'title': anime_name,
+                'link': href
+            })
+
+        return anime_list
+
     def find_anime_website(self, input_anime_name):
         try:
             # Initialize the anime list
             anime_list = []
+
             # Go to the anime website
             self.web_interactions.naviguate(
                 WebOperationsConfig.GOGO_ANIME_SEARCH.format(input_anime_name))
@@ -249,50 +310,20 @@ class AnimeInteractions:
             # Check for pagination
             pagination_div = self.web_interactions.find_single_element(
                 By.CSS_SELECTOR, 'div.anime_name_pagination')
+
             if pagination_div:
                 # Find all the pagination links
-                pagination_links = pagination_div.find_elements(
-                    By.CSS_SELECTOR, 'ul.pagination-list li a')
+                page_numbers = self.find_pagination_links(pagination_div)
 
-                # Extract page numbers from href attributes
-                page_numbers = [link.get_attribute('data-page') for link in pagination_links]
+                # Iterate through the page numbers
+                for page_number in page_numbers:
+                    anime_list.extend(self.process_anime_list_page(
+                        input_anime_name, page_number))
+            else:
+                # Process the first page if no pagination
+                anime_list = self.process_anime_list_page(input_anime_name)
 
-                # Iterate through the page numbers if there are any or else just go to the first page
-                for page_number in page_numbers if page_numbers else [1]:
-                    
-                    # find the ul element items
-                    ul_element = self.web_interactions.find_single_element(
-                        By.CSS_SELECTOR, 'ul.items')
-
-                    # Find all the li elements
-                    li_elements = ul_element.find_elements(
-                        By.CSS_SELECTOR, WebElementsConfig.LI_ELEMENT)
-                    # Check if there are any li elements
-                    if not li_elements:
-                        # If no li elements are found, raise an exception
-                        raise Exception("Anime list not found")
-                    # Find the first li element
-                    for li in li_elements:
-                        # We only want the first line
-                        anime_name = li.text.split('\n')[0]
-                        # Find the a element
-                        a_element = li.find_element(
-                            By.CSS_SELECTOR, WebElementsConfig.HYPERLINK)
-
-                        # Get the href attribute
-                        href = a_element.get_attribute(WebElementsConfig.HREF)
-
-                        # Append the results to the anime list
-                        anime_list.append({
-                            'title': anime_name,
-                            'link': href
-                        })
-                    
-                    # Go to the next page if there are any
-                    self.web_interactions.naviguate(
-                    WebOperationsConfig.GOGO_ANIME_SEARCH.format(input_anime_name) + f"&page={page_number}")
-                # Return the anime list
-                return anime_list
+            return anime_list
 
         except Exception as e:
             logger.error(f"Error while finding anime website: {e}")
