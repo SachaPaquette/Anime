@@ -86,7 +86,7 @@ Follow the on-screen instructions to navigate and select an anime and episode.
 - [ ] Make the application less reliant on the database (Remove the need to use animefetch.py)
 - [ ] Add support for more video players (vlc player, etc.)
 - [ ] Make the application easier to use fresh out of the box
-- [ ] Make a script to install all the dependencies applications on Windows
+- [x] Make a script to install all the dependencies applications on Windows
 - [x] Make a script to install all the dependencies applications on Linux
 - [ ] Make an anime watched episode tracker
 
