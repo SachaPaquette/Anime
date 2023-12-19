@@ -74,5 +74,6 @@ class WebElementsConfig:
 class ScriptConfig:
     windows_script = "./Scripts/windowsinstaller.ps1"
     linux_script = "./Scripts/linuxinstaller.sh"
+    requirements_file = "./Requirements/requirements.txt"
     SCRIPT_FILENAME = "installer"
     SCRIPT_LOG_PATH = "./Logs/Installer.log"

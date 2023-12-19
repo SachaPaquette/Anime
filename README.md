@@ -40,22 +40,9 @@ Before trying to use this application, make sure that your computer contains the
    ```
 
 3. **Install the project's dependencies** <br>
-   Linux:
-
+   Windows and Linux:
    ```bash
-   sudo chmod +x Scripts/installer.sh
-   ./Scripts/installer.sh
-
-   ```
-
-4. **Install the required Python packages:** <br>
-   Windows:
-   ```bash
-   pip install -r Requirements\requirements.txt
-   ```
-   Linux:
-   ```bash
-   pip install -r Requirements/requirements.txt
+   python install_dependencies.py
    ```
 
 ### Usage
@@ -93,4 +80,3 @@ Follow the on-screen instructions to navigate and select an anime and episode.
 ## License
 
 This project is licensed under the MIT - see the LICENSE.md file for details.
-()
