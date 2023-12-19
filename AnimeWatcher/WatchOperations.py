@@ -260,7 +260,8 @@ class Main:
             # Prompt the user to enter the anime they want to watch
             user_input = input("Enter the anime you want to watch: ")
             # Find the animes matching the user's input
-            animes = find_anime(user_input)
+            #animes = find_anime(user_input)
+            animes = self.anime_watch.anime_interactions.find_anime_website(user_input)
             # Return the animes found
             return animes, user_input
         except Exception as e:

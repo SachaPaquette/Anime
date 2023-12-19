@@ -73,9 +73,9 @@ class AnimeFetch:
             # Iterate through all the pages
             for page_number in range(1, AnimeFetcherConfig.TOTAL_PAGES + 1):
                 # Get the anime cards from the page
-                manga = self.anime_interactions.find_anime_cards(page_number)
+                anime = self.anime_interactions.find_anime_cards(page_number)
                 # Get the anime data from the anime page
-                anime_data = self.anime_interactions.get_anime_page_data(manga)
+                anime_data = self.anime_interactions.get_anime_page_data(anime)
                 # Insert the anime data into the database
                 insert_anime_to_db(anime_data)
                 print(f"Page {page_number} inserted!")
