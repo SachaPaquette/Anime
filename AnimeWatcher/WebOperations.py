@@ -7,6 +7,7 @@ from Driver.driver_config import driver_setup
 import re
 import requests
 
+# Logging configuration
 logger = setup_logging(AnimeWatcherConfig.ANIME_WATCH_LOG_FILENAME, AnimeWatcherConfig.ANIME_WATCH_LOG_PATH)
 
 

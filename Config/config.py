@@ -70,3 +70,9 @@ class WebElementsConfig:
     HYPERLINK = "a"  # Tag name of the hyperlink
     LI_ELEMENT = "li"  # Tag name of the list element
     XPATH_HREF = ".//a"  # XPath to the hyperlink
+    
+class ScriptConfig:
+    windows_script = "./Scripts/windowsinstaller.ps1"
+    linux_script = "./Scripts/linuxinstaller.sh"
+    SCRIPT_FILENAME = "installer"
+    SCRIPT_LOG_PATH = "./Logs/Installer.log"
