@@ -20,6 +20,7 @@ This CLI (Command-Line Interface) application allows users to fetch anime data, 
 Before trying to use this application, make sure that your computer contains the applications that follows
 
 - [Python 3.x](https://www.python.org/downloads/)
+- [Pip](https://pip.pypa.io/en/stable/installation/)
 - [MongoDB Compass](https://www.mongodb.com/try/download/compass)
 - [MongoDB Server](https://www.mongodb.com/try/download/community)
 - [Chrome Browser](https://www.google.com/chrome/)
