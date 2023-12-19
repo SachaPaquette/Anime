@@ -5,8 +5,10 @@ try {
     # Download and install Google Chrome
     echo "Downloading and installing Google Chrome..."
     wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+    # Install the package
     sudo dpkg -i google-chrome-stable_current_amd64.deb
-    sudo apt-get install -f  # Install dependencies
+    sudo apt-get install -f  
+    # Clean up the package file
     rm google-chrome-stable_current_amd64.deb
 
     # Download and install MPV
