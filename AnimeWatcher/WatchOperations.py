@@ -1,7 +1,6 @@
 from Config.config import AnimeWatcherConfig, WebOperationsConfig
 from Config.logs_config import setup_logging
 from AnimeWatcher.WebOperations import WebInteractions, AnimeInteractions
-from database import find_anime
 from AnimeWatcher.VideoPlayer import VideoPlayer
 from AnimeWatcher.UrlOperations import UrlInteractions
 from AnimeWatcher.EpisodeOperations import EpisodeMenu
@@ -21,13 +20,17 @@ class AnimeWatch:
             web_interactions (WebInteractions, optional): An instance of the WebInteractions class. Defaults to None.
             anime_interactions (AnimeInteractions, optional): An instance of the AnimeInteractions class. Defaults to None.
         """
+        # Create an instance of WebInteractions
         self.web_interactions = web_interactions if web_interactions else WebInteractions(
-        )  # Create an instance of WebInteractions
+        )  
+        # Create an instance of AnimeInteractions
         self.anime_interactions = anime_interactions if anime_interactions else AnimeInteractions(
-            self.web_interactions)  # Create an instance of AnimeInteractions
+            self.web_interactions)  
         # Create an instance of UrlInteractions with the default quality (best)
         self.url_interactions = UrlInteractions(WebOperationsConfig.QUALITY)
-        self.video_player = None  # Create an instance of VideoPlayer
+        # Create an instance of VideoPlayer
+        self.video_player = None  
+        # Create an instance of UserInteractions
         self.user_interactions = UserInteractions()
 
     def naviguate_fetch_episodes(self, url, anime_name):
