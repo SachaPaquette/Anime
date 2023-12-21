@@ -20,6 +20,7 @@ This CLI (Command-Line Interface) application allows users to fetch anime data, 
 Before trying to use this application, make sure that your computer contains the applications that follows
 
 - [Python 3.x](https://www.python.org/downloads/)
+- [Pip](https://pip.pypa.io/en/stable/installation/)
 - [MongoDB Compass](https://www.mongodb.com/try/download/compass)
 - [MongoDB Server](https://www.mongodb.com/try/download/community)
 - [Chrome Browser](https://www.google.com/chrome/)
@@ -40,22 +41,9 @@ Before trying to use this application, make sure that your computer contains the
    ```
 
 3. **Install the project's dependencies** <br>
-   Linux:
-
+   Windows and Linux:
    ```bash
-   sudo chmod +x Scripts/installer.sh
-   ./Scripts/installer.sh
-
-   ```
-
-4. **Install the required Python packages:** <br>
-   Windows:
-   ```bash
-   pip install -r Requirements\requirements.txt
-   ```
-   Linux:
-   ```bash
-   pip install -r Requirements/requirements.txt
+   python install_dependencies.py
    ```
 
 ### Usage
@@ -86,11 +74,10 @@ Follow the on-screen instructions to navigate and select an anime and episode.
 - [ ] Make the application less reliant on the database (Remove the need to use animefetch.py)
 - [ ] Add support for more video players (vlc player, etc.)
 - [ ] Make the application easier to use fresh out of the box
-- [ ] Make a script to install all the dependencies applications on Windows
+- [x] Make a script to install all the dependencies applications on Windows
 - [x] Make a script to install all the dependencies applications on Linux
 - [ ] Make an anime watched episode tracker
 
 ## License
 
 This project is licensed under the MIT - see the LICENSE.md file for details.
-()

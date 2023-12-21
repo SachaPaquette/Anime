@@ -50,6 +50,7 @@ class WebOperationsConfig:
     #        Web Operations       #
     ##############################
     GOGO_ANIME_SITE_BASE_URL = "https://gogoanime3.net/anime-list.html?page={}"
+    GOGO_ANIME_SEARCH = "https://gogoanime3.net/search.html?keyword={}"
     EXITING_MESSAGE = "Exiting..."
     EP_START = "ep_start"
     EP_END = "ep_end"
@@ -70,3 +71,10 @@ class WebElementsConfig:
     HYPERLINK = "a"  # Tag name of the hyperlink
     LI_ELEMENT = "li"  # Tag name of the list element
     XPATH_HREF = ".//a"  # XPath to the hyperlink
+    
+class ScriptConfig:
+    windows_script = "./Scripts/windowsinstaller.ps1"
+    linux_script = "./Scripts/linuxinstaller.sh"
+    requirements_file = "./Requirements/requirements.txt"
+    SCRIPT_FILENAME = "installer"
+    SCRIPT_LOG_PATH = "./Logs/Installer.log"
