@@ -48,15 +48,8 @@ Before trying to use this application, make sure that your computer contains the
 
 ### Usage
 
-Fetching Anime Data
 
-1. **Run the following command to fetch anime data and insert it into the database:**
-
-```bash
-python animefetch.py
-```
-
-2. **Watching Episodes**
+1. **Watching Episodes**
 
 Run the main application to select an anime and watch episodes:
 
@@ -71,7 +64,7 @@ Follow the on-screen instructions to navigate and select an anime and episode.
 
 - [ ] Add support for more anime sources (9anime, Aniwave, etc.)
 - [ ] Make the application more user-friendly (easier naviguation, better instructions, etc.)
-- [ ] Make the application less reliant on the database (Remove the need to use animefetch.py)
+- [x] Make the application less reliant on the database (Remove the need to use animefetch.py)
 - [ ] Add support for more video players (vlc player, etc.)
 - [ ] Make the application easier to use fresh out of the box
 - [x] Make a script to install all the dependencies applications on Windows
