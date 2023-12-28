@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This CLI (Command-Line Interface) application allows users to fetch anime data, insert it into a database, and watch episodes directly in the command line.
+This CLI (Command-Line Interface) application allows users watch anime episodes directly in the command line.
 
 ### Features
 
