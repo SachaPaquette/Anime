@@ -2,18 +2,12 @@
 
 ## Introduction
 
-This CLI (Command-Line Interface) application allows users to fetch anime data, insert it into a database, and watch episodes directly in the command line.
+This CLI (Command-Line Interface) application allows users watch anime episodes directly in the command line.
 
 ### Features
 
-    Anime Data Fetching:
-        The application fetches anime data from a specified source on the internet.
-
-    Database Integration:
-        The fetched anime data is stored in a database for easy retrieval and management.
-
     Command-Line Episode Viewer:
-        Users can select an anime from the database and watch any available episode directly in the command line.
+        Users can select an anime and watch any available episode directly in the command line.
 
 ### Dependencies
 
@@ -21,8 +15,6 @@ Before trying to use this application, make sure that your computer contains the
 
 - [Python 3.x](https://www.python.org/downloads/)
 - [Pip](https://pip.pypa.io/en/stable/installation/)
-- [MongoDB Compass](https://www.mongodb.com/try/download/compass)
-- [MongoDB Server](https://www.mongodb.com/try/download/community)
 - [Chrome Browser](https://www.google.com/chrome/)
 - [Mpv](https://mpv.io/)
 
