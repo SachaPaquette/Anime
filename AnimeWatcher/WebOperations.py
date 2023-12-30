@@ -6,7 +6,7 @@ from Config.logs_config import setup_logging
 from Driver.driver_config import driver_setup
 import re
 import requests
-
+import time
 # Logging configuration
 logger = setup_logging(AnimeWatcherConfig.ANIME_WATCH_LOG_FILENAME,
                        AnimeWatcherConfig.ANIME_WATCH_LOG_PATH)
@@ -18,11 +18,28 @@ class WebInteractions:
         Initializes the WebOperations class.
         """
         self.driver = driver_setup()
+        self.cleanup_done = False
+
+
 
     def cleanup(self):
-        """Function to close the browser window and quit the driver"""
-        self.driver.quit()  # Close the browser window
-        print("Browser closed")
+        try:
+            # Check if cleanup has already been performed
+            if not self.cleanup_done:
+                # Check if the driver is still active
+                if self.driver is not None:
+                    # Quit the driver
+                    self.driver.quit()                    
+                    print("\nBrowser closed")
+                else:
+                    print("No active browser session to close")
+
+                # Set the cleanup flag to True
+                self.cleanup_done = True
+            else:
+                print("Cleanup already performed, skipping.")
+        except Exception as e:
+            logger.error(f"Error during browser cleanup: {e}")
 
     def naviguate(self, url):
         """
@@ -178,6 +195,13 @@ class AnimeInteractions:
         """
         pagination_links = pagination_div.find_elements(
             By.CSS_SELECTOR, 'ul.pagination-list li a')
+        pages_array = [link.get_attribute('data-page') for link in pagination_links]
+        
+        if pages_array == []:
+            # If there are no pagination links, return [1] (i.e., only one page) 
+            return [1]
+        
+        # Return the pagination links (i.e., the page numbers)
         return [link.get_attribute('data-page') for link in pagination_links]
 
     def process_anime_list_page(self, input_anime_name, page_number=1):
@@ -191,7 +215,6 @@ class AnimeInteractions:
             list: A list of dictionaries containing anime data.
         """
         anime_list = []
-
         # Navigate to the anime page
         self.web_interactions.naviguate(
             WebOperationsConfig.GOGO_ANIME_SEARCH.format(input_anime_name) + f"&page={page_number}")
@@ -207,9 +230,10 @@ class AnimeInteractions:
         # Check if there are any li elements
         if not li_elements:
             raise Exception("Anime list not found")
-
+        
         # Find the first li element
         for li in li_elements:
+            
             # We only want the first line
             anime_name = li.text.split('\n')[0]
             # Find the a element
@@ -226,12 +250,24 @@ class AnimeInteractions:
             })
         # Return the anime list
         return anime_list
+    
+    def format_anime_name_from_input(self, input_anime_name):
+        try:
+            # Format the anime name (replace spaces with %20)
+            input_anime_name = input_anime_name.replace(' ', '%20')
+            # Return the formatted anime name
+            return input_anime_name
+        except Exception as e:
+            logger.error(f"Error while formatting anime name from input: {e}")
+            raise
+
 
     def find_anime_website(self, input_anime_name):
         try:
             # Initialize the anime list
             anime_list = []
-
+            input_anime_name = self.format_anime_name_from_input(input_anime_name)
+            # Format the anime name (replace spaces with %20)
             # Go to the anime website
             self.web_interactions.naviguate(
                 WebOperationsConfig.GOGO_ANIME_SEARCH.format(input_anime_name))
@@ -241,6 +277,7 @@ class AnimeInteractions:
                 By.CSS_SELECTOR, 'div.anime_name_pagination')
 
             if pagination_div:
+
                 # Find all the pagination links
                 page_numbers = self.find_pagination_links(pagination_div)
 

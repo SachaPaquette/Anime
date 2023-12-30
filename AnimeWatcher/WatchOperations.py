@@ -5,7 +5,7 @@ from AnimeWatcher.VideoPlayer import VideoPlayer
 from AnimeWatcher.UrlOperations import UrlInteractions
 from AnimeWatcher.EpisodeOperations import EpisodeMenu
 from AnimeWatcher.UserInteractions import UserInteractions
-
+import os
 # Configure the logger
 logger = setup_logging(AnimeWatcherConfig.ANIME_WATCH_LOG_FILENAME,
                        AnimeWatcherConfig.ANIME_WATCH_LOG_PATH)
@@ -64,7 +64,6 @@ class AnimeWatch:
             logger.error(f"Error while converting prompt to integer: {ve}")
             return False  # Signal to exit the program
         except KeyboardInterrupt:
-            self.web_interactions.exiting_statement()
             return False  # Signal to exit the program
         except Exception as e:
             logger.error(f"Unexpected error: {e}")
@@ -188,10 +187,7 @@ class AnimeWatch:
                 logger.error(f"Error while handling episodes: {ve}")
                 self.web_interactions.exiting_statement()
                 exit()
-            except KeyboardInterrupt:
-                # If the user interrupts the program execution, exit the program
-                self.web_interactions.exiting_statement()
-                exit()
+
             except Exception as e:
                 # If an unexpected error occurs, log an error and exit the program
                 logger.error(f"Unexpected error while handling episodes: {e}")
@@ -230,7 +226,6 @@ class AnimeWatch:
             raise
         except KeyboardInterrupt:
             # If the user interrupts the program execution, exit the program
-            self.web_interactions.exiting_statement()
             return None
 
 
@@ -271,10 +266,7 @@ class Main:
             logger.error(f"Error while searching for anime: {e}")
             # If an error occurs, exit the program
             exit()
-        except KeyboardInterrupt:
-            # If the user interrupts the program execution, exit the program
-            self.anime_watch.web_interactions.exiting_statement()
-            exit()
+
 
     def search_and_select_anime(self):
         """
@@ -283,21 +275,26 @@ class Main:
         Returns:
             The selected anime object or None if the user cancels the selection.
         """
-        while True:
-            # Prompt the user to enter the anime they want to watch
-            animes, user_input = self.find_anime_from_input()
-            # If animes were found, prompt the user to select an anime
-            if animes:
-                # Prompt the user to select an anime
-                selected_index = self.user_interactions.select_anime(animes)
-                # If the user wants to exit, return None
-                if selected_index == 0:
-                    return None
-                # Return the selected anime
-                return animes[selected_index - 1]
-            else:
-                # If no animes were found, log a warning
-                print(f"{user_input} was not found.")
+        try:
+            while True:
+                # Prompt the user to enter the anime they want to watch
+                animes, user_input = self.find_anime_from_input()
+                # If animes were found, prompt the user to select an anime
+                if animes:
+                    # Prompt the user to select an anime
+                    selected_index = self.user_interactions.select_anime(animes)
+                    # If the user wants to exit, return None
+                    if selected_index == 0:
+                        return None
+                    # Return the selected anime
+                    return animes[selected_index - 1]
+                else:
+                    # If no animes were found, log a warning
+                    print(f"{user_input} was not found.")
+        except Exception as e:
+            logger.error(f"Error while searching and selecting anime: {e}")
+            # If an error occurs, exit the program
+            exit()
 
     def watch_selected_anime(self, selected_anime):
         """
@@ -346,10 +343,8 @@ class Main:
                 restart = self.watch_selected_anime(selected_anime)
             # Call the web instance cleanup function
             self.anime_watch.web_interactions.cleanup()
-        except KeyboardInterrupt:
-            # Print the exiting statement
-            self.anime_watch.web_interactions.exiting_statement()
-            # Call the web instance cleanup function
-            self.anime_watch.web_interactions.cleanup()
-            # Exit the program
+        except Exception as e:
+            logger.error(f"Unexpected exception: {e}")
+            # If an error occurs, exit the program
             exit()
+
