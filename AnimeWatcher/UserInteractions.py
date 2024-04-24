@@ -1,3 +1,4 @@
+from AnimeWatcher.EpisodesList import animeList, episodesList
 class UserInteractions:
     def get_valid_index(self, prompt, max_index):
         """
@@ -35,12 +36,16 @@ class UserInteractions:
         Returns:
             int: The selected index of the anime, or 0 to exit.
         """
-        print("Search results: ")
+        
+        return animeList(animes)
+        
+        """"
         for i, anime in enumerate(animes):
             # Print the anime's title
             print(f"{i + 1}. {anime['title']}")
         # Prompt the user to enter the index of the anime they want to watch
         return self.get_valid_index("Enter the index of the anime you want to watch (or 0 to exit): ", len(animes))
+"""
 
     def get_user_input(self, start_episode, max_episode, web_interactions, logger):
         """
@@ -56,17 +61,15 @@ class UserInteractions:
         try:
             while True:
                 # Prompt the user to enter the episode they want to start watching
-                user_input = input(
-                    f"Enter the episode you want to start watching between {start_episode}-{max_episode} (or 0 to exit): ")
+                
+                user_input = episodesList(max_episode)
+                
                 # If the user wants to exit
                 if user_input == '0':
                     exit()
                 # If the user entered a valid episode, return the episode number
-                if user_input.isdigit() and start_episode <= int(user_input) <= max_episode:
-                    return user_input
-                # If the user entered an invalid episode, prompt them to enter a valid episode
-                else:
-                    print("Invalid input. Please enter a valid episode or '0' to exit.")
+                return user_input
+             
         except Exception as e:
             # If an error occurs while getting the user's input, log the error and raise it
             logger.error(f"Error while getting user input: {e}")

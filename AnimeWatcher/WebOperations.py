@@ -277,7 +277,6 @@ class AnimeInteractions:
                 By.CSS_SELECTOR, 'div.anime_name_pagination')
 
             if pagination_div:
-
                 # Find all the pagination links
                 page_numbers = self.find_pagination_links(pagination_div)
 
@@ -374,6 +373,8 @@ class AnimeInteractions:
 
                 min_start = min(min_start, ep_start)
                 max_end = max(max_end, ep_end)
+                if max_end == 0:
+                    max_end += 1
 
             return min_start + 1, max_end
 

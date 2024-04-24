@@ -18,6 +18,7 @@ class EpisodeMenu:
         self.max_episode = max_episode
         # Initialize the color class
         self.color = Colors()
+        # Initialize the user interactions class
         self.user_interactions = UserInteractions()
 
     def reset_cli(self):

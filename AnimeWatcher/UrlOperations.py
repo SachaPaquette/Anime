@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 import requests
 from requests.adapters import HTTPAdapter, Retry
 from Cryptodome.Cipher import AES
-from urllib.parse import urlparse, parse_qsl, urlencode, urljoin
+from urllib.parse import urlparse, parse_qsl, urlencode
 import re
 import base64
 import json
@@ -26,17 +26,20 @@ class UrlInteractions:
         Returns:
             None
         """
-        self.session = requests.Session()  # create a new session
+        # Create a new session
+        self.session = requests.Session()
         # retry the request 3 times with a backoff factor of 0.5 (backoff factor = 0.5 means that the retry will sleep for 0.5 seconds before retrying)
         retry = Retry(connect=3, backoff_factor=0.5)
-        adapter = HTTPAdapter(max_retries=retry)  # create a new HTTP adapter
+        # create a new HTTP adapter
+        adapter = HTTPAdapter(max_retries=retry)
         # mount the HTTP adapter to the session
         self.session.mount("http://", adapter)
         # mount the HTTPS adapter to the session
         self.session.mount("https://", adapter)
         # the URL to the AJAX endpoint (used for decrypting the video URL)
         self.ajax_url = "/encrypt-ajax.php?"
-        self.mode = AES.MODE_CBC  # the mode to use for AES encryption
+        # the mode to use for AES encryption
+        self.mode = AES.MODE_CBC
         # the padding function to use for AES encryption
         self.padding = lambda s: s + chr(len(s) % 16) * (16 - len(s) % 16)
 
@@ -60,7 +63,8 @@ class UrlInteractions:
             pass
         else:
             # If the request was not successful, raise an exception with an error message
-            print(f"Error while requesting {url}: {request.status_code}")
+            logger.error(
+                f"Error while requesting {url}: {request.status_code}")
             raise Exception(
                 f"Error while requesting {url}: {request.status_code}")
 
@@ -76,8 +80,9 @@ class UrlInteractions:
         Raises:
             Exception: If the specified element cannot be located in the HTML soup.
         """
+        # Check if the element exists
         if soup == None:
-            print(f"Error while locating {element} in {link}")
+            logger.error(f"Error while locating {element} in {link}")
             raise Exception(f"Error while locating {element} in {link}")
 
     def get_soup_object(self, url):
