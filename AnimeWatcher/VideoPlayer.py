@@ -79,8 +79,8 @@ class VideoPlayer:
         Terminate the MPV instance.
         """
         try:
-            if self.is_open():  # Replace with the appropriate method to check if the MPV instance is open
-                self.mpv.command("quit")  # Corrected method call
+            if self.is_open():  # Check if the MPV instance is open
+                self.mpv.command("quit") # Send the quit command to the MPV instance
         except Exception as e:
             raise e
 
