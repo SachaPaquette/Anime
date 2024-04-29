@@ -33,7 +33,7 @@ def displayEpisodes(stdscr, max_episode, cursor):
     
     # Print the episodes within the range
     for i in range(cursor, max_index):
-        # Highlight the selected episode
+        # Highlight the selected episode 
         if i == cursor:
             stdscr.addstr(f"> {i + 1}\n")
         else:

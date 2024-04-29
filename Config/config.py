@@ -61,6 +61,8 @@ class WebOperationsConfig:
     ANIME_LIST = "film-list"
     ANIME_CARDS = "item"
     QUALITY = "best"
+    ANIME_NAME_PAGINATION = "div.anime_name_pagination"
+    UL_PAGINATION_LIST = "ul.pagination-list li a"
     
 class WebElementsConfig:
     

@@ -256,7 +256,7 @@ class Main:
         """
         try:
             # Prompt the user to enter the anime they want to watch
-            user_input = input("Enter the anime you want to watch: ")
+            user_input = self.anime_watch.anime_interactions.format_anime_name_from_input(input("Enter the anime you want to watch: "))
             # Find the animes matching the user's input
             #animes = find_anime(user_input)
             animes = self.anime_watch.anime_interactions.find_anime_website(user_input)
@@ -284,10 +284,8 @@ class Main:
                     # Prompt the user to select an anime
                     selected_index = self.user_interactions.select_anime(animes)
                     # If the user wants to exit, return None
-                    if selected_index == 0:
-                        return None
-                    # Return the selected anime
-                    return animes[selected_index - 1]
+                    # If the user selected an anime, return the selected anime
+                    return animes[selected_index - 1] if selected_index > 0 else None   
                 else:
                     # If no animes were found, log a warning
                     print(f"{user_input} was not found.")
