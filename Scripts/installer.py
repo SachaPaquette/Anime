@@ -13,9 +13,10 @@ class Scripts:
         subprocess.run(['./' + {ScriptConfig.linux_script}])
 
     def run_windows_script(self):
-        # Run the windows script
+        # Run the windows script as administrator
+        
         subprocess.run(['powershell.exe', '-File',
-                       ScriptConfig.windows_script])
+                       ScriptConfig.windows_script, '-Verb', 'RunAs'])
 
     def install_python_packages(self):
         # Install the required python packages using pip
