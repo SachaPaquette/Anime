@@ -16,7 +16,7 @@ class Scripts:
         # Run the windows script as administrator
         
         subprocess.run(['powershell.exe', '-File',
-                       ScriptConfig.windows_script, '-Verb', 'RunAs'])
+                       ScriptConfig.windows_script])
 
     def install_python_packages(self):
         # Install the required python packages using pip
