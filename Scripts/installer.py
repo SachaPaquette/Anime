@@ -10,13 +10,18 @@ logger = setup_logging(ScriptConfig.SCRIPT_FILENAME,
 class Scripts:
     def run_linux_script(self):
         # Run the linux script
-        subprocess.run(['./' + {ScriptConfig.linux_script}])
+        subprocess.run(['bash', ScriptConfig.linux_script])
 
     def run_windows_script(self):
         # Run the windows script as administrator
         
         subprocess.run(['powershell.exe', '-File',
                        ScriptConfig.windows_script])
+        self.install_single_python_package(ScriptConfig.window_curses)
+        
+    def install_single_python_package(self, package):
+        # Install a single python package using pip
+        subprocess.run(['pip', 'install', package])
 
     def install_python_packages(self):
         # Install the required python packages using pip
