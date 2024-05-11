@@ -43,4 +43,4 @@ else
     exit 1
 fi
 
-echo "Now installing Python's dependecies."
+echo "Now installing Python's dependecies..."

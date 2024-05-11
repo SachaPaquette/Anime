@@ -9,10 +9,16 @@ class Colors:
     orange = '\033[33m'
     endc = '\033[0m'
 
+class Menu:
+    NextEpisode = 'n'
+    PreviousEpisode = 'p'
+    ChangeAnime = 'c'
+    Quit = 'q'
+    
 
 class EpisodeMenu:
 
-    def __init__(self, start_episode, max_episode):
+    def __init__(self, start_episode=None, max_episode=None):
         # Initialize the start and max episode numbers
         self.start_episode = start_episode
         self.max_episode = max_episode
@@ -55,23 +61,23 @@ class EpisodeMenu:
         - False if user_choice is 'c'.
         - The current episode if user_choice is invalid.
         """
-        # Handle the user's choice
-        # If the user enters 'n', return the next episode
-        if user_choice == 'n':
-            return self.next_episode(current_episode)
-        # If the user enters 'p', return the previous episode
-        elif user_choice == 'p':
-            return self.previous_episode(current_episode)
-        # If the user enters 'q', return None to quit the program
-        elif user_choice == 'q':
-            return None
-        # If the user enters 'c', return False to change the anime
-        elif user_choice == 'c':
-            return self.change_anime()
-        else:
-            # If the user enters an invalid choice, print an error message and return the current episode
-            print("Invalid choice. Please enter 'n', 'p', 'c' or 'q'.")
-            return current_episode
+        # Handle the user's choice        
+        match user_choice:
+            # If the user enters 'n', return the next episode
+            case Menu.NextEpisode:
+                return self.next_episode(current_episode)
+            # If the user enters 'p', return the previous episode
+            case Menu.PreviousEpisode:
+                return self.previous_episode(current_episode)
+            # If the user enters 'q', return None to quit the program
+            case Menu.Quit:
+                return Menu.Quit
+            # If the user enters 'c', return False to change the anime
+            case Menu.ChangeAnime:
+                return Menu.ChangeAnime
+            case _:
+                print(f"Invalid choice. Please enter one of the following: {', '.join(self.available_choices())}.")
+                return current_episode
 
     def next_episode(self, current_episode):
         """
@@ -124,4 +130,4 @@ class EpisodeMenu:
         Returns:
             list: A list of the available choices for the user.
         """
-        return ['n', 'p', 'c', 'q']
+        return [Menu.NextEpisode, Menu.PreviousEpisode, Menu.ChangeAnime, Menu.Quit]
