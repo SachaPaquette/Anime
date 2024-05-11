@@ -27,6 +27,19 @@ try {
     } else {
         Write-Host "MPV is already installed."
     }
+	
+    # Check if Python is installed
+    $python = & python --version 2>$null
+    $pythonInstalled = $?
+
+    if (-not $pythonInstalled)
+    {
+        #Download Python to the machine
+        choco install python --pre 
+    }else {
+        Write-Host "Python is already  installed."
+    }
+
 
 } catch {
     Write-Host "Error: $($_.Exception.Message)"

@@ -1,34 +1,46 @@
 #!/bin/bash
-# Check the operating system
-if dpkg -l | grep -q google-chrome-stable; then
-    echo "Google Chrome is already installed."
-else
-    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-        # Download and install Google Chrome
-        echo "Downloading and installing Google Chrome..."
-        wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-        # Install the package
-        sudo dpkg -i google-chrome-stable_current_amd64.deb
-        # Check the exit code of the last command
-        if [ $? -ne 0 ]; then
-            echo "Error installing Google Chrome"
-            exit 1
-        fi
-        sudo apt-get install -f  
-        # Clean up the package file
-        rm google-chrome-stable_current_amd64.deb
 
-        # Download and install MPV
-        echo "Downloading and installing MPV..."
-        sudo apt-get install mpv
-        # Check the exit code of the last command
-        if [ $? -ne 0 ]; then
-            echo "Error installing MPV"
-            exit 1
-        fi
-    else 
-        echo "Operating system not supported."
+# Function to check if a program is installed
+check_installation() {
+    if which $1 > /dev/null 2>&1; then
+        echo "$1 is installed."
+    else
+        echo "$1 is not installed."
+    fi
+}
+
+# Function to install a program using apt-get
+install_program() {
+    echo "Installing $1..."
+    sudo apt-get install $1
+    if [ $? -ne 0 ]; then
+        echo "Error installing $1"
         exit 1
     fi
-    echo "Installation complete."
+}
+
+# Check the operating system
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    # Check if google-chrome is installed
+    check_installation "google-chrome"
+    # Check if MPV is installed
+    check_installation "mpv"
+    
+    # Install Google Chrome if not installed
+    if ! which google-chrome > /dev/null 2>&1; then
+        wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+        sudo dpkg -i google-chrome-stable_current_amd64.deb
+        sudo apt-get install -f  
+        rm google-chrome-stable_current_amd64.deb
+    fi
+
+    # Install MPV if not installed
+    if ! which mpv > /dev/null 2>&1; then
+        install_program "mpv"
+    fi
+else 
+    echo "Operating system not supported."
+    exit 1
 fi
+
+echo "Now installing Python's dependecies."
