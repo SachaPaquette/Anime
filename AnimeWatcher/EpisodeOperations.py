@@ -15,7 +15,6 @@ class Menu:
     ChangeAnime = 'c'
     Quit = 'q'
     
-
 class EpisodeMenu:
 
     def __init__(self, start_episode, max_episode):
