@@ -139,14 +139,15 @@ class UrlInteractions:
         try:
             # Get the HTML soup of the episode URL
             soup = self.get_soup_object(episode_url)
-
+            
             # Find the active link
             active_link = soup.find("a", {"class": "active", "rel": "1"})
             # Check if the active link exists
             self.locating_element_error(active_link, episode_url, "embed-url")
-
+            
             # Get the embedded video player URL
             embedded_url = self.create_embedded_url(active_link)
+            
             # Return the embedded video player URL
             return embedded_url
         except Exception as e:
@@ -176,7 +177,7 @@ class UrlInteractions:
         except Exception as e:
             raise Exception(f"Error while getting data: {e}")
 
-    def get_encryption_key(self, ep_url):
+    def get_encryption_keys(self, ep_url):
         """
         Retrieves the encryption key for the given episode URL.
 
@@ -286,6 +287,10 @@ class UrlInteractions:
         data = dict(parse_qsl(data))
         # update the id
         data.update(id=encrypted_id)
+        print('ep_url',ep_url)
+        print('encryption_keys',encryption_keys)
+        print('encrypted_id',encrypted_id)
+        print('data',data)
         # return the data
         return data
 
@@ -344,6 +349,7 @@ class UrlInteractions:
             The response from the server.
         """
         try:
+            print('url',url + urlencode(data) + f"&alias={id}", 'headers',header)
             return self.session.post(url + urlencode(data) + f"&alias={id}", headers=header)
         except requests.RequestException as e:
             raise Exception(f"Error while sending POST request: {e}")
@@ -359,6 +365,8 @@ class UrlInteractions:
         Returns:
             dict: The decrypted JSON object.
         """
+        print('request',request.json().get("data"))
+        print('encryption_keys',encryption_keys)
         return json.loads(
             self.aes_decrypt(request.json().get("data"), encryption_keys["second_key"], encryption_keys["iv"]))
 
@@ -388,7 +396,7 @@ class UrlInteractions:
             # Get the embedded episode URL
             embded_episode_url = self.get_embedded_video_url(ep_url)
             # Get the encryption keys
-            encryption_keys = self.get_encryption_key(embded_episode_url)
+            encryption_keys = self.get_encryption_keys(embded_episode_url)
             # Get the AJAX URL
             self.ajax_url = self.create_ajax_url(embded_episode_url)
             # Get the ID
@@ -396,12 +404,22 @@ class UrlInteractions:
             # Encrypt the ID
             encrypted_id = self.encrypt_id(id, encryption_keys)
             # Create the data dictionary
-            data = self.create_dict_data(
-                embded_episode_url, encryption_keys, encrypted_id)
+            data = self.create_dict_data(embded_episode_url, encryption_keys, encrypted_id)
             # Create the headers
             headers = self.create_headers(embded_episode_url)
+            print('embded_episode_url',embded_episode_url)
+            print('encryption_keys',encryption_keys)
+            print('ajax', self.ajax_url)
+            print('id', id)
+            print('encrypted_id',encrypted_id)
+            print('data',data)
+            print('headers',headers)
+            
+            
+            
             # Send the POST request
             request = self.send_post_request(self.ajax_url, data, id, headers)
+            print('request',request)
             # Check if the request was successful
             self.check_response_error(request, request.url)
             # Create the JSON response
