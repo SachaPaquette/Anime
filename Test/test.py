@@ -250,9 +250,10 @@ class TestUrlOperations(unittest.TestCase):
         cls.keys = cls.url_interactions.get_encryption_keys(cls.embedded_url)
         # Create a dictionary data
         cls.dict_data = cls.url_interactions.create_dict_data(cls.embedded_url_com, cls.keys, cls.expected_encrypted_id)
+        
         # Make a POST request to the URL
-        cls.request = cls.url_interactions.send_post_request(cls.embedded_url, cls.dict_data, cls.expected_encrypted_id, cls.expected_headers)
-    
+        cls.request = cls.url_interactions.send_post_request(cls.ajax_url, cls.dict_data, cls.expected_id, cls.expected_headers_com)
+        
     def tearDown(self):
         self.url_interactions.close_session()
                 
@@ -455,34 +456,34 @@ class TestUrlOperations(unittest.TestCase):
         path2 = '/'.join(url2.split('/')[-3:])
         return domain1 == domain2 and path1 == path2
     def test_send_post_request(self):
-        request = self.request
         # Check that the result is not None
-        self.assertIsNotNone(request)
+        self.assertIsNotNone(self.request)
         # Check that the result is of type Response
-        self.assertIsInstance(request, requests.models.Response)
+        self.assertIsInstance(self.request, requests.models.Response)
         # Check that the result has a status of 200
-        self.assertEqual(request.status_code, 200)
+        self.assertEqual(self.request.status_code, 200)
         # Check that the result has a reason of 'OK'
-        self.assertEqual(request.reason, 'OK')
+        self.assertEqual(self.request.reason, 'OK')
+    def test_check_response_error(self):
+        # Check that the response is not an error
+        self.assertFalse(self.url_interactions.check_response_error(self.request, self.request.url))
+        
         
     def test_get_streaming_url(self):
-        # Get the streaming URL
-        streaming_url = self.url_interactions.get_streaming_url(self.episode_url)
-        
-        # Check that the streaming URL is not None
-        self.assertIsNotNone(streaming_url)
-        # Check that the streaming URL is of type str
-        self.assertIsInstance(streaming_url, str)
-        # Check that the streaming URL is 'https://www084.vipanicdn.net/streamhls/027e9529af2b06fe7b4f47e507a787eb/ep.1.1703905435.m3u8'
-        self.assertEqual(streaming_url, self.streaming_url)
-        
-
-        
-"""    def test_create_json_response(self):  
-        request = self.request     
-        
+            # Get the streaming URL
+            streaming_url = self.url_interactions.get_streaming_url(self.episode_url)
+            # Check that the streaming URL is not None
+            self.assertIsNotNone(streaming_url)
+            # Check that the streaming URL is of type str
+            self.assertIsInstance(streaming_url, str)
+            # Check that the streaming URL is 'https://www084.vipanicdn.net/streamhls/027e9529af2b06fe7b4f47e507a787eb/ep.1.1703905435.m3u8'
+            self.assertEqual(streaming_url, self.streaming_url)
+            
+    def test_create_json_response(self):  
+   
+        print('request', self.request.content)
         # Decrypt the result
-        json_response = self.url_interactions.create_json_response(request, self.expected_keys)
+        json_response = self.url_interactions.create_json_response(self.request, self.keys)
         # Check that the result is not None
         self.assertIsNotNone(json_response)
         # Check that the result is of type dict
@@ -525,15 +526,9 @@ class TestUrlOperations(unittest.TestCase):
         for src_bk1, src_bk2 in zip(json_response['source_bk'], expected_result['source_bk']):
             self.assertTrue(self.assertUrlsSimilar(src_bk1['file'], src_bk2['file']))
             self.assertEqual(src_bk1['label'], src_bk2['label'])
-            self.assertEqual(src_bk1['type'], src_bk2['type'])"""
-        
-        
-        
+            self.assertEqual(src_bk1['type'], src_bk2['type'])
 
-        
-       
-            
-        
+   
 """    def test_create_json_response(self):
         # Create a mock request object
         request = Mock()
@@ -547,8 +542,8 @@ class TestUrlOperations(unittest.TestCase):
         
         # Assert that the result is equal to the decrypted JSON object
         self.assertEqual(result, {"decrypted_data": "decrypted_data"})
-"""
-        
+
+        """
 
 if __name__ == "__main__":
     unittest.main()
