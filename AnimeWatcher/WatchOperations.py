@@ -50,7 +50,7 @@ class AnimeWatch:
             self.web_interactions.naviguate(url)
             # Get the start and max episodes from the page
             start_episode, max_episode = self.anime_interactions.get_number_episodes()
-            return self.handle_episodes(self.user_interactions.get_user_input(start_episode, max_episode, self.web_interactions, logger),
+            return self.handle_episodes(self.user_interactions.get_user_input(max_episode, logger),
                                         start_episode, 
                                         max_episode, 
                                         url, 

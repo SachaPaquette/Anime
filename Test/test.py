@@ -7,7 +7,7 @@ import curses
 from urllib.parse import ParseResult, urlparse
 
 import requests 
-
+import pytest
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 
@@ -22,6 +22,10 @@ import sys
 from io import StringIO
 from unittest.mock import patch, MagicMock, Mock
 from bs4 import BeautifulSoup
+import unittest
+from io import StringIO
+from unittest.mock import patch
+import pytest
 
 class TestEpisodeOperations(unittest.TestCase):
     
@@ -467,21 +471,8 @@ class TestUrlOperations(unittest.TestCase):
     def test_check_response_error(self):
         # Check that the response is not an error
         self.assertFalse(self.url_interactions.check_response_error(self.request, self.request.url))
-        
-        
-    def test_get_streaming_url(self):
-            # Get the streaming URL
-            streaming_url = self.url_interactions.get_streaming_url(self.episode_url)
-            # Check that the streaming URL is not None
-            self.assertIsNotNone(streaming_url)
-            # Check that the streaming URL is of type str
-            self.assertIsInstance(streaming_url, str)
-            # Check that the streaming URL is 'https://www084.vipanicdn.net/streamhls/027e9529af2b06fe7b4f47e507a787eb/ep.1.1703905435.m3u8'
-            self.assertEqual(streaming_url, self.streaming_url)
-            
+               
     def test_create_json_response(self):  
-   
-        print('request', self.request.content)
         # Decrypt the result
         json_response = self.url_interactions.create_json_response(self.request, self.keys)
         # Check that the result is not None
@@ -489,7 +480,7 @@ class TestUrlOperations(unittest.TestCase):
         # Check that the result is of type dict
         self.assertIsInstance(json_response, dict)
 
-    
+        # Expected result for the JSON response
         expected_result = {'source': [{'file': 'https://www084.vipanicdn.net/streamhls/027e9529af2b06fe7b4f47e507a787eb/ep.1.1703905435.m3u8', 
                                        'label': 'hls P', 'type': 'hls'}], 
                            'source_bk': [{'file': 'https://www084.anicdnstream.info/videos/hls/oQQliQuPlfRAUSxuJNB3rw/1715569478/25054/027e9529af2b06fe7b4f47e507a787eb/ep.1.1703905435.m3u8', 
@@ -519,6 +510,7 @@ class TestUrlOperations(unittest.TestCase):
         # Check that the linkiframe is as expected
         self.assertEqual(json_response['linkiframe'], expected_result['linkiframe'])
 
+        # Check that the source and source_bk URLs are similar
         for src1, src2 in zip(json_response['source'], expected_result['source']):
             self.assertTrue(self.assertUrlsSimilar(src1['file'], src2['file']))
             self.assertEqual(src1['label'], src2['label'])
@@ -528,22 +520,75 @@ class TestUrlOperations(unittest.TestCase):
             self.assertEqual(src_bk1['label'], src_bk2['label'])
             self.assertEqual(src_bk1['type'], src_bk2['type'])
 
-   
-"""    def test_create_json_response(self):
-        # Create a mock request object
-        request = Mock()
-        # Set the json method of the request object to return a mock JSON response
-        request.json.return_value = {"data": "encrypted_data"}
-        
-        # Call the create_json_response method with the mock request and encryption keys
-        result = self.url_interactions.create_json_response(request, self.expected_keys)
-        # Assert that the result is not None
-        self.assertIsNotNone(result)
-        
-        # Assert that the result is equal to the decrypted JSON object
-        self.assertEqual(result, {"decrypted_data": "decrypted_data"})
+    def test_get_streaming_url(self):
+            # Get the streaming URL
+            streaming_url = self.url_interactions.get_streaming_url(self.episode_url)
+            # Check that the streaming URL is not None
+            self.assertIsNotNone(streaming_url)
+            # Check that the streaming URL is of type str
+            self.assertIsInstance(streaming_url, str)
+            # Check that the streaming URL is 'https://www084.vipanicdn.net/streamhls/027e9529af2b06fe7b4f47e507a787eb/ep.1.1703905435.m3u8'
+            self.assertEqual(streaming_url, self.streaming_url)
 
-        """
+class TestUserInteractions(unittest.TestCase):
+        
+    @classmethod
+    def setUpClass(cls):
+        # Create an instance of the UserInteractions class
+        cls.user_interactions = UserInteractions()
+        # List of anime dictionaries
+        cls.anime_list = [
+            {'title': 'Naruto'},
+            {'title': 'One Piece'},
+            {'title': 'Bleach'}
+        ]
+        # Maximum index
+        cls.max_index = len(cls.anime_list)
+        cls.captured_output = StringIO()
+        
+
+
+    def test_get_valid_index_valid_input(self):
+        # Test with a valid index
+        with patch('builtins.input', return_value='2'):
+            result = self.user_interactions.get_valid_index("Enter an index: ", 5)
+            self.assertEqual(result, 2)
+    
+    def test_get_valid_index_invalid_input(self):
+        # Read the console output
+        sys.stdout = self.captured_output
+        # Test with an invalid index
+        with patch('builtins.input', side_effect=['-1', '6', 'abc', '3']):
+            result = self.user_interactions.get_valid_index("Enter an index: ", 5)
+            self.assertEqual(result, 3)
+        sys.stdout = sys.__stdout__
+        print(self.captured_output.getvalue().strip())
+        # Check that the expected output is displayed
+        expected_output = "Invalid index. Please enter a valid index."
+        self.assertIn(expected_output, self.captured_output.getvalue().strip())
+
+    def test_get_valid_index_value_error(self):
+        # Read the console output
+        sys.stdout = self.captured_output
+        # Test with a ValueError
+        with patch('builtins.input', side_effect=['abc', '3']):
+            result = self.user_interactions.get_valid_index("Enter an index: ", 5)
+            self.assertEqual(result, 3)
+        sys.stdout = sys.__stdout__
+        # Check that the expected output is displayed
+        expected_output = "Invalid input. Please enter a valid number."
+        self.assertIn(expected_output, self.captured_output.getvalue().strip())
+
+
+    def test_get_user_input_valid_episode(self):
+        with patch('AnimeWatcher.UserInteractions.episodesList', return_value='5'):
+            result = self.user_interactions.get_user_input(10, None)
+            self.assertEqual(result, '5')
+    
+
+  
+            
+
 
 if __name__ == "__main__":
     unittest.main()

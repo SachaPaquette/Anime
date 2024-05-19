@@ -287,10 +287,6 @@ class UrlInteractions:
         data = dict(parse_qsl(data))
         # update the id
         data.update(id=encrypted_id)
-        print('ep_url',ep_url)
-        print('encryption_keys',encryption_keys)
-        print('encrypted_id',encrypted_id)
-        print('data',data)
         # return the data
         return data
 
@@ -317,8 +313,7 @@ class UrlInteractions:
         Returns:
             str: The value of the 'id' parameter in the query string.
         """
-        id = urlparse(ep_url).query
-        return dict(parse_qsl(id))["id"]
+        return dict(parse_qsl(urlparse(ep_url).query))["id"]
 
     def create_headers(self, ep_url):
         """
@@ -390,7 +385,6 @@ class UrlInteractions:
             str: The URL of the video stream.
         """
         try:
-            print('ep_url',ep_url)
             # Get the embedded episode URL
             embded_episode_url = self.get_embedded_video_url(ep_url)
             # Get the encryption keys
