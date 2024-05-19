@@ -1,11 +1,7 @@
 # The user will be able to navigate through the animes/episodes and select the one they want to watch.
 import curses 
 def displayAnimes(stdscr, anime, cursor):
-    
     stdscr.clear()  # Clear the console
-    
-    
-    
     stdscr.addstr(0, 0, f"Select an anime to watch: (1-{len(anime)})\n")
     
     for i, ani in enumerate(anime):
@@ -45,11 +41,9 @@ def displayEpisodes(stdscr, max_episode, cursor):
     
 
 def animeList(animes):
-    
     return curses.wrapper(curses_anime_list, animes, displayAnimes)
     
 def episodesList(max_episode):
-    
     list_episodes = []
     for i in range(1, max_episode+1):
         list_episodes.append(i)

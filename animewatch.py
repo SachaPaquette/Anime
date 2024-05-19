@@ -2,12 +2,12 @@
 from AnimeWatcher.WatchOperations import Main
 from Config.logs_config import setup_logging
 from Config.config import AnimeWatcherConfig
-import asyncio
+
 # Set up the logger
 logger = setup_logging(AnimeWatcherConfig.ANIME_WATCH_LOG_FILENAME,
                        AnimeWatcherConfig.ANIME_WATCH_LOG_PATH)
 
-def main_async():
+def main():
     try:
         main = Main()  # Instantiate the class
         main.main()  # Call the main method
@@ -19,5 +19,5 @@ def main_async():
         exit()
 
 if __name__ == "__main__":
-    asyncio.run(main_async())
+    main()
         

@@ -5,6 +5,7 @@ __pycache__/
 !Logs/.gitkeep
 !Extensions/.gitkeep
 Logs/*
+Test/*
 Extensions/uBlock/*
 
 # Distribution / packaging

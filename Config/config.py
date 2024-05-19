@@ -80,3 +80,4 @@ class ScriptConfig:
     requirements_file = "./Requirements/requirements.txt"
     SCRIPT_FILENAME = "installer"
     SCRIPT_LOG_PATH = "./Logs/Installer.log"
+    windows_curse = "windows-curses"

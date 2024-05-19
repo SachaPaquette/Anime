@@ -3,7 +3,7 @@ from Config.logs_config import setup_logging
 from AnimeWatcher.WebOperations import WebInteractions, AnimeInteractions
 from AnimeWatcher.VideoPlayer import VideoPlayer
 from AnimeWatcher.UrlOperations import UrlInteractions
-from AnimeWatcher.EpisodeOperations import EpisodeMenu
+from AnimeWatcher.EpisodeOperations import EpisodeMenu, Menu
 from AnimeWatcher.UserInteractions import UserInteractions
 import os
 # Configure the logger
@@ -32,6 +32,7 @@ class AnimeWatch:
         self.video_player = None  
         # Create an instance of UserInteractions
         self.user_interactions = UserInteractions()
+        self.episode_menu = Menu()
 
     def naviguate_fetch_episodes(self, url, anime_name):
         """
@@ -49,33 +50,25 @@ class AnimeWatch:
             self.web_interactions.naviguate(url)
             # Get the start and max episodes from the page
             start_episode, max_episode = self.anime_interactions.get_number_episodes()
-            # Get the user's input for the episode they want to start watching
-            prompt = self.user_interactions.get_user_input(
-                start_episode, max_episode, self.web_interactions, logger)
-            # If the user wants to exit, return False to exit the program
-            if prompt is None:
-                # Exit the program
-                self.web_interactions.exiting_statement()
-                return True  # Signal to restart the application
-            # Returns True if the user wants to change the anime and False if the user wants to quit the program
-            return self.handle_episodes(prompt, start_episode, max_episode, url, anime_name)
+            return self.handle_episodes(self.user_interactions.get_user_input(start_episode, max_episode, self.web_interactions, logger),
+                                        start_episode, 
+                                        max_episode, 
+                                        url, 
+                                        anime_name)
 
-        except ValueError as ve:
-            logger.error(f"Error while converting prompt to integer: {ve}")
-            return False  # Signal to exit the program
         except KeyboardInterrupt:
             return False  # Signal to exit the program
         except Exception as e:
-            logger.error(f"Unexpected error: {e}")
-            return False  # Signal to exit the program
-
+            logger.error(f"Unexpected error in naviguate_fetch_episodes(): {e}")
+            return False
     def close_session(self):
         try:
             # Print the exiting statement
             self.web_interactions.exiting_statement()
             # Close the video player
             self.video_player.terminate_player()
-            # self.url_interactions.close_session()
+            # exit the program
+            exit()
         except Exception as e:
             logger.error(f"Error while closing session: {e}")
             raise
@@ -98,7 +91,7 @@ class AnimeWatch:
 
         while True:
             # Prompt the user to enter their choice (n: next episode, p: previous episode, c: change anime, q: quit)
-            user_choice = input("Enter your choice: ").lower()
+            user_choice = input("Enter your choice: ").lower().strip()
             # Check if the user's choice is valid (n, p, c, or q only are valid)
             if user_choice in episode_menu.available_choices():
                 self.url_interactions = UrlInteractions("best")
@@ -107,17 +100,16 @@ class AnimeWatch:
                     user_choice, int(prompt))
 
                 # User wants to change the anime
-                if updated_prompt is False:
+                if updated_prompt is self.episode_menu.ChangeAnime:
                     # Exit the program
                     self.video_player.terminate_player()
-                    # self.close_session()
                     return False
 
                 # User wants to quit the program
-                elif updated_prompt is None:
+                elif updated_prompt is self.episode_menu.Quit:
                     # Exit the program
                     self.close_session()
-                    return None
+                    
                 # User chose 'n' or 'p', update the prompt and continue
                 else:
                     # Update the prompt
@@ -171,17 +163,18 @@ class AnimeWatch:
         """
         while True:
             try:
+                # Check if the user wants to change the anime
+                if prompt is self.episode_menu.ChangeAnime:
+                    return True
+                # Check if the user wants to quit the program
+                if prompt is self.episode_menu.Quit:
+                    return False
                 # Format the episode link and play the episode
                 self.format_and_play_episode(prompt, url, anime_name)
                 # Get the user's choice for the episode to watch
                 prompt = self.handle_user_choice(
                     prompt, start_episode, max_episode)
-                # Check if the user wants to change the anime
-                if prompt is False:
-                    return True
-                # Check if the user wants to quit the program
-                if prompt is None:
-                    return False
+
             except ValueError as ve:
                 # If the user enters an invalid prompt, log an error and exit the program
                 logger.error(f"Error while handling episodes: {ve}")

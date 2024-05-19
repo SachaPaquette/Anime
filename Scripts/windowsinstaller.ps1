@@ -1,5 +1,3 @@
-# Script to install Windows applications Google Chrome and MPV using Chocolatey
-
 try {
     # Check if Chocolatey is installed
     if (-not (Get-Command "choco" -ErrorAction SilentlyContinue)) {
@@ -11,17 +9,38 @@ try {
     }
 
     # Check if Google Chrome is installed
-    if (-not (Get-Command "googlechrome" -ErrorAction SilentlyContinue)) {
+    $chrome = Get-Package -Name "Google Chrome" -ErrorAction SilentlyContinue
+    if (-not $chrome) {
         # Download and install Google Chrome
-        Write-Host "Downloading and installing Google Chrome..."
-        choco install googlechrome -y
+        Write-Host "Openning Google Chrome webpage..."
+        Start "https://www.google.com/intl/en_ca/chrome/"
     } else {
         Write-Host "Google Chrome is already installed."
     }
 
-    # Download and install MPV
-    Write-Host "Downloading and installing MPV..."
-    choco install mpv
+    # Check if MPV is installed
+    $mpv = choco list --local-only | Where-Object { $_ -match "mpv" }
+    if (-not $mpv) {
+        # Download and install MPV
+        Write-Host "Downloading and installing MPV..."
+        choco install mpv -y
+    } else {
+        Write-Host "MPV is already installed."
+    }
+	
+    # Check if Python is installed
+    $python = & python --version 2>$null
+    $pythonInstalled = $?
+
+    if (-not $pythonInstalled)
+    {
+        #Download Python to the machine
+        choco install python --pre 
+    }else {
+        Write-Host "Python is already  installed."
+    }
+
+
 } catch {
     Write-Host "Error: $($_.Exception.Message)"
 }
