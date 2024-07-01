@@ -9,29 +9,38 @@ logger = setup_logging(AnimeWatcherConfig.ANIME_WATCH_LOG_FILENAME,
 
 def displayAnimes(stdscr, anime, cursor):
     try:
-        logger.error(f"Allo", anime)
         stdscr.clear()  # Clear the console
         stdscr.addstr(0, 0, f"Select an anime to watch: (1-{len(anime)})\n")
 
-        # Calculate the maximum index to display
-        max_index = min(cursor + get_number_of_displays(anime), len(anime))
+        # Get screen dimensions
+        height, width = stdscr.getmaxyx()
 
-        # Print the animes within the range
-        for i in range(cursor, max_index):
-            # Highlight the selected anime
-            if i == cursor:
-                stdscr.addstr(f"> {anime[i]}\n")
-            else:
-                # Print the anime
-                stdscr.addstr(f"  {anime[i]}\n")
-        cursor = max_index
+        # Calculate the range of episodes to display
+        display_range = min(20, height - 2)  # Ensure we don't try to display more lines than the screen can fit
+        start = max(0, cursor - display_range // 2)
+        end = min(start + display_range, len(anime))
+
+        if end - start < display_range:  # Adjust start if end is at the end of the list
+            start = max(0, end - display_range)
+
+        for i in range(start, end):
+            ani = anime[i]
+            line = f"> {i + 1}. {ani['title']}\n" if i == cursor else f"  {i + 1}. {ani['title']}\n"
+            if len(line) > width:
+                line = line[:width - 1]  # Truncate the line if it's too long
+
+            try:
+                stdscr.addstr(i - start + 1, 0, line, curses.A_REVERSE if i == cursor else 0)  # Highlight the selected episode
+            except curses.error:
+                # Handle cases where addstr fails
+                pass
+
         stdscr.refresh()
-        
-        
         
     except Exception as e:
         logger.error(f"Error displaying anime list: {e}")
         raise e
+
     
 def get_number_of_displays(anime):
     if len(anime) < 20:
@@ -63,22 +72,15 @@ def displayEpisodes(stdscr, max_episode, cursor):
         logger.error(f"Error displaying episodes list: {e}")
         raise e
 
-def chose_anime(anime):
-    try:
-        for i, anime in enumerate(anime):
-            print(f"{i + 1}. {anime['title']}")
-        return int(input("Enter the index of the anime you want to watch (or 0 to exit): "))
-    except Exception as e:
-        logger.error(f"Error selecting anime: {e}")
-        raise e
+
     
 
 
 def animeList(animes):
     try:
-        logger.error(f"Allo")
+        
         # Dont use the curses, use the print
-        return chose_anime(animes)
+        return curses.wrapper(curses_anime_list, animes, displayAnimes)
     except Exception as e:
         logger.error(f"Error selecting anime: {e}")
         raise e

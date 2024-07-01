@@ -246,8 +246,6 @@ class AnimeInteractions:
                 'title': anime_name,
                 'link': href
             })
-        # Return the anime list
-        return anime_list
     
     def format_anime_name_from_input(self, input_anime_name):
         try:
@@ -280,11 +278,10 @@ class AnimeInteractions:
                 # Iterate through the page numbers
                 for page_number in page_numbers:
                     # Process each page of the anime list
-                    anime_list.extend(self.process_anime_list_page(
-                        input_anime_name, anime_list, page_number))
+                    self.process_anime_list_page(input_anime_name, anime_list, page_number)
             else:
                 # Process the first page if no pagination
-                anime_list = self.process_anime_list_page(input_anime_name, anime_list)
+                self.process_anime_list_page(input_anime_name, anime_list)
             # Return the anime list
             return anime_list
         except Exception as e:
