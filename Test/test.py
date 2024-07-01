@@ -229,7 +229,7 @@ class TestUrlOperations(unittest.TestCase):
         cls.episode_url = 'https://gogoanime3.net/naruto-episode-1'
         cls.ajax_url = 'https://embtaku.pro/encrypt-ajax.php?'
         cls.streaming_url = 'https://www084.vipanicdn.net/streamhls/027e9529af2b06fe7b4f47e507a787eb/ep.1.1703905435.m3u8'
-        
+        cls.embedded_url_s3taku = 'https://s3taku.com/streaming.php?id=MjUwNTQ=&title=Naruto+Episode+1&typesub=SUB'
         # Expected information for the encryption keys
         cls.first_key = b'37911490979715163134003223491201'
         cls.first_key_iv = b'3134003223491201'
@@ -307,8 +307,8 @@ class TestUrlOperations(unittest.TestCase):
         # Check that the embedded URL is of type str
         self.assertIsInstance(embedded_url, str)
         # Check that the embedded URL is 'https://embtaku.pro/streaming.php?id=MjUwNTQ=&title=Naruto+Episode+1&typesub=SUB'
-        self.assertEqual(embedded_url, self.embedded_url_com)
-        
+        self.assertEqual(embedded_url, self.embedded_url_s3taku)
+  
         
     
     def test_get_encryption_keys(self):

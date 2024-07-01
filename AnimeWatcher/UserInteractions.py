@@ -48,7 +48,7 @@ class UserInteractions:
         return self.get_valid_index("Enter the index of the anime you want to watch (or 0 to exit): ", len(animes))
 
 """
-    def get_user_input(self, max_episode, logger):
+    def get_user_input(self, max_episode, logger, watched_list):
         """
         Prompts the user to enter the episode they want to start watching, between the given start and max episodes.
 
@@ -63,7 +63,7 @@ class UserInteractions:
             while True:
                 # Prompt the user to enter the episode they want to start watching
                 
-                user_input = episodesList(max_episode)
+                user_input = episodesList(max_episode, watched_list)
                 
                 # If the user wants to exit
                 if user_input == '0':

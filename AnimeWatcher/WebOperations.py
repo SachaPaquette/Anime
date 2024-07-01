@@ -216,14 +216,9 @@ class AnimeInteractions:
         self.web_interactions.naviguate(
             WebOperationsConfig.GOGO_ANIME_SEARCH.format(input_anime_name) + f"&page={page_number}")
 
-        # Find the ul element items
-        ul_element = WebDriverWait(self.web_interactions.driver, 10).until(
-                EC.presence_of_element_located((By.CSS_SELECTOR, 'ul.items'))
-            )
-
         # Find all the li elements
-        li_elements = ul_element.find_elements(
-            By.CSS_SELECTOR, WebElementsConfig.LI_ELEMENT)
+        li_elements = WebDriverWait(self.web_interactions.driver, 10).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, 'ul.items'))).find_elements(By.CSS_SELECTOR, WebElementsConfig.LI_ELEMENT)
 
         # Check if there are any li elements
         if not li_elements:
@@ -231,20 +226,10 @@ class AnimeInteractions:
         
         # Find the first li element
         for li in li_elements:
-            
-            # We only want the first line
-            anime_name = li.text.split('\n')[0]
-            # Find the a element
-            a_element = li.find_element(
-                By.CSS_SELECTOR, WebElementsConfig.HYPERLINK)
-
-            # Get the href attribute
-            href = a_element.get_attribute(WebElementsConfig.HREF)
-
             # Append the results to the anime list
             anime_list.append({
-                'title': anime_name,
-                'link': href
+                'title': li.text.split('\n')[0],
+                'link': li.find_element(By.CSS_SELECTOR, WebElementsConfig.HYPERLINK).get_attribute(WebElementsConfig.HREF)
             })
     
     def format_anime_name_from_input(self, input_anime_name):
@@ -358,7 +343,7 @@ class AnimeInteractions:
 
             for li_element in li_elements:
                 ep_start, ep_end = self.get_episode_range(li_element)
-                min_start = min(min_start, ep_start) + 1
+                min_start = 1
                 max_end = max(max_end, ep_end)
                
             return min_start, max_end if max_end > 0 else 1
