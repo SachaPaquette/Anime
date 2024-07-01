@@ -270,10 +270,12 @@ class Main:
         """
         try:
             while True:
+                found = False
                 # Prompt the user to enter the anime they want to watch
                 animes, user_input = self.find_anime_from_input()
                 # If animes were found, prompt the user to select an anime
-                if animes:
+                if animes and found is False:
+                    found = True
                     # Prompt the user to select an anime
                     selected_index = self.user_interactions.select_anime(animes)
                     # If the user wants to exit, return None

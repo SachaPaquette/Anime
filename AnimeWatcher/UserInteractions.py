@@ -26,6 +26,7 @@ class UserInteractions:
             except ValueError:
                 print("Invalid input. Please enter a valid number.")
 
+
     def select_anime(self, animes):
         """
         Displays the search results and prompts the user to select an anime.
@@ -37,15 +38,15 @@ class UserInteractions:
             int: The selected index of the anime, or 0 to exit.
         """
         
-        return animeList(animes)
+       # return animeList(animes)
         
-        """"
+        print
         for i, anime in enumerate(animes):
             # Print the anime's title
             print(f"{i + 1}. {anime['title']}")
         # Prompt the user to enter the index of the anime they want to watch
         return self.get_valid_index("Enter the index of the anime you want to watch (or 0 to exit): ", len(animes))
-"""
+
 
     def get_user_input(self, max_episode, logger):
         """
