@@ -1,5 +1,7 @@
 from AnimeWatcher.EpisodesList import animeList, episodesList
 class UserInteractions:
+    def __init__(self):
+        self.quit_symbol = '0'
     def get_valid_index(self, prompt, max_index):
         """
         Prompts the user for an index and validates it.
@@ -62,15 +64,12 @@ class UserInteractions:
         try:
             while True:
                 # Prompt the user to enter the episode they want to start watching
-                
                 user_input = episodesList(max_episode, watched_list)
-                
                 # If the user wants to exit
-                if user_input == '0':
+                if user_input == self.quit_symbol:
                     exit()
                 # If the user entered a valid episode, return the episode number
                 return user_input
-             
         except Exception as e:
             # If an error occurs while getting the user's input, log the error and raise it
             logger.error(f"Error while getting user input: {e}")

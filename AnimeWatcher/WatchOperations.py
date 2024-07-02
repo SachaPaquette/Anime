@@ -201,12 +201,10 @@ class AnimeWatch:
         try:
             # Get the streaming URL for the episode (m3u8 file format)
             source_data = self.url_interactions.get_streaming_url(episode_url)
-
             if self.video_player is None or self.video_player.is_open():
                 # Create a new instance of VideoPlayer if one
                 # doesn't exist or if the current instance is closed
                 self.video_player = VideoPlayer()
-
                 # Try to play the episode using the video player instance
                 self.video_player.play_video(source_data)
         except Exception as e:
@@ -264,12 +262,10 @@ class Main:
         """
         try:
             while True:
-                found = False
                 # Prompt the user to enter the anime they want to watch
                 animes, user_input = self.find_anime_from_input()
                 # If animes were found, prompt the user to select an anime
-                if animes and found is False:
-                    found = True
+                if animes:
                     # Prompt the user to select an anime
                     selected_index = self.user_interactions.select_anime(animes)
                     # If the user wants to exit, return None

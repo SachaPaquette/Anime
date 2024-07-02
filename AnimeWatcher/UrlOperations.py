@@ -117,11 +117,9 @@ class UrlInteractions:
         Returns:
             str: The embedded URL.
         """
-        # Get the embedded video player URL
-        embedded_url = f'https:{active_link["data-video"]}' if not active_link["data-video"].startswith(
-            "https:") else active_link["data-video"]
         # Return the embedded video player URL
-        return embedded_url
+        return f'https:{active_link["data-video"]}' if not active_link["data-video"].startswith(
+            "https:") else active_link["data-video"]
 
     def get_embedded_video_url(self, episode_url):
         """
@@ -137,19 +135,12 @@ class UrlInteractions:
         - Exception: If there is an error while getting the embedded video player URL.
         """
         try:
-            # Get the HTML soup of the episode URL
-            soup = self.get_soup_object(episode_url)
-            
             # Find the active link
-            active_link = soup.find("a", {"class": "active", "rel": "1"})
+            active_link = self.get_soup_object(episode_url).find("a", {"class": "active", "rel": "1"})
             # Check if the active link exists
-            self.locating_element_error(active_link, episode_url, "embed-url")
-            
-            # Get the embedded video player URL
-            embedded_url = self.create_embedded_url(active_link)
-            
+            self.locating_element_error(active_link, episode_url, "embed-url")  
             # Return the embedded video player URL
-            return embedded_url
+            return self.create_embedded_url(active_link)
         except Exception as e:
             # Add more details to the error message if needed
             raise Exception(
@@ -166,10 +157,8 @@ class UrlInteractions:
             str: The data for the given episode URL.
         """
         try:
-            # Get the HTML soup of the episode URL
-            soup = self.get_soup_object(ep_url)
             # Find the script tag containing the data
-            crypto = soup.find("script", {"data-name": "episode"})
+            crypto = self.get_soup_object(ep_url).find("script", {"data-name": "episode"})
             # Check if the requested data exists
             self.locating_element_error(crypto, ep_url, "token")
             # Return the data
@@ -188,10 +177,8 @@ class UrlInteractions:
             dict: A dictionary containing the encryption key, initialization vector, and second key.
         """
         try:
-            # Send a GET request to the episode URL
-            page = self.session.get(ep_url).text
             # Find the encryption keys
-            keys = re.findall(r"(?:container|videocontent)-(\d+)", page)
+            keys = re.findall(r"(?:container|videocontent)-(\d+)", self.session.get(ep_url).text)
             # Check if there are any keys found
             if not keys or len(keys) != 3:
                 raise ValueError("No encryption keys were found.")
@@ -253,8 +240,7 @@ class UrlInteractions:
         Returns:
             str: The AJAX URL for the given episode URL.
         """
-        parsed_url = urlparse(ep_url)  # parse the url
-        return parsed_url.scheme + "://" + parsed_url.netloc + self.ajax_url
+        return urlparse(ep_url).scheme + "://" + urlparse(ep_url).netloc + self.ajax_url
 
     def decrypt_url(self, ep_url, encryption_keys):
         """
@@ -280,15 +266,9 @@ class UrlInteractions:
 
         Returns:
             dict: A dictionary of data for the given episode.
-        """
-        # decrypt the url
-        data = self.decrypt_url(ep_url, encryption_keys)
-        # parse the data
-        data = dict(parse_qsl(data))
-        # update the id
-        data.update(id=encrypted_id)
-        # return the data
-        return data
+        """    
+        return {**dict(parse_qsl(self.decrypt_url(ep_url, encryption_keys))), 'id': encrypted_id}
+
 
     def encrypt_id(self, id, encryption_keys):
         """
@@ -359,8 +339,7 @@ class UrlInteractions:
         Returns:
             dict: The decrypted JSON object.
         """
-        return json.loads(
-            self.aes_decrypt(request.json().get("data"), encryption_keys["second_key"], encryption_keys["iv"]))
+        return json.loads(self.aes_decrypt(request.json().get("data"), encryption_keys["second_key"], encryption_keys["iv"]))
 
     def get_source_data(self, json_response):
         """
@@ -385,29 +364,16 @@ class UrlInteractions:
             str: The URL of the video stream.
         """
         try:
-            # Get the embedded episode URL
-            embded_episode_url = self.get_embedded_video_url(ep_url)
-            # Get the encryption keys
-            encryption_keys = self.get_encryption_keys(embded_episode_url)
+            embedded_url = self.get_embedded_video_url(ep_url)
+            encryption_keys = self.get_encryption_keys(embedded_url)
+            encrpyted_id = self.encrypt_id(self.create_id(embedded_url), self.get_encryption_keys(self.get_embedded_video_url(ep_url)))
             # Get the AJAX URL
-            self.ajax_url = self.create_ajax_url(embded_episode_url)
-            # Get the ID
-            id = self.create_id(embded_episode_url)
-            # Encrypt the ID
-            encrypted_id = self.encrypt_id(id, encryption_keys)
-            # Create the data dictionary
-            data = self.create_dict_data(embded_episode_url, encryption_keys, encrypted_id)
-            # Create the headers
-            headers = self.create_headers(embded_episode_url)
+            self.ajax_url = self.create_ajax_url(embedded_url)
             # Send the POST request
-            request = self.send_post_request(self.ajax_url, data, id, headers)  
+            request = self.send_post_request(self.ajax_url, self.create_dict_data(embedded_url, encryption_keys, encrpyted_id), self.create_id(embedded_url), self.create_headers(embedded_url)) 
             # Check if the request was successful
             self.check_response_error(request, request.url)
-            # Create the JSON response
-            json_response = self.create_json_response(request, encryption_keys)
-            # Get the source data
-            source_data = self.get_source_data(json_response)
             # Return the stream URL
-            return source_data[0]["file"]
+            return self.get_source_data(self.create_json_response(request, encryption_keys))[0]["file"]
         except Exception as e:
             raise Exception(f"Error while getting stream URL: {e}")
