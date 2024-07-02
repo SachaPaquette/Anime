@@ -101,30 +101,23 @@ class AnimeWatch:
             # Check if the user's choice is valid (n, p, c, or q only are valid)
             if user_choice in episode_menu.available_choices():
                 self.url_interactions = UrlInteractions("best")
-                # Handle the user's choice
-                
 
                 # User wants to change the anime
-                if episode_menu.handle_choice(
-                    user_choice, int(prompt)) is self.episode_menu.ChangeAnime:
+                if episode_menu.handle_choice(user_choice, int(prompt)) is self.episode_menu.ChangeAnime:
                     # Exit the program
                     self.video_player.terminate_player()
                     # Break the loop and return the user's choice
-                    return episode_menu.handle_choice(
-                    user_choice, int(prompt))
+                    return episode_menu.handle_choice(user_choice, int(prompt))
 
                 # User wants to quit the program
-                elif episode_menu.handle_choice(
-                    user_choice, int(prompt)) is self.episode_menu.Quit:
+                elif episode_menu.handle_choice(user_choice, int(prompt)) is self.episode_menu.Quit:
                     # Exit the program
                     self.close_session()
                     
                 # User chose 'n' or 'p', update the prompt and continue
                 else:
                     # Update the prompt
-                    return episode_menu.handle_choice(
-                    user_choice, int(prompt))
-
+                    return episode_menu.handle_choice(user_choice, int(prompt))
             else:
                 print(f"Invalid choice. Please enter one of the following: {', '.join(episode_menu.available_choices())}.")
 

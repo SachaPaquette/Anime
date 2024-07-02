@@ -444,21 +444,13 @@ class AnimeInteractions:
             Exception: If there is an error while formatting the episode link.
         """
         try:
-            # Construct the episode link based on the base anime URL and the episode number
-            constructed_url = self.format_anime_name_from_url(
-                url, episode_number)
-
             # Check if the episode link exists (returns 200 if it exists)
-            if self.check_url_status(constructed_url) == 200:
-                return constructed_url
+            if self.check_url_status(self.format_anime_name_from_url(url, episode_number)) == 200:
+                return self.format_anime_name_from_url(url, episode_number)
 
             # If the episode link did not exist, try the original and alternative links
-            formatted_anime_name = self.format_anime_name(anime_name)
-            original_url = self.construct_episode_link(
-                formatted_anime_name, episode_number)
-
-            return self.retry_format_episode_link(original_url, formatted_anime_name, episode_number)
-
+            return self.retry_format_episode_link(self.construct_episode_link(
+                self.format_anime_name(anime_name), episode_number), self.format_anime_name(anime_name), episode_number)
         except Exception as e:
             logger.error(f"Error while formatting episode link: {e}")
             raise

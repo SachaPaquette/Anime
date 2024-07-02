@@ -7,7 +7,7 @@ __pycache__/
 Logs/*
 Extensions/uBlock/*
 anime
-EpisodeTracker/
+AnimeWatcher/EpisodeTracker/*
 # Distribution / packaging
 .Python
 build/

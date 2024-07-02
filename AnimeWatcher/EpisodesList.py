@@ -73,14 +73,14 @@ def displayEpisodes(stdscr, episodes, cursor):
             episode = episodes[i]
             if i == cursor:
                 if episode['watched']:
-                    stdscr.addstr(f"> {episode['episode']}\n", curses.color_pair(2) | curses.A_REVERSE)
-                else:
                     stdscr.addstr(f"> {episode['episode']}\n", curses.color_pair(1) | curses.A_REVERSE)
+                else:
+                    stdscr.addstr(f"> {episode['episode']}\n", curses.color_pair(2) | curses.A_REVERSE)
             else:
                 if episode['watched']:
-                    stdscr.addstr(f"  {episode['episode']}\n", curses.color_pair(2))
-                else:
                     stdscr.addstr(f"  {episode['episode']}\n", curses.color_pair(1))
+                else:
+                    stdscr.addstr(f"  {episode['episode']}\n", curses.color_pair(2))
         stdscr.refresh()
 
     except Exception as e:
