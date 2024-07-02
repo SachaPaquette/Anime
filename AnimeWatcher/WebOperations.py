@@ -216,14 +216,9 @@ class AnimeInteractions:
         self.web_interactions.naviguate(
             WebOperationsConfig.GOGO_ANIME_SEARCH.format(input_anime_name) + f"&page={page_number}")
 
-        # Find the ul element items
-        ul_element = WebDriverWait(self.web_interactions.driver, 10).until(
-                EC.presence_of_element_located((By.CSS_SELECTOR, 'ul.items'))
-            )
-
         # Find all the li elements
-        li_elements = ul_element.find_elements(
-            By.CSS_SELECTOR, WebElementsConfig.LI_ELEMENT)
+        li_elements = WebDriverWait(self.web_interactions.driver, 10).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, 'ul.items'))).find_elements(By.CSS_SELECTOR, WebElementsConfig.LI_ELEMENT)
 
         # Check if there are any li elements
         if not li_elements:
@@ -231,23 +226,11 @@ class AnimeInteractions:
         
         # Find the first li element
         for li in li_elements:
-            
-            # We only want the first line
-            anime_name = li.text.split('\n')[0]
-            # Find the a element
-            a_element = li.find_element(
-                By.CSS_SELECTOR, WebElementsConfig.HYPERLINK)
-
-            # Get the href attribute
-            href = a_element.get_attribute(WebElementsConfig.HREF)
-
             # Append the results to the anime list
             anime_list.append({
-                'title': anime_name,
-                'link': href
+                'title': li.text.split('\n')[0],
+                'link': li.find_element(By.CSS_SELECTOR, WebElementsConfig.HYPERLINK).get_attribute(WebElementsConfig.HREF)
             })
-        # Return the anime list
-        return anime_list
     
     def format_anime_name_from_input(self, input_anime_name):
         try:
@@ -280,11 +263,10 @@ class AnimeInteractions:
                 # Iterate through the page numbers
                 for page_number in page_numbers:
                     # Process each page of the anime list
-                    anime_list.extend(self.process_anime_list_page(
-                        input_anime_name, anime_list, page_number))
+                    self.process_anime_list_page(input_anime_name, anime_list, page_number)
             else:
                 # Process the first page if no pagination
-                anime_list = self.process_anime_list_page(input_anime_name, anime_list)
+                self.process_anime_list_page(input_anime_name, anime_list)
             # Return the anime list
             return anime_list
         except Exception as e:
@@ -361,7 +343,7 @@ class AnimeInteractions:
 
             for li_element in li_elements:
                 ep_start, ep_end = self.get_episode_range(li_element)
-                min_start = min(min_start, ep_start) + 1
+                min_start = 1
                 max_end = max(max_end, ep_end)
                
             return min_start, max_end if max_end > 0 else 1
@@ -462,21 +444,13 @@ class AnimeInteractions:
             Exception: If there is an error while formatting the episode link.
         """
         try:
-            # Construct the episode link based on the base anime URL and the episode number
-            constructed_url = self.format_anime_name_from_url(
-                url, episode_number)
-
             # Check if the episode link exists (returns 200 if it exists)
-            if self.check_url_status(constructed_url) == 200:
-                return constructed_url
+            if self.check_url_status(self.format_anime_name_from_url(url, episode_number)) == 200:
+                return self.format_anime_name_from_url(url, episode_number)
 
             # If the episode link did not exist, try the original and alternative links
-            formatted_anime_name = self.format_anime_name(anime_name)
-            original_url = self.construct_episode_link(
-                formatted_anime_name, episode_number)
-
-            return self.retry_format_episode_link(original_url, formatted_anime_name, episode_number)
-
+            return self.retry_format_episode_link(self.construct_episode_link(
+                self.format_anime_name(anime_name), episode_number), self.format_anime_name(anime_name), episode_number)
         except Exception as e:
             logger.error(f"Error while formatting episode link: {e}")
             raise

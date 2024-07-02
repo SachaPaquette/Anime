@@ -287,10 +287,6 @@ class UrlInteractions:
         data = dict(parse_qsl(data))
         # update the id
         data.update(id=encrypted_id)
-        print('ep_url',ep_url)
-        print('encryption_keys',encryption_keys)
-        print('encrypted_id',encrypted_id)
-        print('data',data)
         # return the data
         return data
 
@@ -317,8 +313,7 @@ class UrlInteractions:
         Returns:
             str: The value of the 'id' parameter in the query string.
         """
-        id = urlparse(ep_url).query
-        return dict(parse_qsl(id))["id"]
+        return dict(parse_qsl(urlparse(ep_url).query))["id"]
 
     def create_headers(self, ep_url):
         """
@@ -349,7 +344,6 @@ class UrlInteractions:
             The response from the server.
         """
         try:
-            print('url',url + urlencode(data) + f"&alias={id}", 'headers',header)
             return self.session.post(url + urlencode(data) + f"&alias={id}", headers=header)
         except requests.RequestException as e:
             raise Exception(f"Error while sending POST request: {e}")
@@ -365,8 +359,6 @@ class UrlInteractions:
         Returns:
             dict: The decrypted JSON object.
         """
-        print('request',request.json().get("data"))
-        print('encryption_keys',encryption_keys)
         return json.loads(
             self.aes_decrypt(request.json().get("data"), encryption_keys["second_key"], encryption_keys["iv"]))
 
@@ -407,19 +399,8 @@ class UrlInteractions:
             data = self.create_dict_data(embded_episode_url, encryption_keys, encrypted_id)
             # Create the headers
             headers = self.create_headers(embded_episode_url)
-            print('embded_episode_url',embded_episode_url)
-            print('encryption_keys',encryption_keys)
-            print('ajax', self.ajax_url)
-            print('id', id)
-            print('encrypted_id',encrypted_id)
-            print('data',data)
-            print('headers',headers)
-            
-            
-            
             # Send the POST request
-            request = self.send_post_request(self.ajax_url, data, id, headers)
-            print('request',request)
+            request = self.send_post_request(self.ajax_url, data, id, headers)  
             # Check if the request was successful
             self.check_response_error(request, request.url)
             # Create the JSON response
