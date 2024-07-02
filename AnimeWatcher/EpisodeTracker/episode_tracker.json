@@ -20,11 +20,11 @@
             },
             {
                 "episode": 5,
-                "watched": false
+                "watched": true
             },
             {
                 "episode": 6,
-                "watched": false
+                "watched": true
             },
             {
                 "episode": 7,

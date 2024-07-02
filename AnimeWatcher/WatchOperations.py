@@ -54,10 +54,8 @@ class AnimeWatch:
             self.web_interactions.naviguate(url)
             # Get the start and max episodes from the page
             start_episode, max_episode = self.anime_interactions.get_number_episodes()
-            
-            watched_list = self.episode_tracker.get_watched_list(anime_name, start_episode, max_episode)
-            
-            return self.handle_episodes(self.user_interactions.get_user_input(max_episode, logger, watched_list),
+
+            return self.handle_episodes(self.user_interactions.get_user_input(max_episode, logger, self.episode_tracker.get_watched_list(anime_name, start_episode, max_episode)),
                                         start_episode, 
                                         max_episode, 
                                         url, 
@@ -104,24 +102,28 @@ class AnimeWatch:
             if user_choice in episode_menu.available_choices():
                 self.url_interactions = UrlInteractions("best")
                 # Handle the user's choice
-                updated_prompt = episode_menu.handle_choice(
-                    user_choice, int(prompt))
+                
 
                 # User wants to change the anime
-                if updated_prompt is self.episode_menu.ChangeAnime:
+                if episode_menu.handle_choice(
+                    user_choice, int(prompt)) is self.episode_menu.ChangeAnime:
                     # Exit the program
                     self.video_player.terminate_player()
-                    return False
+                    # Break the loop and return the user's choice
+                    return episode_menu.handle_choice(
+                    user_choice, int(prompt))
 
                 # User wants to quit the program
-                elif updated_prompt is self.episode_menu.Quit:
+                elif episode_menu.handle_choice(
+                    user_choice, int(prompt)) is self.episode_menu.Quit:
                     # Exit the program
                     self.close_session()
                     
                 # User chose 'n' or 'p', update the prompt and continue
                 else:
                     # Update the prompt
-                    return updated_prompt
+                    return episode_menu.handle_choice(
+                    user_choice, int(prompt))
 
             else:
                 print(f"Invalid choice. Please enter one of the following: {', '.join(episode_menu.available_choices())}.")

@@ -89,15 +89,12 @@ def displayEpisodes(stdscr, episodes, cursor):
 
 def animeList(animes):
     try:
-        
-        # Dont use the curses, use the print
         return curses.wrapper(curses_anime_list, animes, displayAnimes)
     except Exception as e:
         logger.error(f"Error selecting anime: {e}")
         raise e
 def episodesList(max_episode, watched_list):
-    try:
-            
+    try:        
         list_episodes = []
         for i in range(1, max_episode+1):
             list_episodes.append({'episode': i, 'watched': i in watched_list})
@@ -109,13 +106,10 @@ def episodesList(max_episode, watched_list):
 
 def curses_anime_list(stdscr, animes, function):
     try:
-        
         cursor = 0 
         function(stdscr, animes, cursor)
-
         while True:
             c = stdscr.getch()
-
             if c == curses.KEY_UP and cursor > 0:
                 cursor -= 1  # Move the cursor up                         
             elif c == curses.KEY_DOWN and cursor < len(animes) - 1:
@@ -128,9 +122,7 @@ def curses_anime_list(stdscr, animes, function):
                 num_str = chr(c)  # Initialize the string with the first character
                 stdscr.addstr(1, 0, f"Entered number: {num_str}")  # Display entered number (for debugging)
                 stdscr.refresh()
-
                 stdscr.timeout(700)  # Set input timeout to 700ms
-
                 while True:
                     c = stdscr.getch()  # Get the next character
                     if c >= ord('0') and c <= ord('9'):
@@ -139,9 +131,7 @@ def curses_anime_list(stdscr, animes, function):
                         stdscr.refresh()
                     else:
                         break  # Exit the loop if the entered character is not a number
-
                 stdscr.timeout(-1)  # Disable timeout after a multi-digit number is entered
-
                 # Update cursor based on the entered number
                 if num_str.isdigit():
                     cursor = max(0, min(int(num_str) - 1, len(animes) - 1))
