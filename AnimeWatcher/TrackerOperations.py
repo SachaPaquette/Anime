@@ -26,6 +26,8 @@ class EpisodeTracker():
                 self.episode_list = json.load(file)
         except FileNotFoundError:
             logger.error("JSON file not found.")
+            # Create the JSON file if it doesn't exist
+            self.create_empty_file()
         except json.JSONDecodeError:
             logger.error("Error decoding JSON file.")
             self.episode_list = []
@@ -33,6 +35,11 @@ class EpisodeTracker():
             logger.error(f"Error reading JSON file: {e}")
             self.episode_list = []
             raise e
+    
+    def create_empty_file(self):
+        # Create an empty JSON file
+        with open(EpisodeTrackerConfig.ANIME_WATCHER_JSON_FILE, 'w') as file:
+            json.dump([], file)
         
     def check_for_anime(self, anime_name):
         # Check if the anime is already in the list
