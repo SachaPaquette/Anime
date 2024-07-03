@@ -91,11 +91,7 @@ class EpisodeMenu:
         Returns:
             int: The next episode number if available, otherwise returns the current episode number.
         """
-        if  current_episode < self.max_episode:
-            return current_episode + 1
-        else:
-            print("No more episodes available.")
-            return current_episode
+        return current_episode + 1 if current_episode < self.max_episode else current_episode
 
     def previous_episode(self, current_episode):
         """
@@ -107,14 +103,9 @@ class EpisodeMenu:
         Returns:
             int: The previous episode number if it exists, otherwise the current episode number.
         """
-        # Check if the current episode is greater than the start episode
-        if current_episode > self.start_episode:
+       
             # If the current episode is greater than the start episode, return the previous episode
-            return current_episode - 1
-        else:
-            # If the current episode is equal to the start episode, print an error message and return the current episode
-            print("Already at the first episode.")
-            return current_episode
+        return current_episode - 1 if current_episode > self.start_episode else current_episode
 
     def available_choices(self):
         """

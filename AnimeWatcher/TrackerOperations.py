@@ -13,7 +13,6 @@ import json
 logger = setup_logging(EpisodeTrackerConfig.EPISODE_TRACKER_LOG_FILENAME,
                        EpisodeTrackerConfig.EPISODE_TRACKER_LOG_PATH)
 
-
 class EpisodeTracker():
     def __init__(self):
         self.episode_list = []
@@ -40,17 +39,8 @@ class EpisodeTracker():
         # Create an empty JSON file
         with open(EpisodeTrackerConfig.ANIME_WATCHER_JSON_FILE, 'w') as file:
             json.dump([], file)
-        
-    def check_for_anime(self, anime_name):
-        # Check if the anime is already in the list
-        for anime in self.episode_list:
-            if anime['title'] == anime_name:
-                return True
-        return False
-    
+
     def add_anime(self, anime_name, min_episode_number, max_episode_number):
-        print(f"Adding {anime_name} to the list.")
-        print(f"Episodes: {min_episode_number} - {max_episode_number}")
         # Add the anime to the list and populate the episode list with the episodes and if they have been watched
         self.episode_list.append({
         'title': anime_name,
