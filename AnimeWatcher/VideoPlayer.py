@@ -100,8 +100,7 @@ class VideoPlayer:
                 # Check if the socket is open
                 if self.observer_id:
                     # Unbind the property observer if it is bound
-                    self.mpv.unbind_property_observer(
-                        self.observer_id)  # Unbind the property observer
+                    self.mpv.unbind_property_observer(self.observer_id)  # Unbind the property observer
                     self.observer_id = None  # Set the observer ID to None
                 self.terminate()  # Terminate the MPV instance
                 self._instance = None  # Set the singleton instance to None

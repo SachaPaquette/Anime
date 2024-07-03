@@ -59,15 +59,13 @@ class UrlInteractions:
             Exception: If the request was not successful, an exception is raised with an error message.
         """
         # Check if the request was successful
-        if request.ok:
-            pass
-        else:
+        if not request.ok:
             # If the request was not successful, raise an exception with an error message
             logger.error(
                 f"Error while requesting {url}: {request.status_code}")
             raise Exception(
                 f"Error while requesting {url}: {request.status_code}")
-
+        
     def locating_element_error(self, soup, link, element):
         """
         Raises an exception if the specified element cannot be located in the given link's HTML soup.
@@ -81,7 +79,7 @@ class UrlInteractions:
             Exception: If the specified element cannot be located in the HTML soup.
         """
         # Check if the element exists
-        if soup == None:
+        if soup is None:
             logger.error(f"Error while locating {element} in {link}")
             raise Exception(f"Error while locating {element} in {link}")
 
