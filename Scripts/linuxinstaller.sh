@@ -21,6 +21,17 @@ install_program() {
 
 # Check the operating system
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+
+     # Check if virtual environment directory exists
+    if [ -d "AnimeWatcherEnv" ]; then
+        # Activate the virtual environment
+        source AnimeWatcherEnv/bin/activate 
+    else
+        echo "Virtual environment not found."
+        exit 1
+    fi
+
+
     # Check if google-chrome is installed
     check_installation "google-chrome"
     # Check if MPV is installed
@@ -38,9 +49,17 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
     if ! which mpv > /dev/null 2>&1; then
         install_program "mpv"
     fi
+
+    echo "Now installing Python dependencies..."
+    pip install -r Requirements/requirements.txt
+
+    
 else 
     echo "Operating system not supported."
     exit 1
 fi
 
-echo "Now installing Python's dependecies..."
+# Clear the terminal
+clear
+# Display installation complete message
+echo "Installation complete. Run the program using 'python animewatch.py'"
