@@ -7,7 +7,6 @@ from Config.logs_config import setup_logging
 logger = setup_logging(ScriptConfig.SCRIPT_FILENAME,ScriptConfig.SCRIPT_LOG_PATH)
 
 class Scripts:
-
     def run_script(self):
         if platform.system().lower() == 'linux':
             # Run the create environment script
@@ -15,6 +14,7 @@ class Scripts:
             # Run the linux installation script
             subprocess.run(['bash', ScriptConfig.linux_script])
         elif platform.system().lower() == 'windows':
+            # Run the create environment script
             self.create_environment()
             # Run the windows installation script
             subprocess.run(['powershell.exe', '-File', ScriptConfig.windows_script])
