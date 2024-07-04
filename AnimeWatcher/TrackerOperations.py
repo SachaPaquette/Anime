@@ -10,8 +10,7 @@ import base64
 import json
 
 # Setup logging
-logger = setup_logging(EpisodeTrackerConfig.EPISODE_TRACKER_LOG_FILENAME,
-                       EpisodeTrackerConfig.EPISODE_TRACKER_LOG_PATH)
+logger = setup_logging(EpisodeTrackerConfig.EPISODE_TRACKER_LOG_FILENAME,EpisodeTrackerConfig.EPISODE_TRACKER_LOG_PATH)
 
 class EpisodeTracker():
     def __init__(self):
@@ -74,7 +73,6 @@ class EpisodeTracker():
                 if current_max_episode < max_episode:
                     # Add the new episodes to the list without switching the old episodes 
                     anime['episodes'].extend([{'episode': num, 'watched': False} for num in range(current_max_episode + 1, max_episode + 1)])
-                    
                     self.save_json_file()
                          
     def get_watched_list(self, anime_name, start_episode, end_episode):
