@@ -104,6 +104,9 @@ def episodesList(max_episode, watched_list):
         logger.error(f"Error selecting episode: {e}")
         raise e
 
+def get_height(stdscr):
+    return stdscr.getmaxyx()[0] -1
+
 def curses_anime_list(stdscr, animes, function):
     try:
         cursor = 0 
@@ -120,14 +123,16 @@ def curses_anime_list(stdscr, animes, function):
                 return 0
             elif c >= ord('0') and c <= ord('9'):
                 num_str = chr(c)  # Initialize the string with the first character
-                stdscr.addstr(1, 0, f"Entered number: {num_str}")  # Display entered number (for debugging)
+                
+                stdscr.addstr(get_height(stdscr), 0, f"Entered number: {num_str}")  # Display entered number at the bottom
                 stdscr.refresh()
                 stdscr.timeout(700)  # Set input timeout to 700ms
                 while True:
                     c = stdscr.getch()  # Get the next character
                     if c >= ord('0') and c <= ord('9'):
                         num_str += chr(c)  # Append the entered number to the string
-                        stdscr.addstr(1, 0, f"Entered number: {num_str}")  # Update displayed number (for debugging)
+                        
+                        stdscr.addstr(get_height(stdscr), 0, f"Entered number: {num_str}")  # Display entered number at the bottom
                         stdscr.refresh()
                     else:
                         break  # Exit the loop if the entered character is not a number

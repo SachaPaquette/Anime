@@ -37,7 +37,10 @@ class Scripts:
             subprocess.run([f'{ScriptConfig.venv_name}/bin/python', '-m', 'pip', 'install', '-r', ScriptConfig.requirements_file])
 
     def main(self):
-        # Get the operating system
-        # Run the appropriate script based on the operating system
-        self.run_script()
-        
+        try:
+            # Get the operating system
+            # Run the appropriate script based on the operating system
+            self.run_script()
+        except Exception as e:
+            logger.error(f"An error occurred: {e}")
+            raise

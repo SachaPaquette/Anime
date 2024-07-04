@@ -1,4 +1,5 @@
 
+import time
 from selenium.webdriver.common.by import By
 from Config.config import WebOperationsConfig, AnimeWatcherConfig, WebElementsConfig
 from Config.logs_config import setup_logging
@@ -8,6 +9,8 @@ import requests
 from bs4 import BeautifulSoup
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import NoSuchElementException, TimeoutException
+
 # Logging configuration
 logger = setup_logging(AnimeWatcherConfig.ANIME_WATCH_LOG_FILENAME,
                        AnimeWatcherConfig.ANIME_WATCH_LOG_PATH)
@@ -55,7 +58,7 @@ class WebInteractions:
             logger.error(f"Error while navigating to {url}: {e}")
             raise  # Re-raise the exception to stop further execution
 
-    def find_single_element(self, type_name, value, element=None):
+    def find_single_element(self, type_name, value, element=None, timeout=10):
         """
         Finds a single element on the web page using the specified type and value.
 
@@ -72,7 +75,14 @@ class WebInteractions:
         """
         # Get the search type (e.g., "class name", "tag name", etc.)
         by = getattr(By, type_name.replace(' ', '_').upper())
-        return element.find_element(by=by, value=value) if element else self.driver.find_element(by=by, value=value)
+        try:
+            if element:
+                return WebDriverWait(element, timeout).until(EC.presence_of_element_located((by, value)))
+            else:
+                return WebDriverWait(self.driver, timeout).until(EC.presence_of_element_located((by, value)))
+        except TimeoutException:
+            raise NoSuchElementException(f"Element not found: {type_name}='{value}' after {timeout} seconds")
+
     def find_multiple_elements(self, type_name, value, element=None):
         """
         Finds multiple elements on the page using the specified search criteria.
@@ -129,7 +139,7 @@ class AnimeInteractions:
         """
         try:
             # Find and return the episodes body
-            return self.web_interactions.find_single_element(By.CLASS_NAME, WebOperationsConfig.ANIME_VIDEO_BODY)
+            return self.web_interactions.find_single_element(By.CLASS_NAME, WebOperationsConfig.ANIME_VIDEO_BODY, timeout=5)
         except Exception as e:
             logger.error(f"Error while finding episodes body: {e}")
             raise Exception("Episodes list not found") from e
@@ -149,7 +159,7 @@ class AnimeInteractions:
         """
         try:
             # Find the episodes element
-            episodes = self.web_interactions.find_single_element(By.ID, WebOperationsConfig.EPISODE_PAGE, element=episodes_body)
+            episodes = self.web_interactions.find_single_element(By.ID, WebOperationsConfig.EPISODE_PAGE, element=episodes_body, timeout=5)
             if episodes is None:
                 # If the episodes element is not found, raise an exception
                 raise Exception("Episodes not found")
@@ -223,17 +233,14 @@ class AnimeInteractions:
             # Go to the anime website
             self.web_interactions.naviguate(
                 WebOperationsConfig.GOGO_ANIME_SEARCH.format(input_anime_name))
-
+            
             # Check for pagination (multiple pages of results)
             pagination_div = self.web_interactions.find_single_element(
-                By.CSS_SELECTOR, WebOperationsConfig.ANIME_NAME_PAGINATION)
+                By.CSS_SELECTOR, WebOperationsConfig.ANIME_NAME_PAGINATION, timeout=5)
 
-            if pagination_div:
-                # Find all the pagination links
-                page_numbers = self.find_pagination_links(pagination_div)
-            
+            if pagination_div:            
                 # Iterate through the page numbers
-                for page_number in page_numbers:
+                for page_number in self.find_pagination_links(pagination_div):
                     # Process each page of the anime list
                     self.process_anime_list_page(input_anime_name, anime_list, page_number)
             else:
