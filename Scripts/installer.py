@@ -20,8 +20,6 @@ class Scripts:
             subprocess.run(['powershell.exe', '-File', ScriptConfig.windows_script])
             # Install curses for windows
             self.install_python_package(ScriptConfig.window_curses)
-            # Install the required packages
-            self.install_python_package()
         else:
             raise Exception(f"Unsupported operating system: {platform.system().lower()}")
 
