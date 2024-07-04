@@ -67,20 +67,20 @@ def displayEpisodes(stdscr, episodes, cursor):
 
         if end - start < display_range:  # Adjust start if end is at the end of the list
             start = max(0, end - display_range)
-        
+
         # Print the episodes within the range
         for i in range(start, end):
             episode = episodes[i]
-            if i == cursor:
-                if episode['watched']:
-                    stdscr.addstr(f"> {episode['episode']}\n", curses.color_pair(1) | curses.A_REVERSE)
-                else:
-                    stdscr.addstr(f"> {episode['episode']}\n", curses.color_pair(2) | curses.A_REVERSE)
+            watched = episode['watched']
+            selected = (i == cursor)
+            
+            if selected:
+                color_pair = curses.color_pair(1) | curses.A_REVERSE  if watched else curses.color_pair(2) | curses.A_REVERSE
             else:
-                if episode['watched']:
-                    stdscr.addstr(f"  {episode['episode']}\n", curses.color_pair(1))
-                else:
-                    stdscr.addstr(f"  {episode['episode']}\n", curses.color_pair(2))
+                color_pair = curses.color_pair(1) if watched else curses.color_pair(2)
+            
+            stdscr.addstr(f"{'> ' if selected else '  '}{episode['episode']}\n", color_pair)
+
         stdscr.refresh()
 
     except Exception as e:
@@ -95,11 +95,7 @@ def animeList(animes):
         raise e
 def episodesList(max_episode, watched_list):
     try:        
-        list_episodes = []
-        for i in range(1, max_episode+1):
-            list_episodes.append({'episode': i, 'watched': i in watched_list})
-        return curses.wrapper(curses_anime_list, list_episodes, displayEpisodes)
-
+        return curses.wrapper(curses_anime_list, [{'episode': i, 'watched': i in watched_list} for i in range(1, max_episode + 1)], displayEpisodes)
     except Exception as e:
         logger.error(f"Error selecting episode: {e}")
         raise e
@@ -108,38 +104,57 @@ def curses_anime_list(stdscr, animes, function):
     try:
         cursor = 0 
         function(stdscr, animes, cursor)
+        
         while True:
             c = stdscr.getch()
+            # Check for arrow key input
             if c == curses.KEY_UP and cursor > 0:
                 cursor -= 1  # Move the cursor up                         
             elif c == curses.KEY_DOWN and cursor < len(animes) - 1:
-                cursor += 1  # Move the cursor down               
+                cursor += 1  # Move the cursor down
             elif c == ord('\n'):  # The curses library uses '\n' instead of 'enter'
                 return cursor + 1  # Return the selected index
             elif c == ord('q'):
                 return 0
-            elif c >= ord('0') and c <= ord('9'):
-                num_str = chr(c)  # Initialize the string with the first character
-                stdscr.addstr(1, 0, f"Entered number: {num_str}")  # Display entered number (for debugging)
-                stdscr.refresh()
-                stdscr.timeout(700)  # Set input timeout to 700ms
-                while True:
-                    c = stdscr.getch()  # Get the next character
-                    if c >= ord('0') and c <= ord('9'):
-                        num_str += chr(c)  # Append the entered number to the string
-                        stdscr.addstr(1, 0, f"Entered number: {num_str}")  # Update displayed number (for debugging)
-                        stdscr.refresh()
-                    else:
-                        break  # Exit the loop if the entered character is not a number
-                stdscr.timeout(-1)  # Disable timeout after a multi-digit number is entered
-                # Update cursor based on the entered number
-                if num_str.isdigit():
-                    cursor = max(0, min(int(num_str) - 1, len(animes) - 1))
-
+            elif ord('0') <= c <= ord('9'):
+                num_str = handle_number_input(stdscr, c)
+                cursor = update_cursor(num_str, len(animes))
+            
             function(stdscr, animes, cursor)
+    
     except Exception as e:
         logger.error(f"Error in curses anime list: {e}")
-        raise e  
+        raise e
+
+
+def handle_number_input(stdscr, initial_char):
+    num_str = chr(initial_char)  # Initialize the string with the first character
+    display_number_input(stdscr, num_str)
+    
+    stdscr.timeout(700)  # Set input timeout to 700ms
+    while True:
+        c = stdscr.getch()  # Get the next character
+        if ord('0') <= c <= ord('9'):
+            num_str += chr(c)  # Append the entered number to the string
+            display_number_input(stdscr, num_str)
+        else:
+            break  # Exit the loop if the entered character is not a number
+    
+    stdscr.timeout(-1)  # Disable timeout after a multi-digit number is entered
+    return num_str
+
+
+def display_number_input(stdscr, num_str):
+    stdscr.addstr(stdscr.getmaxyx()[0] - 1, 0, f"Entered number: {num_str}")  # Display entered number at the bottom
+    stdscr.clrtoeol()  # Clear to the end of line to handle shorter inputs overwriting longer ones
+    stdscr.refresh()
+
+
+def update_cursor(num_str, max_length):
+    if num_str.isdigit():
+        return max(0, min(int(num_str) - 1, max_length - 1))
+    return 0
+
             
 
             

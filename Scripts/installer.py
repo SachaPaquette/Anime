@@ -20,8 +20,6 @@ class Scripts:
             subprocess.run(['powershell.exe', '-File', ScriptConfig.windows_script])
             # Install curses for windows
             self.install_python_package(ScriptConfig.window_curses)
-            # Install the required packages
-            self.install_python_package()
         else:
             raise Exception(f"Unsupported operating system: {platform.system().lower()}")
 
@@ -39,7 +37,10 @@ class Scripts:
             subprocess.run([f'{ScriptConfig.venv_name}/bin/python', '-m', 'pip', 'install', '-r', ScriptConfig.requirements_file])
 
     def main(self):
-        # Get the operating system
-        # Run the appropriate script based on the operating system
-        self.run_script()
-        
+        try:
+            # Get the operating system
+            # Run the appropriate script based on the operating system
+            self.run_script()
+        except Exception as e:
+            logger.error(f"An error occurred: {e}")
+            raise
