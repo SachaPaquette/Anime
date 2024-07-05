@@ -1,33 +1,14 @@
 from AnimeWatcher.EpisodesList import animeList, episodesList
+# Import logger
+from Config.logs_config import setup_logging
+from Config.config import AnimeWatcherConfig
+# Import the logger
+logger = setup_logging(AnimeWatcherConfig.ANIME_WATCH_LOG_FILENAME,AnimeWatcherConfig.ANIME_WATCH_LOG_PATH)
+
+
 class UserInteractions:
     def __init__(self):
         self.quit_symbol = '0'
-    def get_valid_index(self, prompt, max_index):
-        """
-        Prompts the user for an index and validates it.
-
-        Args:
-            prompt (str): The prompt message to display to the user.
-            max_index (int): The maximum valid index.
-
-        Returns:
-            int: The valid index entered by the user.
-
-        Raises:
-            ValueError: If the user enters an invalid number.
-        """
-        while True:
-            try:
-                # Prompt the user to enter an index
-                selected_index = int(input(prompt))
-                # If the user entered a valid index, return it
-                if selected_index == 0 or 0 <= selected_index <= max_index:
-                    return selected_index  # Return the selected index
-                else:
-                    print("Invalid index. Please enter a valid index.")
-            except ValueError:
-                print("Invalid input. Please enter a valid number.")
-
 
     def select_anime(self, animes):
         """
@@ -41,16 +22,8 @@ class UserInteractions:
         """
         
         return animeList(animes)
-        
-        
-        """for i, anime in enumerate(animes):
-            # Print the anime's title
-            print(f"{i + 1}. {anime['title']}")
-        # Prompt the user to enter the index of the anime they want to watch
-        return self.get_valid_index("Enter the index of the anime you want to watch (or 0 to exit): ", len(animes))
 
-"""
-    def get_user_input(self, max_episode, logger, watched_list):
+    def get_user_input(self, max_episode, watched_list=None):
         """
         Prompts the user to enter the episode they want to start watching, between the given start and max episodes.
 

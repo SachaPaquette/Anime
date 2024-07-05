@@ -12,9 +12,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 
 # Logging configuration
-logger = setup_logging(AnimeWatcherConfig.ANIME_WATCH_LOG_FILENAME,
-                       AnimeWatcherConfig.ANIME_WATCH_LOG_PATH)
-
+logger = setup_logging(AnimeWatcherConfig.ANIME_WATCH_LOG_FILENAME,AnimeWatcherConfig.ANIME_WATCH_LOG_PATH)
 
 class WebInteractions:
     def __init__(self):
@@ -25,18 +23,20 @@ class WebInteractions:
         self.cleanup_done = False
 
     def cleanup(self):
+        """
+        Performs cleanup operations, ensuring the browser driver is properly closed.
+
+        This method checks if the cleanup has already been performed to avoid redundant operations.
+        """
+        if self.cleanup_done:
+            print("Cleanup already performed, skipping.")
+            return
+
         try:
-            # Check if cleanup has already been performed
-            if not self.cleanup_done:
-                # Check if the driver is still active
-                if self.driver is not None:
-                    # Quit the driver
-                    self.driver.quit()                    
-                    print("\nBrowser closed")
-                # Set the cleanup flag to True
-                self.cleanup_done = True
-            else:
-                print("Cleanup already performed, skipping.")
+            if self.driver is not None:
+                self.driver.quit()
+                print("\nBrowser closed")
+            self.cleanup_done = True
         except Exception as e:
             logger.error(f"Error during browser cleanup: {e}")
 
@@ -58,47 +58,39 @@ class WebInteractions:
             logger.error(f"Error while navigating to {url}: {e}")
             raise  # Re-raise the exception to stop further execution
 
-    def find_single_element(self, type_name, value, element=None, timeout=10):
+    def find_elements(self, type_name, value, element=None, timeout=10, multiple=False):
         """
-        Finds a single element on the web page using the specified type and value.
+        Finds one or more elements on the web page using the specified type and value.
 
         Args:
             type_name (str): The type of element to search for (e.g., 'id', 'class_name', 'xpath').
             value (str): The value associated with the type of element.
             element (WebElement, optional): The parent element to search within. If not provided, the search will be performed on the entire page.
+            timeout (int, optional): The timeout for waiting for the element. Default is 10 seconds.
+            multiple (bool, optional): If True, returns multiple elements. If False, returns a single element. Default is False.
 
         Returns:
-            WebElement: The found element.
+            WebElement or list of WebElements: The found element(s).
 
         Raises:
-            NoSuchElementException: If the element is not found.
+            NoSuchElementException: If the element is not found within the timeout.
         """
-        # Get the search type (e.g., "class name", "tag name", etc.)
-        by = getattr(By, type_name.replace(' ', '_').upper())
+        by_type = getattr(By, type_name.replace(' ', '_').upper())
+
         try:
             if element:
-                return WebDriverWait(element, timeout).until(EC.presence_of_element_located((by, value)))
+                if multiple:
+                    return element.find_elements(by=by_type, value=value)
+                else:
+                    return WebDriverWait(element, timeout).until(EC.presence_of_element_located((by_type, value)))
             else:
-                return WebDriverWait(self.driver, timeout).until(EC.presence_of_element_located((by, value)))
+                if multiple:
+                    return self.driver.find_elements(by=by_type, value=value)
+                else:
+                    return WebDriverWait(self.driver, timeout).until(EC.presence_of_element_located((by_type, value)))
         except TimeoutException:
             raise NoSuchElementException(f"Element not found: {type_name}='{value}' after {timeout} seconds")
-
-    def find_multiple_elements(self, type_name, value, element=None):
-        """
-        Finds multiple elements on the page using the specified search criteria.
-
-        Args:
-            type_name (str): The type of search to perform (e.g., "class name", "tag name", etc.).
-            value (str): The value to search for.
-            element (WebElement): The element to search within (optional).
-
-        Returns:
-            A list of WebElements that match the specified search criteria.
-        """
-        # Get the search type (e.g., "class name", "tag name", etc.)
-        by_type = getattr(By, type_name.replace(' ', '_').upper())
-        return element.find_elements(by=by_type, value=value) if element else self.driver.find_elements(by=by_type, value=value)
-
+        
     def format_anime_url(self, page_number):
         """Function to format the anime URL with the page number
 
@@ -139,7 +131,7 @@ class AnimeInteractions:
         """
         try:
             # Find and return the episodes body
-            return self.web_interactions.find_single_element(By.CLASS_NAME, WebOperationsConfig.ANIME_VIDEO_BODY, timeout=5)
+            return self.web_interactions.find_elements(type_name=By.CLASS_NAME, value=WebOperationsConfig.ANIME_VIDEO_BODY, timeout=5, multiple=False)
         except Exception as e:
             logger.error(f"Error while finding episodes body: {e}")
             raise Exception("Episodes list not found") from e
@@ -159,7 +151,7 @@ class AnimeInteractions:
         """
         try:
             # Find the episodes element
-            episodes = self.web_interactions.find_single_element(By.ID, WebOperationsConfig.EPISODE_PAGE, element=episodes_body, timeout=5)
+            episodes = self.web_interactions.find_elements(By.ID, WebOperationsConfig.EPISODE_PAGE, element=episodes_body, timeout=5, multiple=False)
             if episodes is None:
                 # If the episodes element is not found, raise an exception
                 raise Exception("Episodes not found")
@@ -235,8 +227,8 @@ class AnimeInteractions:
                 WebOperationsConfig.GOGO_ANIME_SEARCH.format(input_anime_name))
             
             # Check for pagination (multiple pages of results)
-            pagination_div = self.web_interactions.find_single_element(
-                By.CSS_SELECTOR, WebOperationsConfig.ANIME_NAME_PAGINATION, timeout=5)
+            pagination_div = self.web_interactions.find_elements(
+                By.CSS_SELECTOR, WebOperationsConfig.ANIME_NAME_PAGINATION, timeout=5, multiple=False)
 
             if pagination_div:            
                 # Iterate through the page numbers
@@ -306,28 +298,20 @@ class AnimeInteractions:
         Retrieves the number of episodes for the anime.
 
         Returns:
-            Two variables, the minimum and maximum episode numbers.
+            tuple: The minimum and maximum episode numbers.
         Raises:
             Exception: If there is an error while getting the number of episodes.
         """
         try:
-            episodes_body = self.find_episodes_body()
-            episodes = self.find_episodes(episodes_body)
-            li_elements = self.find_li_elements(episodes)
-
-            min_start = float('inf')  # set to positive infinity
-            max_end = float('-inf')  # set to negative infinity
-
-            for li_element in li_elements:
-                ep_start, ep_end = self.get_episode_range(li_element)
-                min_start = 1
+            max_end = 1
+            for li_element in self.find_li_elements(self.find_episodes(self.find_episodes_body())):
+                _, ep_end = self.get_episode_range(li_element)
                 max_end = max(max_end, ep_end)
-               
-            return min_start, max_end if max_end > 0 else 1
-
+            return 1, max_end
         except Exception as e:
             logger.error(f"Error while getting number of episodes: {e}")
             raise
+
 
     def format_anime_name_from_url(self, url, prompt):
         """
