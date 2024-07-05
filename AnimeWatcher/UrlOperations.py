@@ -99,9 +99,8 @@ class UrlInteractions:
             # Check if the request was successful
             self.check_response_error(request, url)
             # Create a BeautifulSoup object from the response content
-            soup = BeautifulSoup(request.content, "html.parser")
             # Return the BeautifulSoup object
-            return soup
+            return BeautifulSoup(request.content, "html.parser")
         except Exception as e:
             raise Exception(f"Error while getting HTML soup: {e}")
 
@@ -116,8 +115,7 @@ class UrlInteractions:
             str: The embedded URL.
         """
         # Return the embedded video player URL
-        return f'https:{active_link["data-video"]}' if not active_link["data-video"].startswith(
-            "https:") else active_link["data-video"]
+        return f'https:{active_link["data-video"]}' if not active_link["data-video"].startswith("https:") else active_link["data-video"]
 
     def get_embedded_video_url(self, episode_url):
         """
@@ -203,9 +201,7 @@ class UrlInteractions:
         Returns:
             bytes: The encrypted data in base64-encoded format.
         """
-        return base64.b64encode(
-            AES.new(key, self.mode, iv=iv).encrypt(self.padding(data).encode())
-        )
+        return base64.b64encode(AES.new(key=key, mode=self.mode, iv=iv).encrypt(self.padding(data).encode()))
 
     def aes_decrypt(self, data, key, iv):
         """
@@ -221,7 +217,7 @@ class UrlInteractions:
         """
         try:
             return (
-                AES.new(key, self.mode, iv=iv)
+                AES.new(key=key, mode=self.mode, iv=iv)
                 .decrypt(base64.b64decode(data))
                 .strip(b"\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\x0c\r\x0e\x0f\x10")
             )

@@ -61,17 +61,13 @@ class VideoPlayer:
             self.initialize_player()
             # Try to play the video
             self.mpv.play(url)
-
-        except (OSError, BrokenPipeError) as socket_error:
-            # Recreate the MPV instance and try again if the socket is closed
+        except (OSError, BrokenPipeError):
             try:
-                # Terminate the MPV instance
-                self.mpv = None
-                # Reinitialize the MPV instance
+                self.terminate_player()  # Ensure the player is properly terminated
                 self.initialize_player()
-                # Retry playing the video
-                self.play_video(url)
+                self.mpv.play(url)
             except Exception as e:
+                logger.error(f"Error while playing video: {e}")
                 raise e
 
     def terminate(self):
@@ -95,22 +91,18 @@ class VideoPlayer:
             Exception: If there is any other unexpected error.
         """
         try:
-            # Check if the MPV instance is open
-            if self.mpv is not None:
-                # Check if the socket is open
+            if self.mpv:
                 if self.observer_id:
-                    # Unbind the property observer if it is bound
-                    self.mpv.unbind_property_observer(self.observer_id)  # Unbind the property observer
-                    self.observer_id = None  # Set the observer ID to None
-                self.terminate()  # Terminate the MPV instance
-                self._instance = None  # Set the singleton instance to None
-                self.mpv = None  # Set mpv to None explicitly
+                    self.mpv.unbind_property_observer(self.observer_id)
+                    self.observer_id = None
+                self.terminate()
+                self._instance = None
+                self.mpv = None
         except (OSError, BrokenPipeError) as socket_error:
-            # Handle socket closure
             logger.error(f"Socket closure error: {socket_error}")
         except Exception as e:
-            # Raise any other unexpected errors
-            raise e
+            logger.error(f"Unexpected error during player termination: {e}")
+            raise
 
     def is_open(self):
         """

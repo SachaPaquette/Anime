@@ -4,9 +4,7 @@ from Config.logs_config import setup_logging
 from Config.config import AnimeWatcherConfig
 from AnimeWatcher.TrackerOperations import EpisodeTracker
 # Setup logging
-logger = setup_logging(AnimeWatcherConfig.ANIME_WATCH_LOG_FILENAME,
-                       AnimeWatcherConfig.ANIME_WATCH_LOG_PATH)
-
+logger = setup_logging(AnimeWatcherConfig.ANIME_WATCH_LOG_FILENAME,AnimeWatcherConfig.ANIME_WATCH_LOG_PATH)
 
 def displayAnimes(stdscr, anime, cursor):
     try:
@@ -20,24 +18,19 @@ def displayAnimes(stdscr, anime, cursor):
         display_range = min(20, height - 2)  # Ensure we don't try to display more lines than the screen can fit
         start = max(0, cursor - display_range // 2)
         end = min(start + display_range, len(anime))
-
         if end - start < display_range:  # Adjust start if end is at the end of the list
             start = max(0, end - display_range)
-
         for i in range(start, end):
             ani = anime[i]
             line = f"> {i + 1}. {ani['title']}\n" if i == cursor else f"  {i + 1}. {ani['title']}\n"
             if len(line) > width:
                 line = line[:width - 1]  # Truncate the line if it's too long
-
             try:
                 stdscr.addstr(i - start + 1, 0, line, curses.A_REVERSE if i == cursor else 0)  # Highlight the selected episode
             except curses.error:
-                # Handle cases where addstr fails
-                pass
-
+                logger.error(f"Error displaying anime list: {line}")
+                raise Exception("Error displaying anime list")
         stdscr.refresh()
-        
     except Exception as e:
         logger.error(f"Error displaying anime list: {e}")
         raise e
@@ -65,21 +58,17 @@ def displayEpisodes(stdscr, episodes, cursor):
         start = max(0, cursor - display_range // 2)
         end = min(start + display_range, len(episodes))
 
-        if end - start < display_range:  # Adjust start if end is at the end of the list
+        if (end - start) < display_range:  # Adjust start if end is at the end of the list
             start = max(0, end - display_range)
 
         # Print the episodes within the range
         for i in range(start, end):
-            episode = episodes[i]
-            watched = episode['watched']
-            selected = (i == cursor)
-            
-            if selected:
-                color_pair = curses.color_pair(1) | curses.A_REVERSE  if watched else curses.color_pair(2) | curses.A_REVERSE
+            if (i == cursor):
+                color_pair = curses.color_pair(1) | curses.A_REVERSE  if episodes[i]['watched'] else curses.color_pair(2) | curses.A_REVERSE
             else:
-                color_pair = curses.color_pair(1) if watched else curses.color_pair(2)
+                color_pair = curses.color_pair(1) if episodes[i]['watched'] else curses.color_pair(2)
             
-            stdscr.addstr(f"{'> ' if selected else '  '}{episode['episode']}\n", color_pair)
+            stdscr.addstr(f"{'> ' if (i == cursor) else '  '}{episodes[i]['episode']}\n", color_pair)
 
         stdscr.refresh()
 
