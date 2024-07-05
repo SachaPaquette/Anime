@@ -1,4 +1,4 @@
-# The user will be able to navigate through the animes/episodes and select the one they want to watch.
+# The user will be able to naviguate through the animes/episodes and select the one they want to watch.
 import curses 
 from Config.logs_config import setup_logging
 from Config.config import AnimeWatcherConfig

@@ -42,17 +42,17 @@ class WebInteractions:
 
     def naviguate(self, url):
         """
-        Navigates to the specified URL using the Selenium WebDriver.
+        naviguates to the specified URL using the Selenium WebDriver.
 
         Args:
-            url (str): The URL to navigate to.
+            url (str): The URL to naviguate to.
 
         Raises:
             Exception: If an error occurs while navigating to the URL.
 
         """
         try:
-            # Navigate to the URL
+            # naviguate to the URL
             self.driver.get(url)
         except Exception as e:
             logger.error(f"Error while navigating to {url}: {e}")
@@ -163,50 +163,66 @@ class AnimeInteractions:
             raise
 
     def find_pagination_links(self, pagination_div):
-        """Find and return the pagination links from the pagination div.
+        """
+        Find and return the pagination links from the pagination div.
 
         Args:
             pagination_div (WebElement): The pagination div element.
 
         Returns:
-            list: A list of pagination links.
+            list: A list of page numbers extracted from pagination links.
         """
-        pagination_links = pagination_div.find_elements(
-            By.CSS_SELECTOR, WebOperationsConfig.UL_PAGINATION_LIST)
-        pages_array = [link.get_attribute('data-page') for link in pagination_links]
+        try:
+            # Find all pagination links within the pagination div
+            pagination_links = pagination_div.find_elements(By.CSS_SELECTOR, WebOperationsConfig.UL_PAGINATION_LIST)
+            
+            # Extract page numbers from pagination links
+            page_numbers = [int(link.get_attribute('data-page')) for link in pagination_links if link.get_attribute('data-page')]
+            
+            # If no valid page numbers are found, return a default page number list [1]
+            return page_numbers if page_numbers else [1]
         
-        # Return the pagination links (i.e., the page numbers)
-        return [1] if not pages_array else [link.get_attribute('data-page') for link in pagination_links]
-    
+        except Exception as e:
+            logger.error(f"Error while finding pagination links: {e}")
+            raise
+
     def process_anime_list_page(self, input_anime_name, anime_list, page_number=1):
-        """Process a single page of the anime list and return the results.
+        """
+        Process a single page of the anime list and append the results to anime_list.
 
         Args:
             input_anime_name (str): The input anime name for searching.
-            page_number (int): The page number to process.
-
-        Returns:
-            list: A list of dictionaries containing anime data.
-        """   
-        # Navigate to the anime page
-        self.web_interactions.naviguate(
-            WebOperationsConfig.GOGO_ANIME_SEARCH.format(input_anime_name) + f"&page={page_number}")
-
-        # Find all the li elements
-        li_elements = WebDriverWait(self.web_interactions.driver, 10).until(
-                EC.presence_of_element_located((By.CSS_SELECTOR, 'ul.items'))).find_elements(By.CSS_SELECTOR, WebElementsConfig.LI_ELEMENT)
-
-        # Check if there are any li elements
-        if not li_elements:
-            raise Exception("Anime list not found")
+            anime_list (list): The list to append anime data dictionaries.
+            page_number (int, optional): The page number to process. Defaults to 1.
+        """
+        try:
+            # naviguate to the anime search page for the specified page number
+            search_url = WebOperationsConfig.GOGO_ANIME_SEARCH.format(input_anime_name) + f"&page={page_number}"
+            self.web_interactions.naviguate(search_url)
+            
+            # Find all the li elements containing anime information
+            li_elements = WebDriverWait(self.web_interactions.driver, 10).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, 'ul.items'))
+            ).find_elements(By.CSS_SELECTOR, WebElementsConfig.LI_ELEMENT)
+            
+            # Check if any li elements were found
+            if not li_elements:
+                raise NoSuchElementException("No anime list elements found")
+            
+            # Process each li element and extract title and link
+            for li in li_elements:
+                anime_list.append({
+                    'title': li.text.split('\n')[0],
+                    'link': li.find_element(By.CSS_SELECTOR, WebElementsConfig.HYPERLINK).get_attribute(WebElementsConfig.HREF)
+                })
+                
+        except NoSuchElementException as e:
+            logger.error(f"No anime list elements found on page {page_number} for '{input_anime_name}': {e}")
         
-        # Find the first li element
-        for li in li_elements:
-            # Append the results to the anime list
-            anime_list.append({
-                'title': li.text.split('\n')[0],
-                'link': li.find_element(By.CSS_SELECTOR, WebElementsConfig.HYPERLINK).get_attribute(WebElementsConfig.HREF)
-            })
+        except Exception as e:
+            logger.error(f"Error while processing anime list page {page_number} for '{input_anime_name}': {e}")
+            raise
+
     
     def format_anime_name_from_input(self, input_anime_name):
         try:
@@ -218,19 +234,26 @@ class AnimeInteractions:
 
 
     def find_anime_website(self, input_anime_name):
+        """
+        Finds anime on a specific website based on the input anime name.
+
+        Args:
+            input_anime_name (str): The name of the anime to search for.
+
+        Returns:
+            list: A list of anime found on the website.
+        """
         try:
-            # Initialize the anime list
-            anime_list = []
+            anime_list = []  # Initialize the anime list
             
-            # Go to the anime website
-            self.web_interactions.naviguate(
-                WebOperationsConfig.GOGO_ANIME_SEARCH.format(input_anime_name))
+            # naviguate to the anime search page
+            self.web_interactions.naviguate(WebOperationsConfig.GOGO_ANIME_SEARCH.format(input_anime_name))
             
             # Check for pagination (multiple pages of results)
             pagination_div = self.web_interactions.find_elements(
                 By.CSS_SELECTOR, WebOperationsConfig.ANIME_NAME_PAGINATION, timeout=5, multiple=False)
 
-            if pagination_div:            
+            if pagination_div:
                 # Iterate through the page numbers
                 for page_number in self.find_pagination_links(pagination_div):
                     # Process each page of the anime list
@@ -238,11 +261,17 @@ class AnimeInteractions:
             else:
                 # Process the first page if no pagination
                 self.process_anime_list_page(input_anime_name, anime_list)
-            # Return the anime list
-            return anime_list
+            
+            return anime_list  # Return the collected anime list
+        
+        except NoSuchElementException as e:
+            logger.error(f"No anime found for '{input_anime_name}': {e}")
+            return []  # Return an empty list if no anime found
+        
         except Exception as e:
-            logger.error(f"Error while finding anime website: {e}")
+            logger.error(f"Error while finding anime website for '{input_anime_name}': {e}")
             raise
+
 
 
     def find_li_elements(self, episodes):
