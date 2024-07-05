@@ -40,17 +40,17 @@ class AnimeWatch:
 
     def naviguate_fetch_episodes(self, url, anime_name):
         """
-        Navigates to the given URL and fetches the episodes for the specified anime.
+        naviguates to the given URL and fetches the episodes for the specified anime.
 
         Args:
-            url (str): The URL to navigate to.
+            url (str): The URL to naviguate to.
             anime_name (str): The name of the anime.
 
         Returns:
             bool: True if the application needs to be restarted, False otherwise.
         """
         try:
-            # Navigate to the URL
+            # naviguate to the URL
             self.web_interactions.naviguate(url)
             # Get the start and max episodes from the page
             start_episode, max_episode = self.anime_interactions.get_number_episodes()
@@ -262,7 +262,7 @@ class Main:
         """
         try:
             print(f"Selected anime: {selected_anime['title']}")
-            # Navigate to the anime's page and fetch the episodes for the anime
+            # naviguate to the anime's page and fetch the episodes for the anime
             return self.anime_watch.naviguate_fetch_episodes(selected_anime['link'], selected_anime['title'])
         except Exception as e:
             logger.error(f"Error while watching anime: {e}")
