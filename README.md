@@ -4,11 +4,6 @@
 
 This CLI (Command-Line Interface) application allows users watch anime episodes directly in the command line.
 
-### Features
-
-    Command-Line Episode Viewer:
-        Users can select an anime and watch any available episode directly in the command line.
-
 ### Dependencies
 
 Before trying to use this application, make sure that your computer contains the applications that follows
