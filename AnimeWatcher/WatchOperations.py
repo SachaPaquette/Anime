@@ -3,8 +3,9 @@ from Config.logs_config import setup_logging
 from AnimeWatcher.WebOperations import WebInteractions, AnimeInteractions
 from AnimeWatcher.VideoPlayer import VideoPlayer
 from AnimeWatcher.UrlOperations import UrlInteractions
-from AnimeWatcher.EpisodeOperations import EpisodeMenu
+from AnimeWatcher.EpisodeOperations import EpisodeMenu, Menu
 from AnimeWatcher.UserInteractions import UserInteractions
+from AnimeWatcher.TrackerOperations import EpisodeTracker
 import os
 # Configure the logger
 logger = setup_logging(AnimeWatcherConfig.ANIME_WATCH_LOG_FILENAME,
@@ -32,50 +33,46 @@ class AnimeWatch:
         self.video_player = None  
         # Create an instance of UserInteractions
         self.user_interactions = UserInteractions()
+        self.episode_menu = Menu()
+        self.episode_tracker = EpisodeTracker()
+        
+        
 
     def naviguate_fetch_episodes(self, url, anime_name):
         """
-        Navigates to the given URL and fetches the episodes for the specified anime.
+        naviguates to the given URL and fetches the episodes for the specified anime.
 
         Args:
-            url (str): The URL to navigate to.
+            url (str): The URL to naviguate to.
             anime_name (str): The name of the anime.
 
         Returns:
             bool: True if the application needs to be restarted, False otherwise.
         """
         try:
-            # Navigate to the URL
+            # naviguate to the URL
             self.web_interactions.naviguate(url)
             # Get the start and max episodes from the page
             start_episode, max_episode = self.anime_interactions.get_number_episodes()
-            # Get the user's input for the episode they want to start watching
-            prompt = self.user_interactions.get_user_input(
-                start_episode, max_episode, self.web_interactions, logger)
-            # If the user wants to exit, return False to exit the program
-            if prompt is None:
-                # Exit the program
-                self.web_interactions.exiting_statement()
-                return True  # Signal to restart the application
-            # Returns True if the user wants to change the anime and False if the user wants to quit the program
-            return self.handle_episodes(prompt, start_episode, max_episode, url, anime_name)
 
-        except ValueError as ve:
-            logger.error(f"Error while converting prompt to integer: {ve}")
-            return False  # Signal to exit the program
+            return self.handle_episodes(self.user_interactions.get_user_input(max_episode, self.episode_tracker.get_watched_list(anime_name, start_episode, max_episode)),
+                                        start_episode, 
+                                        max_episode, 
+                                        url, 
+                                        anime_name,
+                                        )
+
         except KeyboardInterrupt:
             return False  # Signal to exit the program
         except Exception as e:
-            logger.error(f"Unexpected error: {e}")
-            return False  # Signal to exit the program
-
+            logger.error(f"Unexpected error in naviguate_fetch_episodes(): {e}")
+            return False
     def close_session(self):
         try:
-            # Print the exiting statement
-            self.web_interactions.exiting_statement()
             # Close the video player
             self.video_player.terminate_player()
-            # self.url_interactions.close_session()
+            # exit the program
+            exit()
         except Exception as e:
             logger.error(f"Error while closing session: {e}")
             raise
@@ -92,41 +89,25 @@ class AnimeWatch:
         Returns:
             str: The updated episode prompt.
         """
-        # Create an instance of EpisodeMenu and display the menu to the user
         episode_menu = EpisodeMenu(start_episode, max_episode)
         episode_menu.display_menu()
+        self.url_interactions = UrlInteractions("best")
 
         while True:
-            # Prompt the user to enter their choice (n: next episode, p: previous episode, c: change anime, q: quit)
-            user_choice = input("Enter your choice: ").lower()
-            # Check if the user's choice is valid (n, p, c, or q only are valid)
+            user_choice = input("Enter your choice: ").lower().strip()
+            
             if user_choice in episode_menu.available_choices():
-                self.url_interactions = UrlInteractions("best")
-                # Handle the user's choice
-                updated_prompt = episode_menu.handle_choice(
-                    user_choice, int(prompt))
-
-                # User wants to change the anime
-                if updated_prompt is False:
-                    # Exit the program
+                choice_result = episode_menu.handle_choice(user_choice, int(prompt))
+                
+                if choice_result == self.episode_menu.ChangeAnime:
                     self.video_player.terminate_player()
-                    # self.close_session()
-                    return False
-
-                # User wants to quit the program
-                elif updated_prompt is None:
-                    # Exit the program
+                    return choice_result
+                elif choice_result == self.episode_menu.Quit:
                     self.close_session()
-                    return None
-                # User chose 'n' or 'p', update the prompt and continue
                 else:
-                    # Update the prompt
-                    return updated_prompt
-
+                    return choice_result
             else:
-                print(
-                    f"Invalid choice. Please enter one of the following: {', '.join(episode_menu.available_choices())}.")
-
+                print(f"Invalid choice. Please enter one of the following: {', '.join(episode_menu.available_choices())}.")
     def format_and_play_episode(self, prompt, url, anime_name):
         """
         Formats the episode link using the provided prompt, URL, and anime name,
@@ -144,14 +125,10 @@ class AnimeWatch:
             Exception: If there is an error formatting or playing the episode.
         """
         try:
-            # Format the episode link using the prompt, URL, and anime name
-            episode_url = self.anime_interactions.format_episode_link(
-                url, anime_name, prompt)
-
             # Play the episode with the formatted URL
-            self.play_episode(episode_url)
+            self.play_episode(self.anime_interactions.format_episode_link(url, anime_name, prompt))
             # Return the formatted episode URL
-            return episode_url
+            return self.anime_interactions.format_episode_link(url, anime_name, prompt)
         except Exception as e:
             logger.error(f"Error formatting or playing episode: {e}")
             raise
@@ -169,30 +146,20 @@ class AnimeWatch:
         Returns:
             bool: True if the user wants to change the anime, False if the user wants to quit the program.
         """
-        while True:
-            try:
-                # Format the episode link and play the episode
-                self.format_and_play_episode(prompt, url, anime_name)
-                # Get the user's choice for the episode to watch
-                prompt = self.handle_user_choice(
-                    prompt, start_episode, max_episode)
-                # Check if the user wants to change the anime
-                if prompt is False:
+        try:
+            while True:
+                if prompt == self.episode_menu.ChangeAnime:
                     return True
-                # Check if the user wants to quit the program
-                if prompt is None:
+                elif prompt == self.episode_menu.Quit:
                     return False
-            except ValueError as ve:
-                # If the user enters an invalid prompt, log an error and exit the program
-                logger.error(f"Error while handling episodes: {ve}")
-                self.web_interactions.exiting_statement()
-                exit()
-
-            except Exception as e:
-                # If an unexpected error occurs, log an error and exit the program
-                logger.error(f"Unexpected error while handling episodes: {e}")
-                self.web_interactions.exiting_statement()
-                exit()
+                self.episode_tracker.update_anime(anime_name, int(prompt))
+                self.format_and_play_episode(prompt, url, anime_name)
+                prompt = self.handle_user_choice(prompt, start_episode, max_episode)
+        except ValueError as ve:
+            logger.error(f"Error while handling episodes: {ve}")
+        except Exception as e:
+            logger.error(f"Unexpected error while handling episodes: {e}")
+        return False
 
     def play_episode(self, episode_url):
         """
@@ -205,21 +172,12 @@ class AnimeWatch:
             Exception: If an error occurs while playing the episode.
         """
         try:
-            # Get the streaming URL for the episode (m3u8 file format)
-            source_data = self.url_interactions.get_streaming_url(episode_url)
-
             if self.video_player is None or self.video_player.is_open():
                 # Create a new instance of VideoPlayer if one
                 # doesn't exist or if the current instance is closed
                 self.video_player = VideoPlayer()
-
-            try:
                 # Try to play the episode using the video player instance
-                self.video_player.play_video(source_data)
-            except Exception as e:
-                # If an error occurs while playing the episode, log an error and raise an exception
-                logger.error(f"Error while playing episode: {e}")
-                raise
+                self.video_player.play_video(self.url_interactions.get_streaming_url(episode_url))
         except Exception as e:
             # If an error occurs while getting the streaming URL, log an error and raise an exception
             logger.error(f"Error while playing episode: {e}")
@@ -257,11 +215,9 @@ class Main:
         try:
             # Prompt the user to enter the anime they want to watch
             user_input = self.anime_watch.anime_interactions.format_anime_name_from_input(input("Enter the anime you want to watch: "))
-            # Find the animes matching the user's input
-            #animes = find_anime(user_input)
-            animes = self.anime_watch.anime_interactions.find_anime_website(user_input)
+
             # Return the animes found
-            return animes, user_input
+            return self.anime_watch.anime_interactions.find_anime_website(user_input), user_input
         except Exception as e:
             logger.error(f"Error while searching for anime: {e}")
             # If an error occurs, exit the program
@@ -277,22 +233,22 @@ class Main:
         """
         try:
             while True:
-                # Prompt the user to enter the anime they want to watch
                 animes, user_input = self.find_anime_from_input()
-                # If animes were found, prompt the user to select an anime
-                if animes:
-                    # Prompt the user to select an anime
-                    selected_index = self.user_interactions.select_anime(animes)
-                    # If the user wants to exit, return None
-                    # If the user selected an anime, return the selected anime
-                    return animes[selected_index - 1] if selected_index > 0 else None   
-                else:
-                    # If no animes were found, log a warning
+
+                if not animes:
                     print(f"{user_input} was not found.")
+                    continue
+
+                selected_index = self.user_interactions.select_anime(animes)
+                if selected_index == 0:
+                    return None
+
+                return animes[selected_index - 1]
+
         except Exception as e:
             logger.error(f"Error while searching and selecting anime: {e}")
-            # If an error occurs, exit the program
             exit()
+
 
     def watch_selected_anime(self, selected_anime):
         """
@@ -306,7 +262,7 @@ class Main:
         """
         try:
             print(f"Selected anime: {selected_anime['title']}")
-            # Navigate to the anime's page and fetch the episodes for the anime
+            # naviguate to the anime's page and fetch the episodes for the anime
             return self.anime_watch.naviguate_fetch_episodes(selected_anime['link'], selected_anime['title'])
         except Exception as e:
             logger.error(f"Error while watching anime: {e}")
@@ -328,21 +284,18 @@ class Main:
 
         """
         try:
-            # Variable to control the loop
-            restart = True
-            # Loop until the user wants to exit the program
-            while restart:
-                # Search for the anime and select it
+            while True:
                 selected_anime = self.search_and_select_anime()
-                # If the user wants to exit, exit the loop
                 if selected_anime is None:
-                    break  # Exit the loop and cleanup
-                # Watch the selected anime
+                    break  # Exit the loop if no anime is selected
                 restart = self.watch_selected_anime(selected_anime)
-            # Call the web instance cleanup function
-            self.anime_watch.web_interactions.cleanup()
+                if not restart:
+                    break  # Exit the loop if the user does not want to restart
+        except KeyboardInterrupt:
+            print("\nProgram interrupted. Exiting...")
         except Exception as e:
             logger.error(f"Unexpected exception: {e}")
-            # If an error occurs, exit the program
-            exit()
+        finally:
+            self.anime_watch.web_interactions.cleanup()
+            print("Cleanup completed.")
 

@@ -4,35 +4,43 @@ from Config.config import ScriptConfig
 from Config.logs_config import setup_logging
 
 # Configure the logger
-logger = setup_logging(ScriptConfig.SCRIPT_FILENAME,
-                       ScriptConfig.SCRIPT_LOG_PATH)
+logger = setup_logging(ScriptConfig.SCRIPT_FILENAME,ScriptConfig.SCRIPT_LOG_PATH)
 
 class Scripts:
-    def run_linux_script(self):
-        # Run the linux script
-        subprocess.run(['./' + {ScriptConfig.linux_script}])
-
-    def run_windows_script(self):
-        # Run the windows script as administrator
-        
-        subprocess.run(['powershell.exe', '-File',
-                       ScriptConfig.windows_script])
-
-    def install_python_packages(self):
-        # Install the required python packages using pip
-        subprocess.run(['pip', 'install', '-r',
-                       ScriptConfig.requirements_file])
-        
-    def main(self):
-        # Get the operating system
-        operating_system = platform.system().lower()
-        # Run the appropriate script based on the operating system
-        if operating_system == 'linux':
-            self.run_linux_script()
-        elif operating_system == 'windows':
-            self.run_windows_script()
+    def run_script(self):
+        if platform.system().lower() == 'linux':
+            # Run the create environment script
+            self.create_environment()
+            # Run the linux installation script
+            subprocess.run(['bash', ScriptConfig.linux_script])
+        elif platform.system().lower() == 'windows':
+            # Run the create environment script
+            self.create_environment()
+            # Run the windows installation script
+            subprocess.run(['powershell.exe', '-File', ScriptConfig.windows_script])
+            # Install curses for windows
+            self.install_python_package(ScriptConfig.window_curses)
         else:
-            # Raise an exception
-            raise Exception(f"Unsupported operating system: {operating_system}")
-        # Install the required python packages
-        self.install_python_packages()
+            raise Exception(f"Unsupported operating system: {platform.system().lower()}")
+
+        
+    def create_environment(self):
+        # Create the virtual environment
+        subprocess.run(['python', '-m', 'venv', ScriptConfig.venv_name])
+
+    def install_python_package(self, package=None):
+        # If a specific package is provided, install it
+        if package:
+            subprocess.run([f'{ScriptConfig.venv_name}/bin/python', '-m', 'pip', 'install', package])
+        else:
+            # Install all the required packages
+            subprocess.run([f'{ScriptConfig.venv_name}/bin/python', '-m', 'pip', 'install', '-r', ScriptConfig.requirements_file])
+
+    def main(self):
+        try:
+            # Get the operating system
+            # Run the appropriate script based on the operating system
+            self.run_script()
+        except Exception as e:
+            logger.error(f"An error occurred: {e}")
+            raise

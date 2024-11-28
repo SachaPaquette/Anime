@@ -9,7 +9,12 @@ class Colors:
     orange = '\033[33m'
     endc = '\033[0m'
 
-
+class Menu:
+    NextEpisode = 'n'
+    PreviousEpisode = 'p'
+    ChangeAnime = 'c'
+    Quit = 'q'
+    
 class EpisodeMenu:
 
     def __init__(self, start_episode, max_episode):
@@ -25,7 +30,7 @@ class EpisodeMenu:
         """
         Resets the command line interface by clearing the screen.
         """
-        print("\033c", end="")  # Clear the screen
+        print("\033c", end="", flush=True)  # Clear the screen
 
     def display_menu(self):
         """
@@ -34,11 +39,14 @@ class EpisodeMenu:
         # Clear the screen before displaying the menu options
         self.reset_cli()
         # Display the menu options
-        print("\n===== Menu =====\n")
-        print(f"{self.color.green}[N] Next Episode{self.color.endc}\n")
-        print(f"{self.color.yellow}[P] Previous Episode{self.color.endc}\n")
-        print(f"{self.color.orange}[C] Change Anime{self.color.endc}\n")
-        print(f"{self.color.red}[Q] Quit{self.color.endc}\n")
+        print(
+            "===== Menu =====\n"
+            f"{self.color.green}[N] Next Episode{self.color.endc}\n"
+            f"{self.color.yellow}[P] Previous Episode{self.color.endc}\n"
+            f"{self.color.orange}[C] Change Anime{self.color.endc}\n"
+            f"{self.color.red}[Q] Quit{self.color.endc}\n"
+            )
+        
 
     def handle_choice(self, user_choice, current_episode):
         """
@@ -55,23 +63,23 @@ class EpisodeMenu:
         - False if user_choice is 'c'.
         - The current episode if user_choice is invalid.
         """
-        # Handle the user's choice
-        # If the user enters 'n', return the next episode
-        if user_choice == 'n':
-            return self.next_episode(current_episode)
-        # If the user enters 'p', return the previous episode
-        elif user_choice == 'p':
-            return self.previous_episode(current_episode)
-        # If the user enters 'q', return None to quit the program
-        elif user_choice == 'q':
-            return None
-        # If the user enters 'c', return False to change the anime
-        elif user_choice == 'c':
-            return self.change_anime()
-        else:
-            # If the user enters an invalid choice, print an error message and return the current episode
-            print("Invalid choice. Please enter 'n', 'p', 'c' or 'q'.")
-            return current_episode
+        # Handle the user's choice        
+        match user_choice:
+            # If the user enters 'n', return the next episode
+            case Menu.NextEpisode:
+                return self.next_episode(current_episode)
+            # If the user enters 'p', return the previous episode
+            case Menu.PreviousEpisode:
+                return self.previous_episode(current_episode)
+            # If the user enters 'q', return None to quit the program
+            case Menu.Quit:
+                return Menu.Quit
+            # If the user enters 'c', return False to change the anime
+            case Menu.ChangeAnime:
+                return Menu.ChangeAnime
+            case _:
+                print(f"Invalid choice. Please enter one of the following: {', '.join(self.available_choices())}.")
+                return current_episode
 
     def next_episode(self, current_episode):
         """
@@ -83,11 +91,7 @@ class EpisodeMenu:
         Returns:
             int: The next episode number if available, otherwise returns the current episode number.
         """
-        if current_episode < self.max_episode:
-            return current_episode + 1
-        else:
-            print("No more episodes available.")
-            return current_episode
+        return current_episode + 1 if current_episode < self.max_episode else current_episode
 
     def previous_episode(self, current_episode):
         """
@@ -99,23 +103,9 @@ class EpisodeMenu:
         Returns:
             int: The previous episode number if it exists, otherwise the current episode number.
         """
-        # Check if the current episode is greater than the start episode
-        if current_episode > self.start_episode:
+       
             # If the current episode is greater than the start episode, return the previous episode
-            return current_episode - 1
-        else:
-            # If the current episode is equal to the start episode, print an error message and return the current episode
-            print("Already at the first episode.")
-            return current_episode
-
-    def change_anime(self):
-        """
-        Change the current anime being watched by returning False to the main loop.
-
-        Returns:
-            bool:  False if the user wants to change the anime.
-        """
-        return False
+        return current_episode - 1 if current_episode > self.start_episode else current_episode
 
     def available_choices(self):
         """
@@ -124,4 +114,4 @@ class EpisodeMenu:
         Returns:
             list: A list of the available choices for the user.
         """
-        return ['n', 'p', 'c', 'q']
+        return [Menu.NextEpisode, Menu.PreviousEpisode, Menu.ChangeAnime, Menu.Quit]

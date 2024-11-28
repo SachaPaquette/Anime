@@ -80,3 +80,13 @@ class ScriptConfig:
     requirements_file = "./Requirements/requirements.txt"
     SCRIPT_FILENAME = "installer"
     SCRIPT_LOG_PATH = "./Logs/Installer.log"
+    windows_curse = "windows-curses"
+    venv_name = "AnimeWatcherEnv"
+    
+class EpisodeTrackerConfig:
+    ##############################
+    #        Episode Tracker      #
+    ##############################
+    ANIME_WATCHER_JSON_FILE = "./AnimeWatcher/EpisodeTracker/episode_tracker.json"
+    EPISODE_TRACKER_LOG_PATH = "./Logs/EpisodeTracker.log"
+    EPISODE_TRACKER_LOG_FILENAME = "EpisodeTracker"

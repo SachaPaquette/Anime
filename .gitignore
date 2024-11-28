@@ -6,7 +6,9 @@ __pycache__/
 !Extensions/.gitkeep
 Logs/*
 Extensions/uBlock/*
-
+anime
+AnimeWatcher/EpisodeTracker/episode_tracker.json
+./AnimeWatcher/EpisodeTracker/*
 # Distribution / packaging
 .Python
 build/
@@ -26,6 +28,9 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+AnimeWatcherEnv
+# Testing 
+Test/*
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
