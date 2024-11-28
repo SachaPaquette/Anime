@@ -13,7 +13,7 @@ try {
     if (-not $chrome) {
         # Download and install Google Chrome
         Write-Host "Openning Google Chrome webpage..."
-        Start "https://www.google.com/intl/en_ca/chrome/"
+        Start "https://www.google.com/intl/fr_ca/chrome/next-steps.html?statcb=1&installdataindex=empty&defaultbrowser=0#"
     } else {
         Write-Host "Google Chrome is already installed."
     }
