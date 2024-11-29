@@ -16,10 +16,13 @@ class Scripts:
         elif platform.system().lower() == 'windows':
             # Run the create environment script
             self.create_environment()
+            # Activate the virtual environment
+            subprocess.run([f'.\\{ScriptConfig.venv_name}\\Scripts\\activate.bat'], shell=True)
             # Run the windows installation script
             subprocess.run(['powershell.exe', '-File', ScriptConfig.windows_script])
-            # Install curses for windows
-            self.install_python_package(ScriptConfig.window_curses)
+            # Install the windows-curses package
+            subprocess.run(['pip', 'install', 'windows-curses'])
+
         else:
             raise Exception(f"Unsupported operating system: {platform.system().lower()}")
 

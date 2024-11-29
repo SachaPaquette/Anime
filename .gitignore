@@ -7,8 +7,7 @@ __pycache__/
 Logs/*
 Extensions/uBlock/*
 anime
-AnimeWatcher/EpisodeTracker/episode_tracker.json
-./AnimeWatcher/EpisodeTracker/*
+AnimeWatcher/EpisodeTracker/*
 # Distribution / packaging
 .Python
 build/
