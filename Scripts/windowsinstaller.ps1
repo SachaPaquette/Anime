@@ -11,9 +11,7 @@ try {
         Write-Host "Chocolatey is already installed."
     }
 
-    # Check if Google Chrome is installed
-    $chrome = Get-Package -Name "Google Chrome" -ErrorAction SilentlyContinue
-    if (-not $chrome) {
+    if (-not (Get-Package -Name "Google Chrome" -ErrorAction SilentlyContinue)) {
         # Download and install Google Chrome
         Write-Host "Opening Google Chrome webpage..."
         Start-Process "https://www.google.com/intl/en_ca/chrome/"
@@ -22,19 +20,15 @@ try {
     }
 
     # Check if MPV is installed
-    $mpv = choco list --local-only | Where-Object { $_ -match "mpv" }
-    if (-not $mpv) {
+    if (-not (choco list --local-only | Where-Object { $_ -match "mpv" })) {
         # Download and install MPV
         Write-Host "Downloading and installing MPV..."
         choco install mpv -y
     } else {
         Write-Host "MPV is already installed."
     }
-	
-    # Check if Python is installed
-    $python = & python --version 2>$null
 
-    if (-not $python) {
+    if (-not (Get-Command -Name "python" -ErrorAction SilentlyContinue)) {
         #Download Python to the machine
         choco install python --pre 
     } else {
