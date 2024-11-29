@@ -63,7 +63,7 @@ def driver_setup():
         # Keep the browser open after the script finishes executing (for debugging)
         #options.add_experimental_option('detach', True)
         # Run in headless mode (without opening a browser window)
-        #options.add_argument('--headless')
+        options.add_argument('--headless')
         # Disable logging and configure other options
         configure_browser_options(options, DriverConfig.USER_AGENTS, DriverConfig.CRX_PATH)
         # ChromeDriverManager will install the latest version of ChromeDriver
