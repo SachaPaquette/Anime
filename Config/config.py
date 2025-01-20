@@ -47,8 +47,8 @@ class WebOperationsConfig:
     ##############################
     #        Web Operations       #
     ##############################
-    GOGO_ANIME_SITE_BASE_URL = "https://gogoanime3.net/anime-list.html?page={}"
-    GOGO_ANIME_SEARCH = "https://gogoanime3.net/search.html?keyword={}"
+    GOGO_ANIME_SITE_BASE_URL = "https://gogoanime3.cc/anime-list.html?page={}"
+    GOGO_ANIME_SEARCH = "https://gogoanime3.cc/search.html?keyword={}"
     EXITING_MESSAGE = "Exiting..."
     EP_START = "ep_start"
     EP_END = "ep_end"
