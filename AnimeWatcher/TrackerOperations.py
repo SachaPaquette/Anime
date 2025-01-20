@@ -1,12 +1,6 @@
 from Config.logs_config import setup_logging
 from Config.config import EpisodeTrackerConfig
-from bs4 import BeautifulSoup
-import requests
-from requests.adapters import HTTPAdapter, Retry
-from Cryptodome.Cipher import AES
-from urllib.parse import urlparse, parse_qsl, urlencode
-import re
-import base64
+import os
 import json
 
 # Setup logging
@@ -24,31 +18,44 @@ class EpisodeTracker():
         If the file doesn't exist or encounters JSON decoding errors, log the appropriate message and handle the situation.
         """
         try:
+            # Check if the file exists before attempting to read it
+            if not os.path.exists(EpisodeTrackerConfig.ANIME_WATCHER_JSON_FILE):
+                logger.warning("JSON file not found. Creating a new file.")
+                self.create_empty_file()
+
+            # Attempt to read the JSON file
             with open(EpisodeTrackerConfig.ANIME_WATCHER_JSON_FILE, 'r') as file:
                 self.episode_list = json.load(file)
-        except FileNotFoundError:
-            logger.error("JSON file not found.")
-            # Create an empty JSON file if it doesn't exist
-            self.create_empty_file()
+
         except json.JSONDecodeError:
-            logger.error("Error decoding JSON file.")
+            logger.error("Error decoding JSON file. Reinitializing as an empty list.")
             self.episode_list = []  # Initialize with an empty list
+            self.create_empty_file()  # Reset the file with an empty list
+
         except Exception as e:
             logger.error(f"Error reading JSON file: {e}")
             self.episode_list = []  # Initialize with an empty list
             raise e
-    
+
     def create_empty_file(self):
         """
         Create an empty JSON file at the specified path.
         """
         try:
-            # Open the file in write mode and dump an empty list
+            # Ensure the directory exists
+            directory = os.path.dirname(EpisodeTrackerConfig.ANIME_WATCHER_JSON_FILE)
+            if directory and not os.path.exists(directory):
+                os.makedirs(directory)  # Create the directory if it doesn't exist
+
+            # Create the empty JSON file
             with open(EpisodeTrackerConfig.ANIME_WATCHER_JSON_FILE, 'w') as file:
                 json.dump([], file)
+            logger.info("Created a new empty JSON file.")
+
         except Exception as e:
             logger.error(f"Error while creating empty JSON file: {e}")
             raise
+
 
     def add_anime(self, anime_name, min_episode_number, max_episode_number):
         """

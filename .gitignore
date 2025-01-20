@@ -8,7 +8,7 @@ Logs/*
 Extensions/uBlock/*
 anime
 AnimeWatcher/EpisodeTracker/episode_tracker.json
-./AnimeWatcher/EpisodeTracker/*
+!AnimeWatcher/EpisodeTracker/.gitkeep
 # Distribution / packaging
 .Python
 build/
