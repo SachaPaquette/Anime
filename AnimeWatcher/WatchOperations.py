@@ -51,9 +51,13 @@ class AnimeWatch:
         """
         try:
             # navigate to the URL
-            self.web_interactions.navigate(url)
+            #self.web_interactions.navigate(url)
+            
+            # Fetch the number of episodes for the anime using beautifulsoup
+            start_episode, max_episode = self.anime_interactions.fetch_episodes(url)
+            
             # Get the start and max episodes from the page
-            start_episode, max_episode = self.anime_interactions.get_number_episodes()
+            #start_episode, max_episode = self.anime_interactions.get_number_episodes()
 
             return self.handle_episodes(self.user_interactions.get_user_input(max_episode, self.episode_tracker.get_watched_list(anime_name, start_episode, max_episode)),
                                         start_episode, 
@@ -213,14 +217,10 @@ class Main:
             tuple: A tuple containing the found animes and the user's input.
         """
         try:
-            # Prompt the user to enter the anime they want to watch
             user_input = self.anime_watch.anime_interactions.format_anime_name_from_input(input("Enter the anime you want to watch: "))
-
-            # Return the animes found
             return self.anime_watch.anime_interactions.find_anime_website(user_input), user_input
         except Exception as e:
             logger.error(f"Error while searching for anime: {e}")
-            # If an error occurs, exit the program
             exit()
 
 

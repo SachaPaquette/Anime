@@ -71,7 +71,8 @@ class WebElementsConfig:
     HYPERLINK = "a"  # Tag name of the hyperlink
     LI_ELEMENT = "li"  # Tag name of the list element
     XPATH_HREF = ".//a"  # XPath to the hyperlink
-    
+    HYPERLINK_SELECTOR = "a"  # Selector for the hyperlink
+    BASE_URL = "https://gogoanime3.cc"  # Base URL for the website
 class ScriptConfig:
     windows_script = "./Scripts/windowsinstaller.ps1"
     linux_script = "./Scripts/linuxinstaller.sh"

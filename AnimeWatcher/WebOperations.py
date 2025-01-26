@@ -42,7 +42,7 @@ class WebInteractions:
         except Exception as e:
             logger.error(f"Error during browser cleanup: {e}")
 
-    def naviguate(self, url):
+    def navigate(self, url):
         """
         naviguates to the specified URL using the Selenium WebDriver.
 
@@ -163,6 +163,41 @@ class AnimeInteractions:
         except Exception as e:
             logger.error(f"Error while finding episodes: {e}")
             raise
+    
+    def fetch_episodes(self, anime_url):
+        """
+        Fetches the range of episodes available for a given anime URL.
+
+        Args:
+            anime_url (str): The URL of the anime.
+
+        Returns:
+            tuple: A tuple containing the start and maximum episode numbers.
+        """
+        try:
+            response = requests.get(anime_url)
+            response.raise_for_status()
+
+            soup = BeautifulSoup(response.text, "html.parser")
+            episodes = soup.select("ul#episode_page li a")
+
+            episode_numbers = (int(re.search(r"\d+", ep.text).group()) for ep in episodes if re.search(r"\d+", ep.text))
+            min_episode, max_episode = float("inf"), float("-inf")
+
+            for number in episode_numbers:
+                min_episode = min(min_episode, number)
+                max_episode = max(max_episode, number)
+
+            return min_episode, max_episode
+
+        except requests.RequestException as e:
+            logger.error(f"Network error while fetching episodes from '{anime_url}': {e}")
+            return None, None
+
+        except Exception as e:
+            logger.error(f"Error while parsing episodes from '{anime_url}': {e}")
+            return None, None
+
 
     def find_pagination_links(self, pagination_div):
         """
@@ -195,7 +230,7 @@ class AnimeInteractions:
         Process a single page of the anime list and append the results to anime_list.
         """
         try:
-            self.web_interactions.naviguate(WebOperationsConfig.GOGO_ANIME_SEARCH.format(
+            self.web_interactions.navigate(WebOperationsConfig.GOGO_ANIME_SEARCH.format(
                 input_anime_name) + f"&page={page_number}")
 
             ul_items = self.web_interactions.driver.find_element(
@@ -243,36 +278,74 @@ class AnimeInteractions:
             list: A list of anime found on the website.
         """
         try:
-            anime_list = []  # Initialize the anime list
+            anime_list = []
 
-            # naviguate to the anime search page
-            self.web_interactions.naviguate(
-                WebOperationsConfig.GOGO_ANIME_SEARCH.format(input_anime_name))
+            search_url = WebOperationsConfig.GOGO_ANIME_SEARCH.format(input_anime_name)
+            response = requests.get(search_url)
+            soup = BeautifulSoup(response.text, "html.parser")
 
-            # Check for pagination (multiple pages of results)
-            pagination_div = self.web_interactions.find_elements(
-                By.CSS_SELECTOR, WebOperationsConfig.ANIME_NAME_PAGINATION, timeout=5, multiple=False)
+            max_page = self._get_max_page(soup)
 
-            if pagination_div:
-                # Iterate through the page numbers
-                for page_number in self.find_pagination_links(pagination_div):
-                    # Process each page of the anime list
-                    self.process_anime_list_page(
-                        input_anime_name, anime_list, page_number)
-            else:
-                # Process the first page if no pagination
-                self.process_anime_list_page(input_anime_name, anime_list)
+            anime_list.extend(self._parse_anime_items(soup))
+            
+            if max_page > 1:
+                for page_number in range(2, max_page + 1):
+                    page_url = f"{search_url}&page={page_number}"
+                    response = requests.get(page_url)
+                    soup = BeautifulSoup(response.text, "html.parser")
+                    anime_list.extend(self._parse_anime_items(soup))
 
-            return anime_list  # Return the collected anime list
+            return anime_list
 
-        except NoSuchElementException as e:
-            logger.error(f"No anime found for '{input_anime_name}': {e}")
-            return []  # Return an empty list if no anime found
+        except requests.RequestException as e:
+            logger.error(f"Network error while searching for '{input_anime_name}': {e}")
+            return []
 
         except Exception as e:
-            logger.error(
-                f"Error while finding anime website for '{input_anime_name}': {e}")
+            logger.error(f"Error while finding anime website for '{input_anime_name}': {e}")
             raise
+
+
+    def _get_max_page(self, soup):
+        """
+        Extracts the maximum page number from the pagination.
+
+        Args:
+            soup (BeautifulSoup): The parsed HTML content.
+
+        Returns:
+            int: The maximum page number.
+        """
+        pagination_list = soup.select(".pagination-list li")
+        page_numbers = [int(li.a["data-page"]) for li in pagination_list if li.a]
+        return max(page_numbers) if page_numbers else 1
+
+
+    def _parse_anime_items(self, soup):
+        """
+        Parses anime items from the page.
+
+        Args:
+            soup (BeautifulSoup): The parsed HTML content of a page.
+
+        Returns:
+            list: A list of anime dictionaries found on the page.
+        """
+        anime_list = []
+        items = soup.select("ul.items > li")
+
+        for item in items:
+            try:
+                name = item.select_one("p.name a").text.strip()
+                url = WebElementsConfig.BASE_URL + item.select_one("p.name a")["href"]
+                image_url = item.select_one("div.img img")["src"]
+                released = item.select_one("p.released").text.strip().replace("Released: ", "")
+                anime_list.append({"title": name, "link": url, "image_url": image_url, "released": released})
+            except AttributeError as e:
+                logger.warning(f"Failed to parse anime item: {item} due to missing field: {e}")
+
+        return anime_list
+
 
     def find_li_elements(self, episodes):
         """
