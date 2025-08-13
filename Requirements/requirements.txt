@@ -1,6 +1,6 @@
 python_mpv_jsonipc==1.2.0
 beautifulsoup4==4.12.2
-requests==2.32.2
+requests==2.32.4
 pycryptodome==3.19.1
 pycryptodomex==3.19.1
 urllib3==2.5.0
